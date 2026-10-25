@@ -4,7 +4,7 @@ const { inMemoryStore } = require('../config/database');
 const { emitEvent } = require('../kafka/producer');
 
 // POST dispatch weekly report summary to parents via WhatsApp
-router.post('/whatsapp-dispatch', async (req, res) => {
+router.post(['/whatsapp-dispatch', '/dispatch-whatsapp'], async (req, res) => {
   try {
     const {
       studentId = 'b0000000-0000-0000-0000-000000000001',

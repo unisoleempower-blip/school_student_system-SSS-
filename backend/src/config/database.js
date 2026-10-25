@@ -144,6 +144,95 @@ const inMemoryStore = {
         { directive: 'Ensure 45 minutes of quiet study on Sunday morning for the short recap quiz.', purpose: 'Reinforces retention before Monday classes.' }
       ]
     }
+  ],
+  assessments: [
+    {
+      id: 'asgn_10_sci_01',
+      title: 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      description: 'CBSE & HP Board standard diagnostic assessment covering mirror formula, sign conventions, and image formation.',
+      teacherName: 'Er. Rajesh Kumar',
+      grade: '10',
+      section: 'Science-A',
+      board: 'CBSE',
+      subject: 'Science',
+      durationMinutes: 30,
+      totalMarks: 12,
+      questions: [
+        {
+          id: 'q_asgn_01',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Spherical Mirrors',
+          grade: '10',
+          board: 'CBSE',
+          question_type: 'MCQ_SINGLE',
+          difficulty: 'MEDIUM',
+          benchmark_time_seconds: 90,
+          question_latex: 'An object is placed at a distance of $30\\,\\text{cm}$ in front of a concave mirror of focal length $15\\,\\text{cm}$. The distance of the image from the mirror is:',
+          options_latex: [
+            { key: 'A', latex: '$v = -15\\,\\text{cm}$', is_correct: false, distractor_trap: 'Substituted focal length as image distance' },
+            { key: 'B', latex: '$v = -30\\,\\text{cm}$', is_correct: true, distractor_trap: null },
+            { key: 'C', latex: '$v = +30\\,\\text{cm}$', is_correct: false, distractor_trap: 'Sign convention error: took real image as positive' },
+            { key: 'D', latex: '$v = -60\\,\\text{cm}$', is_correct: false, distractor_trap: 'Multiplied denominator factor incorrectly' }
+          ],
+          correct_answer: 'B',
+          solution_latex: 'For a concave mirror, $f = -15\\,\\text{cm}$ and $u = -30\\,\\text{cm}$. Using mirror formula: $$\\frac{1}{f} = \\frac{1}{v} + \\frac{1}{u} \\implies \\frac{1}{v} = \\frac{1}{-15} - \\frac{1}{-30} = -\\frac{1}{30} \\implies v = -30\\,\\text{cm}$$',
+          socratic_hints: [
+            "Write the mirror formula $\\frac{1}{f} = \\frac{1}{v} + \\frac{1}{u}$.",
+            "Apply the New Cartesian sign convention: both $f$ and $u$ are negative for a concave mirror.",
+            "Solve for $v$ by isolating $\\frac{1}{v}$."
+          ]
+        },
+        {
+          id: 'q_asgn_02',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Refraction & Snell Law',
+          grade: '10',
+          board: 'CBSE',
+          question_type: 'MCQ_SINGLE',
+          difficulty: 'MEDIUM',
+          benchmark_time_seconds: 75,
+          question_latex: 'Light enters from air into water of refractive index $n = \\frac{4}{3}$. What is the speed of light in water if the speed of light in vacuum is $c = 3.0 \\times 10^8\\,\\text{m/s}$?',
+          options_latex: [
+            { key: 'A', latex: '$v = 2.25 \\times 10^8\\,\\text{m/s}$', is_correct: true, distractor_trap: null },
+            { key: 'B', latex: '$v = 4.0 \\times 10^8\\,\\text{m/s}$', is_correct: false, distractor_trap: 'Multiplied by refractive index instead of dividing' },
+            { key: 'C', latex: '$v = 1.5 \\times 10^8\\,\\text{m/s}$', is_correct: false, distractor_trap: 'Used glass refractive index (1.5) instead of water (1.33)' },
+            { key: 'D', latex: '$v = 2.0 \\times 10^8\\,\\text{m/s}$', is_correct: false, distractor_trap: 'Calculation error in fraction inversion' }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'Refractive index is defined as $n = \\frac{c}{v}$. Therefore, $$v = \\frac{c}{n} = \\frac{3.0 \\times 10^8}{4/3} = 3.0 \\times 10^8 \\times \\frac{3}{4} = 2.25 \\times 10^8\\,\\text{m/s}$$',
+          socratic_hints: [
+            "What is the definition of absolute refractive index $n$ in terms of speeds of light?",
+            "Use $n = \\frac{c}{v}$ where $c$ is speed in vacuum and $v$ is speed in the medium.",
+            "Substitute $n = \\frac{4}{3}$ and calculate."
+          ]
+        },
+        {
+          id: 'q_asgn_03',
+          topic: 'Electricity',
+          subtopic: 'Joule Heating & Resistance',
+          grade: '10',
+          board: 'CBSE',
+          question_type: 'MCQ_SINGLE',
+          difficulty: 'MEDIUM',
+          benchmark_time_seconds: 90,
+          question_latex: 'An electric heater of resistance $R = 50\\,\\Omega$ is connected to a $220\\,\\text{V}$ line for $2\\,\\text{hours}$. Calculate the heat energy produced in joules.',
+          options_latex: [
+            { key: 'A', latex: '$H = 6.97 \\times 10^6\\,\\text{J}$', is_correct: true, distractor_trap: null },
+            { key: 'B', latex: '$H = 1.94 \\times 10^3\\,\\text{J}$', is_correct: false, distractor_trap: 'Forgot to convert hours to seconds ($3600\\,\\text{s}$)' },
+            { key: 'C', latex: '$H = 3.48 \\times 10^6\\,\\text{J}$', is_correct: false, distractor_trap: 'Used 1 hour instead of 2 hours' },
+            { key: 'D', latex: '$H = 1.39 \\times 10^7\\,\\text{J}$', is_correct: false, distractor_trap: 'Doubled the power formula factor' }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'Power is $P = \\frac{V^2}{R} = \\frac{(220)^2}{50} = \\frac{48400}{50} = 968\\,\\text{W}$. Time is $t = 2 \\times 3600 = 7200\\,\\text{s}$. Total heat energy: $$H = P \\times t = 968 \\times 7200 = 6.9696 \\times 10^6\\,\\text{J} \\approx 6.97 \\times 10^6\\,\\text{J}$$',
+          socratic_hints: [
+            "Calculate power dissipated using $P = \\frac{V^2}{R}$.",
+            "Convert time from hours to seconds: $2\\,\\text{h} = 2 \\times 3600\\,\\text{s}$.",
+            "Calculate heat energy $H = P \\times t$."
+          ]
+        }
+      ],
+      createdAt: new Date().toISOString()
+    }
   ]
 };
 

@@ -94,6 +94,10 @@
           <i data-lucide="clipboard-check" style="width:16px; height:16px;"></i>
           Weekly Dual Smart Reports
         </button>
+        <button class="sub-tab-btn" id="btnOpenTestBuilder" style="margin-left:auto; background:rgba(59, 130, 246, 0.15); border-color:rgba(59, 130, 246, 0.4); color:var(--accent-blue); font-weight:700;">
+          <i data-lucide="folder-plus" style="width:16px; height:16px;"></i>
+          Test Builder (<span id="testDraftCount">0</span>)
+        </button>
       </div>
 
       <!-- TAB 1: AI LATEX QUESTION GENERATOR STUDIO -->
@@ -718,6 +722,27 @@
         </div>
       </div>
 
+      <!-- Active Assigned Tests Selector Banner -->
+      <div class="glass-card" style="margin-bottom: 1.25rem; padding: 12px 18px; border-left: 4px solid var(--accent-cyan); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;" id="assignedTestSelectorBanner">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: var(--accent-cyan);">
+            <i data-lucide="clipboard-list" style="width: 20px; height: 20px;"></i>
+          </div>
+          <div>
+            <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--accent-cyan); font-weight: 700; letter-spacing: 0.5px;">Active Faculty Test Assignment</div>
+            <h3 id="assignedTestBannerTitle" style="font-size: 0.98rem; margin: 0; color: var(--text-primary);">Class 10 Science: Light – Spherical Mirrors & Derivations</h3>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <select id="selectStudentAssignedTest" class="form-select" style="font-size: 0.82rem; padding: 6px 10px; max-width: 300px;">
+            <!-- Populated dynamically with published assessments -->
+          </select>
+          <button class="btn-primary" id="btnLoadAssignedTest" style="font-size: 0.82rem; padding: 6px 14px; background: linear-gradient(135deg, #0284c7, #06b6d4);">
+            <i data-lucide="play" style="width: 14px; height: 14px;"></i> Load Assigned Test
+          </button>
+        </div>
+      </div>
+
       <!-- TASK-13: NTA Exam Simulator (Question View + 30-Question Palette Grid) -->
       <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 1.5rem;" id="ntaExamContainer">
         
@@ -971,6 +996,132 @@
         <span style="font-size:0.75rem; color:var(--text-muted);">Recipient: +91 98160-XXXXX (Mr. Ramesh Sharma)</span>
         <button class="btn-primary" id="btnConfirmSendWhatsApp" style="font-size:0.8rem; padding:6px 14px; background:#22c55e;">
           <i data-lucide="send" style="width:14px; height:14px;"></i> Dispatch WhatsApp Webhook
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Assignment Builder & Publisher Modal -->
+  <div class="modal-overlay" id="modalTestBuilder">
+    <div class="modal-card" style="max-width: 680px; max-height: 85vh; display: flex; flex-direction: column;">
+      <div style="background: linear-gradient(135deg, #1e3a8a, #0284c7); padding: 14px 18px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="folder-plus" style="width: 22px; height: 22px;"></i>
+          <div>
+            <strong style="font-size: 1.05rem;">Class Test Assignment Builder</strong>
+            <p style="font-size: 0.75rem; margin: 0; opacity: 0.85;">Compile & Publish AI / NCERT Questions to Student Rosters</p>
+          </div>
+        </div>
+        <button id="btnCloseTestBuilder" style="background: transparent; border: none; color: #fff; cursor: pointer;">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <div style="padding: 16px; overflow-y: auto; flex: 1;">
+        <div class="grid-2col" style="margin-bottom: 1rem;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="inputTestTitle" style="font-size: 0.78rem;">Test Title</label>
+            <input type="text" class="form-select" id="inputTestTitle" value="Class 10 Science: Weekly Diagnostic Assessment" style="font-size: 0.85rem;" />
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label class="form-label" for="selectTestClassSection" style="font-size: 0.78rem;">Target Class & Section</label>
+            <select class="form-select" id="selectTestClassSection" style="font-size: 0.85rem;">
+              <option value="10-Science-A" selected>Class 10 • Section Science-A</option>
+              <option value="10-Science-B">Class 10 • Section Science-B</option>
+              <option value="11-PCM-A">Class 11 • Section PCM-A (JEE/HPB)</option>
+              <option value="12-PCM-A">Class 12 • Section PCM-A</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; padding-bottom: 6px; border-bottom: 1px solid var(--border-subtle);">
+          <strong style="font-size: 0.88rem; color: var(--accent-cyan);">Questions Included (<span id="modalDraftQuestionCount">0</span>)</strong>
+          <span style="font-size: 0.75rem; color: var(--text-muted);" id="modalDraftTotalMarks">Total: 0 Marks &bull; ~0 Mins</span>
+        </div>
+
+        <div id="modalDraftQuestionsList" style="display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto;">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+
+      <div style="padding: 12px 18px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle);">
+        <button class="btn-secondary" id="btnClearDraftTest" style="font-size: 0.8rem; padding: 6px 12px; color: var(--accent-rose);">
+          <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i> Clear Draft
+        </button>
+        <button class="btn-primary" id="btnPublishTestAssignment" style="font-size: 0.85rem; padding: 8px 18px; background: linear-gradient(135deg, #10b981, #059669);">
+          <i data-lucide="send" style="width: 16px; height: 16px;"></i> Publish & Assign to Class Roster
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Student Diagnostic Results & Mastery Breakdown Modal -->
+  <div class="modal-overlay" id="modalDiagnosticResults">
+    <div class="modal-card" style="max-width: 620px; max-height: 85vh; display: flex; flex-direction: column;">
+      <div style="background: linear-gradient(135deg, #059669, #0284c7); padding: 14px 18px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="award" style="width: 24px; height: 24px;"></i>
+          <div>
+            <strong style="font-size: 1.05rem;">Diagnostic Test Evaluation Summary</strong>
+            <p style="font-size: 0.75rem; margin: 0; opacity: 0.9;">Sub-Second Telemetry & Concept Mastery Breakdown</p>
+          </div>
+        </div>
+        <button id="btnCloseDiagnosticResults" style="background: transparent; border: none; color: #fff; cursor: pointer;">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <div style="padding: 18px; overflow-y: auto; flex: 1;">
+        <!-- Score Highlights -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem;">
+          <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Total Score</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: #10b981;" id="diagScoreVal">0 / 0</div>
+            <div style="font-size: 0.72rem; color: #10b981;" id="diagPercentageVal">(0%)</div>
+          </div>
+          <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Average Speed</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: var(--accent-blue);" id="diagAvgSpeedVal">0s</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);" id="diagBenchmarkVal">Target: 90s</div>
+          </div>
+          <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Hesitation Index</div>
+            <div style="font-size: 1.35rem; font-weight: 800; color: var(--accent-amber);" id="diagHesitationVal">0s</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">First Touch Lag</div>
+          </div>
+        </div>
+
+        <!-- 3-Tier Concept Breakdown -->
+        <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+          <i data-lucide="activity" style="width: 16px; height: 16px; color: var(--accent-cyan);"></i>
+          Academic Diagnostic Concept Breakdown
+        </h4>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem;">
+          <div style="padding: 10px 14px; background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 4px;">
+            <strong style="color: #10b981; font-size: 0.82rem;">🟢 Mastered Concepts (High Accuracy & Speed):</strong>
+            <div id="diagMasteredList" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">None</div>
+          </div>
+          <div style="padding: 10px 14px; background: rgba(234, 179, 8, 0.08); border-left: 3px solid #eab308; border-radius: 4px;">
+            <strong style="color: #eab308; font-size: 0.82rem;">🟡 Concepts Needing Recap (Speed Lag or Minor Slip):</strong>
+            <div id="diagRecapList" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">None</div>
+          </div>
+          <div style="padding: 10px 14px; background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; border-radius: 4px;">
+            <strong style="color: #ef4444; font-size: 0.82rem;">🔴 Critical Weaknesses (Conceptual Trap or Hesitation):</strong>
+            <div id="diagWeakList" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">None</div>
+          </div>
+        </div>
+
+        <!-- Question-by-Question Telemetry Matrix -->
+        <h4 style="font-size: 0.85rem; margin-bottom: 6px; color: var(--text-primary);">Question-by-Question Telemetry</h4>
+        <div id="diagQuestionsTable" style="display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div style="padding: 12px 18px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle);">
+        <span style="font-size: 0.75rem; color: var(--text-muted);">Real-time stream recorded to Kafka Bus</span>
+        <button class="btn-primary" id="btnGoToSmartReport" style="font-size: 0.85rem; padding: 8px 16px; background: linear-gradient(135deg, #3b82f6, #06b6d4);">
+          <i data-lucide="clipboard-check" style="width: 15px; height: 15px;"></i> View Updated Smart Report Card
         </button>
       </div>
     </div>
