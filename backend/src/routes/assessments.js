@@ -10,6 +10,8 @@ const { inMemoryStore } = require('../config/database');
 const { emitEvent } = require('../kafka/producer');
 const { processTelemetryEvent } = require('../kafka/consumer');
 const { generateWeeklyReport } = require('../services/smartReportService');
+const { getAllClass10Questions } = require('../services/class10PyqBank');
+const { generateLlmQuestion } = require('../services/llmQuestionEngine');
 
 // 1. GET /api/assessments - List all test assignments
 router.get('/', (req, res) => {
@@ -250,6 +252,128 @@ router.post('/:id/submit', async (req, res) => {
         },
         weeklyReportId: updatedReport.id
       }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. POST /api/assessments/auto-generate - 1-Click Auto-Generate Competitive Exam / Board Quiz
+router.post('/auto-generate', async (req, res) => {
+  try {
+    const {
+      examType = 'JEE_MAIN',
+      grade = '10',
+      subject = 'Science',
+      questionCount = 5,
+      targetSection = '10-Science-A',
+      title = null
+    } = req.body;
+
+    const count = Math.min(30, Math.max(1, Number(questionCount) || 5));
+    const selectedQuestions = [];
+
+    // 1. Gather matching questions from NCERT PYQ bank & in-memory store
+    const pyqs = getAllClass10Questions().filter(q => 
+      q.subject.toLowerCase() === subject.toLowerCase() || subject === 'ALL'
+    );
+    const storeQuestions = (inMemoryStore.questions || []).filter(q =>
+      (String(q.grade) === String(grade) || !q.grade) &&
+      (q.subject?.toLowerCase() === subject.toLowerCase() || q.topic?.toLowerCase().includes(subject.toLowerCase()))
+    );
+
+    const combinedPool = [...pyqs, ...storeQuestions];
+    
+    // Deduplicate by question_latex
+    const seen = new Set();
+    const uniquePool = [];
+    combinedPool.forEach(q => {
+      if (!seen.has(q.question_latex)) {
+        seen.add(q.question_latex);
+        uniquePool.push(q);
+      }
+    });
+
+    // Shuffle pool
+    const shuffled = uniquePool.sort(() => 0.5 - Math.random());
+    for (let i = 0; i < Math.min(count, shuffled.length); i++) {
+      selectedQuestions.push(shuffled[i]);
+    }
+
+    // 2. If more questions needed, generate dynamically via LLM Engine
+    if (selectedQuestions.length < count) {
+      const remaining = count - selectedQuestions.length;
+      console.log(`[ASSESSMENT AUTO-GEN] Generating ${remaining} supplementary questions via LLM Engine...`);
+      for (let j = 0; j < remaining; j++) {
+        try {
+          const freshQ = await generateLlmQuestion({
+            grade,
+            subject,
+            chapter: j % 2 === 0 ? 'Light – Reflection and Refraction' : 'Electricity',
+            board: examType === 'HP_BOARDS' ? 'HP_BOARD' : (examType === 'CBSE_BOARDS' ? 'CBSE' : 'JEE_MAIN'),
+            difficulty: examType === 'OLYMPIAD' ? 'OLYMPIAD_LEVEL' : (examType.includes('JEE') ? 'HARD' : 'MEDIUM'),
+            questionType: examType.includes('JEE') || examType.includes('NEET') ? 'MCQ_SINGLE' : 'NUMERICAL',
+            provider: 'auto'
+          });
+          if (freshQ && freshQ.question_latex) {
+            selectedQuestions.push(freshQ);
+          }
+        } catch (e) {
+          console.warn('[ASSESSMENT AUTO-GEN] LLM supplementary generation fallback:', e.message);
+        }
+      }
+    }
+
+    const testTitle = title || `${grade === '10' ? 'Class 10' : 'Class 11'} ${subject} ${examType.replace(/_/g, ' ')} Auto-Diagnostic Quiz`;
+    const durationMinutes = Math.max(15, count * 3);
+    const totalMarks = count * 4;
+
+    const newAssessment = {
+      id: `asgn_auto_${Date.now()}`,
+      title: testTitle,
+      description: `Auto-generated ${examType} competitive assessment with ${selectedQuestions.length} curated questions.`,
+      teacherName: 'HAPS-AI Auto-Examiner',
+      grade: String(grade),
+      section: targetSection,
+      board: examType,
+      subject,
+      durationMinutes,
+      totalMarks,
+      questions: selectedQuestions.map((q, idx) => ({
+        id: q.id || `q_auto_${Date.now()}_${idx + 1}`,
+        topic: q.topic || q.chapter || 'Science Core',
+        subtopic: q.subtopic || (q.ncert_mapping ? q.ncert_mapping.ncert_section : 'Standard'),
+        grade: q.grade || grade,
+        board: q.curriculum_board || examType,
+        question_type: q.question_type || 'MCQ_SINGLE',
+        difficulty: q.difficulty || 'MEDIUM',
+        benchmark_time_seconds: Number(q.benchmark_time_seconds) || 90,
+        question_latex: q.question_latex,
+        options_latex: q.options_latex || [],
+        correct_answer: q.correct_answer || q.correct_answer_latex || 'B',
+        solution_latex: q.solution_latex || '',
+        socratic_hints: q.socratic_hints || [],
+        ncert_mapping: q.ncert_mapping || null,
+        step_rubric: q.step_rubric || []
+      })),
+      createdAt: new Date().toISOString()
+    };
+
+    if (!inMemoryStore.assessments) inMemoryStore.assessments = [];
+    inMemoryStore.assessments.unshift(newAssessment);
+
+    // Emit event to Kafka stream
+    await emitEvent('assessment.published', newAssessment.id, {
+      title: newAssessment.title,
+      examType,
+      grade: newAssessment.grade,
+      questionCount: newAssessment.questions.length
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Auto-generated ${examType} test paper with ${newAssessment.questions.length} questions.`,
+      assessment: newAssessment
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

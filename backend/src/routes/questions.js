@@ -164,5 +164,70 @@ router.post('/generate-llm', async (req, res) => {
   }
 });
 
+// POST /api/questions/import-batch - Bulk import PYQs, NCERT exercise questions, and competitive mock banks
+router.post('/import-batch', (req, res) => {
+  try {
+    const { questions = [], source = 'Teacher Import' } = req.body;
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Expected an array of question objects under "questions".'
+      });
+    }
+
+    const imported = [];
+    const skipped = [];
+
+    questions.forEach((q, idx) => {
+      if (!q.question_latex) {
+        skipped.push({ index: idx, reason: 'Missing question_latex' });
+        return;
+      }
+
+      const cleanQ = {
+        id: q.id || `pyq_imp_${Date.now()}_${idx + 1}`,
+        grade: String(q.grade || '10'),
+        subject: q.subject || 'Science',
+        chapter: q.chapter || q.topic || 'General Science',
+        topic: q.topic || q.chapter || 'Core',
+        subtopic: q.subtopic || (q.ncert_mapping ? q.ncert_mapping.ncert_section : 'General'),
+        curriculum_board: q.curriculum_board || q.board || 'CBSE',
+        difficulty: q.difficulty || 'MEDIUM',
+        question_type: q.question_type || 'MCQ_SINGLE',
+        bloom_level: q.bloom_level || 'APPLICATION',
+        question_latex: q.question_latex,
+        options_latex: q.options_latex || [],
+        correct_answer_latex: q.correct_answer_latex || q.correct_answer || 'B',
+        solution_latex: q.solution_latex || '',
+        socratic_hints: q.socratic_hints || [],
+        step_rubric: q.step_rubric || [],
+        ncert_mapping: q.ncert_mapping || {
+          chapter_name: q.chapter || 'Chapter',
+          ncert_section: q.subtopic || 'General',
+          pyq_tag: q.pyq_tag || source,
+          marks: q.marks || 3
+        },
+        benchmark_time_seconds: Number(q.benchmark_time_seconds) || 90,
+        imported_at: new Date().toISOString()
+      };
+
+      inMemoryStore.questions.push(cleanQ);
+      imported.push(cleanQ);
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully imported ${imported.length} questions into the HAPS-AI Question Bank.`,
+      importedCount: imported.length,
+      skippedCount: skipped.length,
+      skipped,
+      sampleQuestionId: imported[0]?.id
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;
 
