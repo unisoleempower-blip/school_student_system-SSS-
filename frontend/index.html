@@ -20,6 +20,9 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Chart.js for interactive teacher analytics & progress charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <!-- Custom CSS -->
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -32,31 +35,31 @@
     <div class="brand-section">
       <div class="brand-logo-badge" id="schoolLogo">HAPS</div>
       <div class="brand-info">
-        <h1>HAPS-AI Scholar Assistant</h1>
+        <h1>Teacher Portal</h1>
         <p>Him Academy Public School &bull; Hamirpur (HP)</p>
       </div>
-      <span class="pilot-tag" id="pilotBadge">14-Day Pilot Active</span>
+      <span class="pilot-tag" id="pilotBadge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue); font-weight:700;">Faculty Edition</span>
     </div>
 
-    <!-- Role Switcher: Teacher vs Student vs Leadership -->
+    <!-- Role Switcher: Teacher vs Student vs School Overview -->
     <nav class="role-switcher-container" aria-label="Portal Role Navigation" id="roleSwitcherNav">
       <button class="role-btn active" id="btnRoleTeacher" data-role="teacher">
-        <i data-lucide="graduation-cap" style="width:16px; height:16px;"></i>
-        Teacher Co-Pilot
+        <i data-lucide="layout-dashboard" style="width:16px; height:16px;"></i>
+        Teacher Dashboard
       </button>
       <button class="role-btn" id="btnRoleStudent" data-role="student">
-        <i data-lucide="user-check" style="width:16px; height:16px;"></i>
-        Student Adaptive
+        <i data-lucide="edit-3" style="width:16px; height:16px;"></i>
+        Student Test Portal
       </button>
       <button class="role-btn" id="btnRoleDirector" data-role="director">
-        <i data-lucide="bar-chart-3" style="width:16px; height:16px;"></i>
-        Pilot Intelligence
+        <i data-lucide="line-chart" style="width:16px; height:16px;"></i>
+        School Overview
       </button>
     </nav>
 
     <div class="nav-controls">
-      <div class="telemetry-ticker" id="kafkaStatusTicker">
-        <span style="color:#10b981;">●</span> Kafka: Streaming Live
+      <div class="telemetry-ticker" id="kafkaStatusTicker" style="font-size:0.75rem;">
+        <span style="color:#10b981;">●</span> Active Session: 2026-27
       </div>
       <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Light/Dark Theme">
         <i data-lucide="sun" id="themeIcon" style="width:18px; height:18px;"></i>
@@ -74,47 +77,43 @@
          ====================================================================== -->
     <section class="view-section active" id="teacherView">
       <div class="sub-tabs-bar" id="teacherSubTabs">
-        <button class="sub-tab-btn active" id="tabBtnGenerator" data-tab="tabGenerator">
-          <i data-lucide="sparkles" style="width:16px; height:16px;"></i>
-          AI LaTeX Question Studio
+        <button class="sub-tab-btn active" id="tabBtnClassAnalytics" data-tab="tabClassAnalytics">
+          <i data-lucide="bar-chart-3" style="width:16px; height:16px;"></i>
+          Class Dashboard & Progress Charts
+        </button>
+        <button class="sub-tab-btn" id="tabBtnStudents" data-tab="tabStudents">
+          <i data-lucide="users" style="width:16px; height:16px;"></i>
+          Students & Smart Cards
+        </button>
+        <button class="sub-tab-btn" id="tabBtnGenerator" data-tab="tabGenerator">
+          <i data-lucide="file-plus" style="width:16px; height:16px;"></i>
+          Create Test & Quizzes
         </button>
         <button class="sub-tab-btn" id="tabBtnClass10Pyq" data-tab="tabClass10Pyq">
-          <i data-lucide="git-branch" style="width:16px; height:16px;"></i>
-          Curriculum Syllabus (Subject → Chapter → Topic)
-        </button>
-        <button class="sub-tab-btn" id="tabBtnTelemetry" data-tab="tabTelemetry">
-          <i data-lucide="activity" style="width:16px; height:16px;"></i>
-          Live Telemetry & Diagnostics
-        </button>
-        <button class="sub-tab-btn" id="tabBtnClassAnalytics" data-tab="tabClassAnalytics">
-          <i data-lucide="bar-chart-2" style="width:16px; height:16px;"></i>
-          Class & Student Exam Analytics
+          <i data-lucide="book-open" style="width:16px; height:16px;"></i>
+          Question Bank & Syllabus
         </button>
         <button class="sub-tab-btn" id="tabBtnHandwritten" data-tab="tabHandwritten">
-          <i data-lucide="file-check-2" style="width:16px; height:16px;"></i>
-          Handwritten Sheet Evaluator
-        </button>
-        <button class="sub-tab-btn" id="tabBtnSmartReports" data-tab="tabSmartReports">
-          <i data-lucide="clipboard-check" style="width:16px; height:16px;"></i>
-          Weekly Dual Smart Reports
+          <i data-lucide="scan" style="width:16px; height:16px;"></i>
+          Scan Paper Sheets
         </button>
         <button class="sub-tab-btn" id="btnOpenTestBuilder" style="margin-left:auto; background:rgba(59, 130, 246, 0.15); border-color:rgba(59, 130, 246, 0.4); color:var(--accent-blue); font-weight:700;">
           <i data-lucide="folder-plus" style="width:16px; height:16px;"></i>
-          Test Builder (<span id="testDraftCount">0</span>)
+          Test Draft (<span id="testDraftCount">0</span>)
         </button>
       </div>
 
-      <!-- TAB 1: AI LATEX QUESTION GENERATOR STUDIO -->
-      <div class="teacher-tab-content active" id="tabGenerator">
+      <!-- TAB: CREATE TEST & QUIZZES -->
+      <div class="teacher-tab-content" id="tabGenerator" style="display:none;">
         <div class="grid-2col">
           <!-- Generator Config Card -->
           <div class="glass-card">
             <div class="card-header">
               <div class="card-title-group">
-                <div class="card-icon"><i data-lucide="cpu" style="width:20px; height:20px;"></i></div>
+                <div class="card-icon"><i data-lucide="file-plus" style="width:20px; height:20px;"></i></div>
                 <div>
-                  <h2 class="card-title">Curriculum AI Question Engine</h2>
-                  <p class="card-subtitle">Generate vetted LaTeX questions using Groq LPU, Gemini Flash & NCERT Bank</p>
+                  <h2 class="card-title">Create Test & Quizzes</h2>
+                  <p class="card-subtitle">Generate board & competitive test questions or assign full quizzes to your classroom</p>
                 </div>
               </div>
             </div>
@@ -724,8 +723,8 @@
         </div>
       </div>
 
-      <!-- TAB 6: CLASS & STUDENT EXAM ANALYTICS DASHBOARD -->
-      <div class="teacher-tab-content" id="tabClassAnalytics" style="display:none;">
+      <!-- TAB 1: CLASS DASHBOARD & PROGRESS CHARTS -->
+      <div class="teacher-tab-content active" id="tabClassAnalytics">
         <!-- Header Banner with Assessment Selector -->
         <div class="glass-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(30, 58, 138, 0.3), rgba(15, 23, 42, 0.6)); border: 1px solid rgba(59, 130, 246, 0.4);">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
@@ -733,20 +732,20 @@
               <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
                 <span class="pilot-tag" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.4);">
                   <i data-lucide="bar-chart-2" style="width:12px; height:12px; display:inline-block; vertical-align:middle;"></i>
-                  Real-Time Classroom Telemetry
+                  Teacher Dashboard
                 </span>
                 <span class="pilot-tag" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.4);">
                   Class 10 &bull; Section A
                 </span>
                 <span class="pilot-tag" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3);">
-                  Teacher Co-Pilot Diagnostic
+                  Visual Progress Analytics
                 </span>
               </div>
               <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
-                Classroom Assessment Intelligence & Student Drill-Down
+                Class Performance, Progress Charts & Question Diagnostics
               </h2>
               <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 840px;">
-                Comprehensive analytics on class score variance, question-level attempt & failure rates, time friction hotspots, concepts requiring a quick 5-min recap vs. re-teaching, and deep student mistake classification (conceptual, formula-based, or calculation).
+                Visual analytics on class average, highest vs lowest scores, questions solved by most students vs failed by most students, time hotspots, and student error breakdowns.
               </p>
             </div>
 
@@ -845,7 +844,66 @@
           </div>
         </div>
 
-        <!-- 3. Pedagogical Action Plan (Quick Recap vs Teach Once Again) -->
+        <!-- 3. VISUAL PROGRESS CHARTS (DON'T KEEP IN WRITTEN, SHOW INTERACTIVE CHARTS!) -->
+        <div class="charts-grid-2x2" id="classAnalyticsChartsContainer">
+          <!-- Chart 1: Question Performance (Accuracy vs Errors) -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title-group">
+                <h4><i data-lucide="bar-chart-2" style="width:16px; height:16px; color:var(--accent-blue);"></i> Question Accuracy & Error Comparison</h4>
+                <p>Percentage of students solving correctly (Green) vs making mistakes (Red)</p>
+              </div>
+              <span class="speed-badge optimal" id="chartQuestionPerfSummary">Q1 Solved Most &bull; Q3 Most Failed</span>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="chartQuestionPerformance"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 2: Class Score Distribution -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title-group">
+                <h4><i data-lucide="pie-chart" style="width:16px; height:16px; color:#10b981;"></i> Class Score Distribution</h4>
+                <p>Student grade brackets (Distinction, Passing, and Remedial)</p>
+              </div>
+              <span class="speed-badge fast" id="chartScoreDistSummary">Avg: 61.2%</span>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="chartScoreDistribution"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 3: Question Time Spent vs Standard Benchmark -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title-group">
+                <h4><i data-lucide="clock" style="width:16px; height:16px; color:#f59e0b;"></i> Average Time vs Standard Benchmark (Seconds)</h4>
+                <p>Actual time taken per question compared with target solving time</p>
+              </div>
+              <span class="speed-badge optimal" id="chartTimeLagSummary">Pacing Benchmark: 90s</span>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="chartQuestionTime"></canvas>
+            </div>
+          </div>
+
+          <!-- Chart 4: Common Mistake Types Breakdown -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <div class="chart-title-group">
+                <h4><i data-lucide="alert-triangle" style="width:16px; height:16px; color:#f43f5e;"></i> Class Mistake Categories</h4>
+                <p>Distribution of conceptual vs formula vs calculation mistakes</p>
+              </div>
+              <span class="speed-badge hesitating" id="chartMistakesSummary">Dominant: Calculation</span>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="chartMistakeDistribution"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Pedagogical Action Plan (Quick Recap vs Teach Once Again) -->
         <div class="grid-2col" style="margin-bottom: 1.5rem; gap: 1rem;">
           <!-- Panel Left: Quick Recap Needed (5-10 min) -->
           <div class="glass-card">
@@ -949,6 +1007,53 @@
         </div>
       </div>
 
+      <!-- TAB 2: STUDENTS ROSTER & SMART CARDS -->
+      <div class="teacher-tab-content" id="tabStudents" style="display:none;">
+        <div class="glass-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(30, 58, 138, 0.2), rgba(15, 23, 42, 0.6)); border: 1px solid rgba(59, 130, 246, 0.3);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span class="pilot-tag" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-blue);">
+                  <i data-lucide="users" style="width:12px; height:12px; display:inline-block; vertical-align:middle;"></i>
+                  Enrolled Students
+                </span>
+                <span class="pilot-tag" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">Class 10-A (32 Students)</span>
+              </div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+                Student Performance & Smart Cards
+              </h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary);">
+                Click on any student to view their test time breakdown, conceptual vs formula mistakes, and generate parent WhatsApp updates.
+              </p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="text" id="searchStudentInput" placeholder="Search student or roll #..." style="background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; min-width: 240px;">
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="tabStudentsRosterTable">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); text-align: left;">
+                  <th style="padding: 10px 8px;">Roll #</th>
+                  <th style="padding: 10px 8px;">Student Name</th>
+                  <th style="padding: 10px 8px;">Score & %</th>
+                  <th style="padding: 10px 8px;">Time Taken</th>
+                  <th style="padding: 10px 8px;">Mistakes</th>
+                  <th style="padding: 10px 8px;">Primary Error Category</th>
+                  <th style="padding: 10px 8px; text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="tabStudentsRosterTableBody">
+                <!-- Dynamically populated via app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- INDIVIDUAL STUDENT TEST DRILL-DOWN MODAL -->
       <div class="drilldown-modal-backdrop" id="modalStudentDrilldown" role="dialog" aria-modal="true">
         <div class="drilldown-modal-content">
@@ -993,6 +1098,35 @@
               <div style="background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 6px;">
                 <strong style="color: #34d399;"><i data-lucide="message-circle" style="width:12px; height:12px; vertical-align:middle;"></i> Parent WhatsApp Snippet:</strong>
                 <span id="drilldownParentSnippet" style="color: var(--text-secondary); display: block; margin-top: 2px;">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Student Drill-Down Visual Progress Charts -->
+          <div class="student-modal-charts-grid" style="margin-bottom: 1.25rem;">
+            <!-- Student Time vs Benchmark -->
+            <div class="chart-card" style="background: rgba(0,0,0,0.25);">
+              <div class="chart-header" style="margin-bottom:0.5rem;">
+                <div class="chart-title-group">
+                  <h4><i data-lucide="timer" style="width:15px; height:15px; color:#38bdf8;"></i> Time Spent per Question vs Benchmark</h4>
+                  <p>Student's solving velocity (Seconds)</p>
+                </div>
+              </div>
+              <div class="chart-wrapper" style="height: 190px;">
+                <canvas id="chartStudentDrilldownTime"></canvas>
+              </div>
+            </div>
+
+            <!-- Student Mistake Types -->
+            <div class="chart-card" style="background: rgba(0,0,0,0.25);">
+              <div class="chart-header" style="margin-bottom:0.5rem;">
+                <div class="chart-title-group">
+                  <h4><i data-lucide="pie-chart" style="width:15px; height:15px; color:#fb7185;"></i> Mistake Type Breakdown</h4>
+                  <p>Classification of student's errors</p>
+                </div>
+              </div>
+              <div class="chart-wrapper" style="height: 190px;">
+                <canvas id="chartStudentDrilldownMistakes"></canvas>
               </div>
             </div>
           </div>

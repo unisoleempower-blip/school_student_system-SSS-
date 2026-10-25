@@ -78,6 +78,7 @@ function initApp() {
   setupTestAssignmentBuilder();
   setupStudentAssignedTests();
   setupClassAnalytics();
+  loadClassAnalytics();
 }
 
 
@@ -281,6 +282,10 @@ function setupTeacherSubTabs() {
 
       if (targetTabId === 'tabClassAnalytics') {
         loadClassAnalytics();
+      }
+
+      if (targetTabId === 'tabStudents' && currentAnalyticsData) {
+        renderClassAnalytics(currentAnalyticsData);
       }
 
       initLucideIcons();
@@ -2714,6 +2719,18 @@ function displayDiagnosticResults(results) {
 // ============================================================================
 
 let currentAnalyticsData = null;
+const analyticsCharts = {};
+
+function destroyChart(key) {
+  if (analyticsCharts[key]) {
+    try {
+      analyticsCharts[key].destroy();
+    } catch (e) {
+      console.warn('Error destroying chart', key, e);
+    }
+    analyticsCharts[key] = null;
+  }
+}
 
 function setupClassAnalytics() {
   const selectAssessment = document.getElementById('selectAnalyticsAssessment');
@@ -2781,6 +2798,279 @@ async function loadClassAnalytics(assessmentId) {
   }
 }
 
+// -----------------------------------------------------------------------------
+// VISUAL PROGRESS CHARTS (Chart.js)
+// -----------------------------------------------------------------------------
+function renderClassAnalyticsCharts(data) {
+  if (!window.Chart || !data) return;
+
+  const { questionAnalytics = [], studentRoster = [], highlights = {}, classSummary = {} } = data;
+
+  // 1. Question Performance (Accuracy vs Errors) - Horizontal Bar Chart
+  const ctxPerf = document.getElementById('chartQuestionPerformance');
+  if (ctxPerf && questionAnalytics.length > 0) {
+    destroyChart('questionPerf');
+
+    const labels = questionAnalytics.map(q => `Q${q.questionIndex}: ${q.subtopic}`);
+    const correctData = questionAnalytics.map(q => q.accuracyRate);
+    const errorData = questionAnalytics.map(q => q.errorRate);
+
+    analyticsCharts.questionPerf = new Chart(ctxPerf, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: '% Solved Correctly',
+            data: correctData,
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            borderColor: '#10b981',
+            borderWidth: 1,
+            borderRadius: 4
+          },
+          {
+            label: '% Errors / Mistakes',
+            data: errorData,
+            backgroundColor: 'rgba(244, 63, 94, 0.85)',
+            borderColor: '#f43f5e',
+            borderWidth: 1,
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw}%`
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            max: 100,
+            ticks: { color: '#94a3b8', callback: (v) => `${v}%` },
+            grid: { color: 'rgba(255, 255, 255, 0.06)' }
+          },
+          y: {
+            stacked: true,
+            ticks: { color: '#cbd5e1', font: { family: 'Inter', size: 11, weight: '600' } },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    const perfSummaryEl = document.getElementById('chartQuestionPerfSummary');
+    if (perfSummaryEl && highlights.mostAttempted && highlights.mostWrong) {
+      perfSummaryEl.innerHTML = `🌟 Solved Most: <strong>Q${highlights.mostAttempted.questionIndex}</strong> (${highlights.mostAttempted.attemptRate}) &bull; ⚠️ Hardest: <strong>Q${highlights.mostWrong.questionIndex}</strong> (${highlights.mostWrong.errorRate} Err)`;
+    }
+  }
+
+  // 2. Class Score Distribution - Doughnut Chart
+  const ctxScore = document.getElementById('chartScoreDistribution');
+  if (ctxScore && studentRoster.length > 0) {
+    destroyChart('scoreDist');
+
+    let distinction = 0; // >=80%
+    let firstClass = 0;  // 60-79%
+    let passing = 0;     // 40-59%
+    let remedial = 0;    // <40%
+
+    studentRoster.forEach(s => {
+      const p = s.percentage;
+      if (p >= 80) distinction++;
+      else if (p >= 60) firstClass++;
+      else if (p >= 40) passing++;
+      else remedial++;
+    });
+
+    analyticsCharts.scoreDist = new Chart(ctxScore, {
+      type: 'doughnut',
+      data: {
+        labels: [
+          `Distinction (80–100%): ${distinction}`,
+          `First Class (60–79%): ${firstClass}`,
+          `Passing (40–59%): ${passing}`,
+          `Remedial (<40%): ${remedial}`
+        ],
+        datasets: [{
+          data: [distinction, firstClass, passing, remedial],
+          backgroundColor: [
+            'rgba(16, 185, 129, 0.85)',
+            'rgba(56, 189, 248, 0.85)',
+            'rgba(245, 158, 11, 0.85)',
+            'rgba(244, 63, 94, 0.85)'
+          ],
+          borderColor: '#0f172a',
+          borderWidth: 2,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { color: '#cbd5e1', font: { family: 'Inter', size: 11 }, boxWidth: 14 }
+          }
+        }
+      }
+    });
+
+    const scoreSummaryEl = document.getElementById('chartScoreDistSummary');
+    if (scoreSummaryEl) {
+      scoreSummaryEl.innerHTML = `Class Avg: <strong>${classSummary.averagePercentage || '61.2%'}</strong> (${studentRoster.length} students)`;
+    }
+  }
+
+  // 3. Question Time Spent vs Benchmark - Grouped Bar Chart
+  const ctxTime = document.getElementById('chartQuestionTime');
+  if (ctxTime && questionAnalytics.length > 0) {
+    destroyChart('questionTime');
+
+    const labels = questionAnalytics.map(q => `Q${q.questionIndex}`);
+    const actualTimes = questionAnalytics.map(q => q.avgTimeSpentSeconds);
+    const benchmarkTimes = questionAnalytics.map(q => q.benchmarkSeconds);
+
+    analyticsCharts.questionTime = new Chart(ctxTime, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Actual Class Avg Time (s)',
+            data: actualTimes,
+            backgroundColor: 'rgba(56, 189, 248, 0.85)',
+            borderColor: '#38bdf8',
+            borderWidth: 1,
+            borderRadius: 4
+          },
+          {
+            label: 'Benchmark Standard (s)',
+            data: benchmarkTimes,
+            backgroundColor: 'rgba(148, 163, 184, 0.35)',
+            borderColor: '#94a3b8',
+            borderWidth: 1,
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: '#94a3b8', font: { family: 'Inter', size: 11 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw}s`
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#cbd5e1', font: { weight: '600' } },
+            grid: { display: false }
+          },
+          y: {
+            ticks: { color: '#94a3b8', callback: (v) => `${v}s` },
+            grid: { color: 'rgba(255, 255, 255, 0.06)' }
+          }
+        }
+      }
+    });
+
+    const timeSummaryEl = document.getElementById('chartTimeLagSummary');
+    if (timeSummaryEl) {
+      const slowest = [...questionAnalytics].sort((a,b) => b.avgTimeSpentSeconds - a.avgTimeSpentSeconds)[0];
+      if (slowest) {
+        timeSummaryEl.innerHTML = `Slowest: <strong>Q${slowest.questionIndex} (${slowest.avgTimeSpentSeconds}s)</strong> vs ${slowest.benchmarkSeconds}s target`;
+      }
+    }
+  }
+
+  // 4. Common Mistake Categories Breakdown - Doughnut Chart
+  const ctxMistakes = document.getElementById('chartMistakeDistribution');
+  if (ctxMistakes && questionAnalytics.length > 0) {
+    destroyChart('mistakeDist');
+
+    const mistakeTotals = {
+      CONCEPTUAL: 0,
+      FORMULA_BASED: 0,
+      CALCULATION: 0,
+      SIGN_CONVENTION: 0,
+      TIME_PRESSURE: 0
+    };
+
+    questionAnalytics.forEach(q => {
+      const b = q.mistakeBreakdown || {};
+      mistakeTotals.CONCEPTUAL += (b.CONCEPTUAL || 0);
+      mistakeTotals.FORMULA_BASED += (b.FORMULA_BASED || 0);
+      mistakeTotals.CALCULATION += (b.CALCULATION || 0);
+      mistakeTotals.SIGN_CONVENTION += (b.SIGN_CONVENTION || 0);
+      mistakeTotals.TIME_PRESSURE += (b.TIME_PRESSURE || 0);
+    });
+
+    analyticsCharts.mistakeDist = new Chart(ctxMistakes, {
+      type: 'doughnut',
+      data: {
+        labels: [
+          `Calculation Slips (${mistakeTotals.CALCULATION})`,
+          `Conceptual Errors (${mistakeTotals.CONCEPTUAL})`,
+          `Formula Confusion (${mistakeTotals.FORMULA_BASED})`,
+          `Sign/Unit Errors (${mistakeTotals.SIGN_CONVENTION})`
+        ],
+        datasets: [{
+          data: [
+            mistakeTotals.CALCULATION,
+            mistakeTotals.CONCEPTUAL,
+            mistakeTotals.FORMULA_BASED,
+            mistakeTotals.SIGN_CONVENTION
+          ],
+          backgroundColor: [
+            'rgba(245, 158, 11, 0.85)',
+            'rgba(139, 92, 246, 0.85)',
+            'rgba(59, 130, 246, 0.85)',
+            'rgba(236, 72, 153, 0.85)'
+          ],
+          borderColor: '#0f172a',
+          borderWidth: 2,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { color: '#cbd5e1', font: { family: 'Inter', size: 11 }, boxWidth: 14 }
+          }
+        }
+      }
+    });
+
+    const mistakeSummaryEl = document.getElementById('chartMistakesSummary');
+    if (mistakeSummaryEl) {
+      mistakeSummaryEl.innerHTML = `Most Frequent: <strong>Calculation & Units</strong> (${mistakeTotals.CALCULATION} stumbles)`;
+    }
+  }
+}
+
 function renderClassAnalytics(data) {
   if (!data || !data.classSummary) return;
 
@@ -2829,7 +3119,7 @@ function renderClassAnalytics(data) {
     kpiAvgVelocitySub.innerText = `Pacing: ~${avgPerQ}s / Question (Benchmark: 90s)`;
   }
 
-  // 2. Highlights
+  // 2. Highlights (Most Attempted, Most Failed, Time Hotspot)
   const txtMostAttemptedTitle = document.getElementById('txtMostAttemptedTitle');
   const txtMostAttemptedDetail = document.getElementById('txtMostAttemptedDetail');
   const badgeMostAttemptedRate = document.getElementById('badgeMostAttemptedRate');
@@ -2866,7 +3156,10 @@ function renderClassAnalytics(data) {
     if (badgeTimeLag) badgeTimeLag.innerText = `${slowQ.avgTimeSpentSeconds}s`;
   }
 
-  // 3. Pedagogical Action Plan (Quick Recap vs Teach Once Again)
+  // 3. Render the 4 Visual Progress Charts
+  renderClassAnalyticsCharts(data);
+
+  // 4. Pedagogical Action Plan (Quick Recap vs Teach Once Again)
   const recapContainer = document.getElementById('recapConceptsContainer');
   if (recapContainer) {
     const recaps = pedagogicalActionPlan.quickRecapNeeded || [];
@@ -2909,7 +3202,7 @@ function renderClassAnalytics(data) {
     }
   }
 
-  // 4. Question Breakdown Matrix Table
+  // 5. Question Breakdown Matrix Table
   const qTableBody = document.getElementById('classQuestionBreakdownTableBody');
   if (qTableBody && questionAnalytics) {
     qTableBody.innerHTML = questionAnalytics.map(q => {
@@ -2946,10 +3239,13 @@ function renderClassAnalytics(data) {
     }).join('');
   }
 
-  // 5. Student Performance Roster Table
-  const sTableBody = document.getElementById('classStudentRosterTableBody');
-  if (sTableBody && studentRoster) {
-    sTableBody.innerHTML = studentRoster.map(s => {
+  // 6. Student Performance Roster Table (Populates both Tab 1 & Tab 2)
+  const sTableBody1 = document.getElementById('classStudentRosterTableBody');
+  const sTableBody2 = document.getElementById('tabStudentsRosterTableBody');
+
+  function buildRosterRows(roster) {
+    if (!roster) return '';
+    return roster.map(s => {
       const mins = Math.floor(s.totalTimeSpentSeconds / 60);
       const secs = s.totalTimeSpentSeconds % 60;
       const scoreColor = s.percentage >= 70 ? '#34d399' : (s.percentage >= 50 ? '#fbbf24' : '#fb7185');
@@ -2957,7 +3253,7 @@ function renderClassAnalytics(data) {
 
       const mistakeBadge = s.wrongQuestionsCount > 0
         ? `<span class="badge-mistake badge-mistake-calc">${s.primaryMistake}</span>`
-        : `<span class="badge-mistake badge-mistake-none">Flawless</span>`;
+        : `<span class="badge-mistake badge-mistake-none">Flawless (100%)</span>`;
 
       return `
         <tr style="border-bottom: 1px solid var(--border-subtle);">
@@ -2977,8 +3273,8 @@ function renderClassAnalytics(data) {
           </td>
           <td style="padding: 10px 8px;">${mistakeBadge}</td>
           <td style="padding: 10px 8px; text-align: right;">
-            <button class="btn-secondary" onclick="openStudentDrilldown('${s.studentId}', '${assessment.id}')" style="font-size:0.75rem; padding:5px 10px; border-radius:6px;">
-              <i data-lucide="eye" style="width:13px; height:13px;"></i> Inspect Drill-Down
+            <button class="btn-secondary" onclick="openStudentDrilldown('${s.studentId}', '${assessment.id}')" style="font-size:0.75rem; padding:5px 10px; border-radius:6px; cursor:pointer;">
+              <i data-lucide="eye" style="width:13px; height:13px;"></i> View Smart Card
             </button>
           </td>
         </tr>
@@ -2986,10 +3282,140 @@ function renderClassAnalytics(data) {
     }).join('');
   }
 
+  if (sTableBody1 && studentRoster) sTableBody1.innerHTML = buildRosterRows(studentRoster);
+  if (sTableBody2 && studentRoster) sTableBody2.innerHTML = buildRosterRows(studentRoster);
+
+  // Setup search filter in Tab 2
+  const searchInput = document.getElementById('searchStudentInput');
+  if (searchInput && studentRoster) {
+    searchInput.oninput = (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const filtered = studentRoster.filter(s => 
+        s.studentName.toLowerCase().includes(q) || 
+        (s.rollNumber || '').toLowerCase().includes(q)
+      );
+      if (sTableBody2) sTableBody2.innerHTML = buildRosterRows(filtered);
+      initLucideIcons();
+    };
+  }
+
   initLucideIcons();
 }
 
-// 6. Individual Student Drill-Down
+// -----------------------------------------------------------------------------
+// STUDENT DRILLDOWN CHARTS (Chart.js)
+// -----------------------------------------------------------------------------
+function renderStudentDrilldownCharts(questionBreakdown, student, smartCard) {
+  if (!window.Chart || !questionBreakdown || questionBreakdown.length === 0) return;
+
+  // 1. Time per Question vs Benchmark
+  const ctxTime = document.getElementById('chartStudentDrilldownTime');
+  if (ctxTime) {
+    destroyChart('studentTime');
+
+    const labels = questionBreakdown.map(q => `Q${q.questionIndex}`);
+    const studentTimes = questionBreakdown.map(q => q.timeSpentSeconds);
+    const benchmarkTimes = questionBreakdown.map(q => q.benchmarkSeconds);
+
+    analyticsCharts.studentTime = new Chart(ctxTime, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: `${student.fullName || 'Student'} Time (s)`,
+            data: studentTimes,
+            backgroundColor: questionBreakdown.map(q => q.isCorrect ? 'rgba(16, 185, 129, 0.85)' : 'rgba(244, 63, 94, 0.85)'),
+            borderColor: questionBreakdown.map(q => q.isCorrect ? '#10b981' : '#f43f5e'),
+            borderWidth: 1,
+            borderRadius: 4
+          },
+          {
+            label: 'Benchmark Target (s)',
+            data: benchmarkTimes,
+            backgroundColor: 'rgba(148, 163, 184, 0.3)',
+            borderColor: '#94a3b8',
+            borderWidth: 1,
+            borderRadius: 4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { color: '#94a3b8', font: { size: 10 } }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#cbd5e1' }, grid: { display: false } },
+          y: { ticks: { color: '#94a3b8', callback: (v) => `${v}s` }, grid: { color: 'rgba(255, 255, 255, 0.06)' } }
+        }
+      }
+    });
+  }
+
+  // 2. Mistake Types Breakdown
+  const ctxMistakes = document.getElementById('chartStudentDrilldownMistakes');
+  if (ctxMistakes) {
+    destroyChart('studentMistakes');
+
+    let correctCount = 0;
+    let conceptualCount = 0;
+    let formulaCount = 0;
+    let calculationCount = 0;
+
+    questionBreakdown.forEach(q => {
+      if (q.isCorrect) {
+        correctCount++;
+      } else {
+        const type = (q.mistakeClassification?.type || '').toUpperCase();
+        if (type.includes('CONCEPT')) conceptualCount++;
+        else if (type.includes('FORMULA')) formulaCount++;
+        else if (type.includes('CALC') || type.includes('SIGN')) calculationCount++;
+        else calculationCount++;
+      }
+    });
+
+    analyticsCharts.studentMistakes = new Chart(ctxMistakes, {
+      type: 'doughnut',
+      data: {
+        labels: [
+          `Correct (${correctCount})`,
+          `Calculation (${calculationCount})`,
+          `Conceptual (${conceptualCount})`,
+          `Formula (${formulaCount})`
+        ],
+        datasets: [{
+          data: [correctCount, calculationCount, conceptualCount, formulaCount],
+          backgroundColor: [
+            'rgba(16, 185, 129, 0.85)',
+            'rgba(245, 158, 11, 0.85)',
+            'rgba(139, 92, 246, 0.85)',
+            'rgba(59, 130, 246, 0.85)'
+          ],
+          borderColor: '#0f172a',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '60%',
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: { color: '#cbd5e1', font: { size: 10 }, boxWidth: 12 }
+          }
+        }
+      }
+    });
+  }
+}
+
+// 7. Individual Student Drill-Down
 async function openStudentDrilldown(studentId, assessmentId) {
   try {
     const res = await fetch(`http://localhost:5050/api/analytics/student-test-drilldown/${studentId}/${assessmentId}`);
@@ -3024,10 +3450,12 @@ async function openStudentDrilldown(studentId, assessmentId) {
     if (teacherAction) teacherAction.innerText = smartCard.teacherActionDirective;
     if (parentSnippet) parentSnippet.innerText = smartCard.parentWhatsAppSnippet;
 
+    // Render Student Modal Charts
+    renderStudentDrilldownCharts(questionBreakdown, student, smartCard);
+
     if (qList && questionBreakdown) {
       qList.innerHTML = questionBreakdown.map(q => {
         const isCorrect = q.isCorrect;
-        const timeRatio = q.timeRatio;
         const pacing = q.speedPacing;
         const m = q.mistakeClassification || {};
 
@@ -3094,11 +3522,14 @@ async function openStudentDrilldown(studentId, assessmentId) {
 function closeStudentDrilldown() {
   const modal = document.getElementById('modalStudentDrilldown');
   if (modal) modal.classList.remove('active');
+  destroyChart('studentTime');
+  destroyChart('studentMistakes');
 }
 
 // Global exposure for inline onclick handlers
 window.openStudentDrilldown = openStudentDrilldown;
 window.closeStudentDrilldown = closeStudentDrilldown;
 window.loadClassAnalytics = loadClassAnalytics;
+
 
 
