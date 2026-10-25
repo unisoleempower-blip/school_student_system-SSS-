@@ -1156,6 +1156,72 @@ function getOfflineCurriculumFallback(subjectKey, grade) {
     };
   }
 
+  if (subjectKey === 'CHEMISTRY') {
+    return {
+      subjectKey: 'CHEMISTRY',
+      subjectName: 'Class 12 Chemistry',
+      stream: 'COMMON_SENIOR',
+      targetExams: ['CBSE_CLASS_12', 'HP_BOARD_CLASS_12', 'NEET_UG', 'JEE_MAIN'],
+      totalChapters: 10,
+      boardHighYieldSummary: {
+        fiveMarkGuarantees: [
+          'Solutions: Colligative property numericals involving van \'t Hoff factor (i) and degree of dissociation/association (α).',
+          'Electrochemistry: Nernst equation calculations of cell potential, equilibrium constant (Kc), and ΔG° combined with Kohlrausch\'s Law.',
+          'Organic Multistep Conversions: Named reactions (Aldol, Cannizzaro, Reimer-Tiemann, Gabriel Phthalimide, Hofmann Bromamide) with mechanistic steps.'
+        ],
+        fourMarkCaseStudies: [
+          'Chemical Kinetics: Rate law determination from tabular concentration data and temperature dependence via Arrhenius equation.',
+          'Coordination Compounds: Valence Bond Theory vs Crystal Field Theory electron splitting, spectrochemical series, and magnetic moments.'
+        ],
+        threeMarkCorePool: [
+          'd- and f-Block Elements: Trends in standard reduction potentials (E°), Lanthanoid contraction consequences, and preparation/redox actions of KMnO4 & K2Cr2O7.',
+          'Chemical Distinguishing Tests: Tollens, Fehling, Iodoform, Lucas, Carbylamine, and Hinsberg tests with observations and chemical equations.',
+          'Biomolecules: Chemical proofs for the open-chain structure of glucose, peptide bonds, Zwitterion, and protein denaturation.'
+        ]
+      },
+      chapters: [
+        {
+          id: 'chem_12_ch01',
+          grade: '12',
+          discipline: 'PHYSICAL_CHEMISTRY',
+          unit: 'Section 1: Physical Chemistry (21 Marks)',
+          chapterNumber: 1,
+          chapterName: 'Solutions',
+          totalQuestionsInChapter: 1,
+          boardExamFocus: {
+            highYield: 'Numericals on ΔT_f or Π combined with van \'t Hoff factor (i) to determine molar mass and degree of dissociation (α).',
+            standardTrap: 'Forgetting van \'t Hoff factor i for electrolytes, or confusing mass of solvent w_A (in kg) with mass of solution.',
+            questionType: '3-mark numerical or 5-mark combined numerical + Raoult\'s law deviation explanation.'
+          },
+          topics: [
+            { id: 'chem_12_ch01_t1', topicName: 'Concentration Terms & Solubility (Henry\'s Law)', ncertSection: '1.1', highYield: true, questionCount: 0, subtopics: ['Mass %, ppm, mole fraction, molarity, molality', 'Henry\'s Law: p = K_H · x', 'Significance of K_H with temperature', 'Applications: carbonated drinks, scuba diving, anoxia'] },
+            { id: 'chem_12_ch01_t2', topicName: 'Vapour Pressure & Raoult\'s Law', ncertSection: '1.2', highYield: true, questionCount: 0, subtopics: ['Raoult\'s Law for volatile solutes', 'Ideal solutions (ΔH=0, ΔV=0)', 'Positive deviation & minimum boiling azeotropes', 'Negative deviation & maximum boiling azeotropes'] },
+            { id: 'chem_12_ch01_t3', topicName: 'Colligative Properties & Van \'t Hoff Factor', ncertSection: '1.3', highYield: true, questionCount: 1, subtopics: ['Relative Lowering of Vapour Pressure (RLVP)', 'Elevation of Boiling Point (ΔT_b = i·K_b·m)', 'Depression in Freezing Point (ΔT_f = i·K_f·m)', 'Osmotic Pressure (Π = i·CRT)', 'Van \'t Hoff factor (i) and degree of dissociation/association'] }
+          ]
+        },
+        {
+          id: 'chem_12_ch02',
+          grade: '12',
+          discipline: 'PHYSICAL_CHEMISTRY',
+          unit: 'Section 1: Physical Chemistry (21 Marks)',
+          chapterNumber: 2,
+          chapterName: 'Electrochemistry',
+          totalQuestionsInChapter: 1,
+          boardExamFocus: {
+            highYield: 'Nernst equation calculations involving log terms, equilibrium constant (Kc), and Δ_r G°; Kohlrausch\'s law numerical to find Λ°_m and α.',
+            standardTrap: 'Using incorrect number of transferred electrons (n) in Nernst equation or flipping anode/cathode in E°_cell calculation.',
+            questionType: 'Guaranteed 3-mark or 5-mark numerical.'
+          },
+          topics: [
+            { id: 'chem_12_ch02_t1', topicName: 'Galvanic Cells & Nernst Equation', ncertSection: '2.1', highYield: true, questionCount: 1, subtopics: ['Standard Electrode Potential (E°)', 'Nernst Equation: E_cell = E°_cell - (0.0591/n) log Q', 'Equilibrium constant: log K_c = nE°/0.0591', 'Gibbs Free Energy: Δ_r G° = -nFE°'] },
+            { id: 'chem_12_ch02_t2', topicName: 'Conductance in Electrolytic Solutions', ncertSection: '2.2', highYield: true, questionCount: 0, subtopics: ['Conductivity (κ) and Molar Conductivity (Λ_m)', 'Variation of κ and Λ_m with dilution', 'Debye-Hückel-Onsager equation', 'Kohlrausch\'s Law of Independent Migration of Ions'] },
+            { id: 'chem_12_ch02_t3', topicName: 'Electrolysis & Commercial Batteries', ncertSection: '2.3', highYield: true, questionCount: 0, subtopics: ['Faraday\'s Laws of Electrolysis', 'Dry cell & Mercury cell (constant 1.35V voltage)', 'Lead-acid storage battery reactions', 'H₂-O₂ Fuel cell & corrosion mechanism'] }
+          ]
+        }
+      ]
+    };
+  }
+
   return {
     subjectKey: subjectKey || 'BIOLOGY',
     subjectName: subjectKey === 'BIOLOGY' ? 'Biology' : (subjectKey === 'CHEMISTRY' ? 'Chemistry' : 'Science'),

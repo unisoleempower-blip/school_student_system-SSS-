@@ -1060,39 +1060,643 @@ const CURRICULUM_TAXONOMY = {
   // 3. SENIOR CHEMISTRY (Class 11 & Class 12) - Physical, Inorganic, Organic
   // ==========================================================================
   'CHEMISTRY': {
-    subjectName: 'Chemistry',
+    subjectName: 'Class 12 Chemistry',
     stream: 'COMMON_SENIOR',
-    grades: ['11', '12'],
-    targetExams: ['JEE_MAIN', 'NEET_UG', 'CBSE_CLASS_12'],
+    grades: ['12'],
+    targetExams: ['CBSE_CLASS_12', 'HP_BOARD_CLASS_12', 'NEET_UG', 'JEE_MAIN'],
+    units: [
+      { unitNumber: 'I, II & III', unitName: 'Physical Chemistry (Solutions, Electrochemistry, Kinetics)', weightageMarks: 21, chapters: [1, 2, 3] },
+      { unitNumber: 'IV & V', unitName: 'Inorganic Chemistry (d- & f-Block, Coordination Compounds)', weightageMarks: 14, chapters: [4, 5] },
+      { unitNumber: 'VI to X', unitName: 'Organic Chemistry (Halides, Oxygen & Nitrogen Derivatives, Biomolecules)', weightageMarks: 35, chapters: [6, 7, 8, 9, 10] }
+    ],
+    boardHighYieldSummary: {
+      examBoard: 'CBSE / HPBOSE Class 12 Chemistry (70 Marks Theory)',
+      fiveMarkGuarantees: [
+        {
+          rank: 1,
+          topic: 'Physical Chemistry Numericals & Nernst/Kinetics',
+          detail: 'Direct 3-mark & 5-mark calculation sets on depression in freezing point with van \'t Hoff factor (ΔT_f = i K_f m), Nernst cell potential with Gibbs free energy (ΔG° = -nFE°_cell), or first-order integrated rate / Arrhenius activation energy (E_a).',
+          chapter: 'Chapter 1: Solutions, Chapter 2: Electrochemistry, Chapter 3: Chemical Kinetics'
+        },
+        {
+          rank: 2,
+          topic: 'Organic Named Reactions & Synthetic Conversions',
+          detail: 'Multi-step synthesis, mechanisms (SN1 vs SN2, acid-catalyzed dehydration of alcohols, nucleophilic addition of HCN), and named reactions (Aldol condensation, Cannizzaro, Reimer-Tiemann, Gabriel Phthalimide, Hofmann bromamide).',
+          chapter: 'Chapter 6: Haloalkanes, Chapter 7: Alcohols, Chapter 8: Aldehydes, Chapter 9: Amines'
+        },
+        {
+          rank: 3,
+          topic: 'Coordination Compounds & Transition Metal Redox',
+          detail: 'Valence Bond Theory (VBT) hybridization & magnetic moment, Crystal Field Theory (CFT) octahedral/tetrahedral splitting (Δ_o vs P), and complete balanced redox reactions of KMnO₄ / K₂Cr₂O₇ in acidic medium.',
+          chapter: 'Chapter 4: d- and f-Block, Chapter 5: Coordination Compounds'
+        }
+      ],
+      caseStudyFourMark: [
+        {
+          topic: 'Solutions: Colligative Properties & Henry\'s Law',
+          detail: 'Azeotropic mixtures, abnormal molar mass with association/dissociation degree, and industrial/biological applications of osmotic pressure and reverse osmosis.',
+          chapter: 'Chapter 1: Solutions'
+        },
+        {
+          topic: 'Electrochemistry: Commercial Batteries & Conductance',
+          detail: 'Lead storage battery discharging/recharging reactions, H₂-O₂ fuel cell mechanism, and Kohlrausch\'s Law calculation of limiting molar conductivity (Λ°_m) and dissociation constant (K_a).',
+          chapter: 'Chapter 2: Electrochemistry'
+        },
+        {
+          topic: 'Biomolecules & Organic Functional Group Distinctions',
+          detail: 'Glucose open-chain vs cyclic structure proofs, protein denaturation and structural levels, and chemical tests to distinguish pairs (Tollens\', Fehling\'s, Iodoform, Carbylamine, Hinsberg).',
+          chapter: 'Chapter 8: Aldehydes & Chapter 10: Biomolecules'
+        }
+      ],
+      threeMarkHeavyweights: [
+        {
+          topic: 'First-Order Kinetics Proofs & Arrhenius Two-Temperature',
+          detail: 'Mathematical proof that t_99% = 2 × t_90% or t_99.9% = 10 × t_1/2, and determination of activation energy E_a from rate constants at two temperatures.',
+          chapter: 'Chapter 3: Chemical Kinetics'
+        },
+        {
+          topic: 'Lanthanoid Contraction & 3d Transition Trends',
+          detail: 'Consequences of lanthanoid contraction (Zr ≈ Hf, basicity of hydroxides), and reasoning for variable oxidation states, catalytic behavior, and E°(M²⁺/M) electrode potentials.',
+          chapter: 'Chapter 4: d- and f-Block Elements'
+        },
+        {
+          topic: 'Distinguishing Chemical Tests for Functional Groups',
+          detail: 'Chemical tests with observation and balanced equations to distinguish pairs: Propanal vs Propanone (Tollens\'), Phenol vs Benzoic acid (NaHCO₃), 1° vs 2° vs 3° amines (Hinsberg / Carbylamine).',
+          chapter: 'Chapter 7: Alcohols/Phenols, Chapter 8: Aldehydes/Ketones, Chapter 9: Amines'
+        },
+        {
+          topic: 'Glucose Structure Elucidation & Amino Acids Zwitterion',
+          detail: 'Chemical reactions confirming 6-carbon straight chain (HI), carbonyl group (HCN/NH₂OH), aldehyde group (Br₂ water), and 5 -OH groups (Ac₂O); Zwitterion amphoteric nature.',
+          chapter: 'Chapter 10: Biomolecules'
+        }
+      ]
+    },
     chapters: [
+      // --- SECTION 1: PHYSICAL CHEMISTRY (21 MARKS) ---
+      {
+        id: 'chem_12_ch01',
+        grade: '12',
+        discipline: 'PHYSICAL_CHEMISTRY',
+        unit: 'Physical Chemistry (Unit I, II & III - 21M)',
+        chapterNumber: 1,
+        chapterName: 'Solutions',
+        boardExamFocus: {
+          highYield: 'Numericals on ΔT_f or Π combined with the van \'t Hoff factor (i) to determine molar mass and degree of dissociation (α); Raoult\'s law positive/negative deviation examples.',
+          standardTrap: 'Forgetting to include the van \'t Hoff factor i in colligative property formulas for electrolytes like NaCl, K₂SO₄, or BaCl₂.',
+          questionType: '3-mark colligative numericals with van \'t Hoff factor; 2-mark Henry\'s law / azeotrope conceptual reasoning.'
+        },
+        topics: [
+          {
+            id: 'chem_12_ch01_t1',
+            topicName: 'Concentration Terms & Solubility',
+            ncertSection: '1.1',
+            highYield: true,
+            subtopics: [
+              'Concentration Units: % w/w, % v/v, ppm, Mole fraction (x), Molarity (M), Molality (m)',
+              'Temperature dependence: Molarity changes with temperature; Molality is temperature-independent',
+              'Solubility of Gases in Liquids (Henry\'s Law): p = K_H · x',
+              'Significance of Henry\'s constant (K_H): Higher K_H means lower solubility; increases with temperature',
+              'Applications of Henry\'s Law: Soft drinks, scuba divers (He dilution preventing bends), high-altitude anoxia'
+            ]
+          },
+          {
+            id: 'chem_12_ch01_t2',
+            topicName: 'Vapour Pressure & Raoult\'s Law',
+            ncertSection: '1.2',
+            highYield: true,
+            subtopics: [
+              'Raoult\'s Law for volatile solutes: p_A = p°_A x_A, p_B = p°_B x_B; P_total = p°_A + (p°_B - p°_A)x_B',
+              'Vapour phase composition: y_A = p_A / P_total',
+              'Ideal Solutions: Obey Raoult\'s law, Δ_mix H = 0, Δ_mix V = 0 (n-hexane + n-heptane, benzene + toluene)',
+              'Positive Deviation: A-B interactions weaker, P_total > P_calc, Δ_mix H > 0, minimum boiling azeotropes (ethanol + acetone)',
+              'Negative Deviation: A-B interactions stronger (new H-bonds), P_total < P_calc, Δ_mix H < 0, maximum boiling azeotropes (chloroform + acetone, HNO₃ + water)'
+            ]
+          },
+          {
+            id: 'chem_12_ch01_t3',
+            topicName: 'Colligative Properties & Van \'t Hoff Factor',
+            ncertSection: '1.3',
+            highYield: true,
+            subtopics: [
+              'Relative Lowering of Vapour Pressure (RLVP): (p°_A - p_A)/p°_A = i · x_B ≈ i (w_B M_A / M_B w_A)',
+              'Elevation in Boiling Point: ΔT_b = i · K_b · m (K_b = molal elevation constant / ebullioscopic constant)',
+              'Depression in Freezing Point: ΔT_f = i · K_f · m (K_f = molal depression constant / cryoscopic constant)',
+              'Osmotic Pressure (Π): Π = i · CRT = i (n_B/V)RT; Isotonic, Hypertonic, and Hypotonic solutions; Reverse Osmosis (RO)',
+              'Why osmotic pressure is preferred for biomolecules/polymers (room temperature, uses molarity, measurable magnitudes)',
+              'Van \'t Hoff factor (i) = Normal molar mass / Observed molar mass = Total moles after / Initial moles',
+              'Degree of Dissociation: α = (i - 1)/(n - 1); Degree of Association: α = (1 - i)/(1 - 1/n)'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'chem_12_ch02',
+        grade: '12',
+        discipline: 'PHYSICAL_CHEMISTRY',
+        unit: 'Physical Chemistry (Unit I, II & III - 21M)',
+        chapterNumber: 2,
+        chapterName: 'Electrochemistry',
+        boardExamFocus: {
+          highYield: 'Nernst equation calculations involving log terms and calculation of Δ_r G° or K_c; Kohlrausch\'s law numerical to find Λ°_m and α; Lead storage battery reactions.',
+          standardTrap: 'Forgetting the number of electrons n transferred in the cell reaction, or omitting the powers of stoichiometric coefficients in Q_c.',
+          questionType: 'Guaranteed 3/5-mark Nernst equation numerical; 3-mark Kohlrausch calculation; 2-mark commercial battery equations.'
+        },
+        topics: [
+          {
+            id: 'chem_12_ch02_t1',
+            topicName: 'Galvanic Cells & Nernst Equation',
+            ncertSection: '2.1',
+            highYield: true,
+            subtopics: [
+              'Electrochemical Daniell Cell: Zn|Zn²⁺||Cu²⁺|Cu; Anode (oxidation, -), Cathode (reduction, +)',
+              'Standard Electrode Potential: E°_cell = E°_cathode - E°_anode (both as reduction potentials)',
+              'Nernst Equation at 298 K: E_cell = E°_cell - (0.0591/n) log₁₀ Q_c',
+              'Equilibrium Constant relation: log K_c = (n E°_cell) / 0.0591',
+              'Standard Gibbs Free Energy Change: Δ_r G° = -n F E°_cell (F = 96500 C/mol); Spontaneity: E_cell > 0 ⇔ Δ_r G < 0'
+            ]
+          },
+          {
+            id: 'chem_12_ch02_t2',
+            topicName: 'Conductance in Electrolytic Solutions',
+            ncertSection: '2.2',
+            highYield: true,
+            subtopics: [
+              'Conductivity (κ = G · l/A = G*/R, S cm⁻¹) and Cell constant (G* = l/A, cm⁻¹)',
+              'Molar Conductivity: Λ_m = (κ × 1000) / M (S cm² mol⁻¹)',
+              'Variation with dilution: κ decreases because ions per unit volume decrease; Λ_m increases on dilution',
+              'Strong vs Weak electrolytes dilution curves: Debye-Hückel-Onsager equation (Λ_m = Λ°_m - A√c)',
+              'Kohlrausch\'s Law of Independent Migration of Ions: Λ°_m = ν₊ λ°₊ + ν₋ λ°₋',
+              'Applications: Calculating Λ°_m of weak electrolytes, degree of dissociation α = Λ_m / Λ°_m, and K_a = cα² / (1 - α)'
+            ]
+          },
+          {
+            id: 'chem_12_ch02_t3',
+            topicName: 'Electrolysis & Commercial Batteries',
+            ncertSection: '2.3',
+            highYield: true,
+            subtopics: [
+              'Faraday\'s Laws: First Law w = ZIt = (M / nF)It; Second Law w₁/E₁ = w₂/E₂',
+              'Primary Cells: Dry cell (Leclanché) and Mercury cell (gives constant voltage 1.35 V as no ions in solution change concentration)',
+              'Secondary Cells: Lead-acid storage battery: Discharging (Pb + PbO₂ + 2H₂SO₄ → 2PbSO₄ + 2H₂O) and Recharging',
+              'Fuel Cells: H₂-O₂ fuel cell reactions (efficiency ~70%, pollution-free, continuous operation)',
+              'Corrosion (Rusting of Iron): Electrochemical mechanism (Fe → Fe²⁺ + 2e⁻, O₂ + 4H⁺ + 4e⁻ → 2H₂O); Rust Fe₂O₃ · xH₂O; Galvanization'
+            ]
+          }
+        ]
+      },
       {
         id: 'chem_12_ch03',
         grade: '12',
-        branch: 'PHYSICAL',
-        unit: 'Physical Chemistry',
+        discipline: 'PHYSICAL_CHEMISTRY',
+        unit: 'Physical Chemistry (Unit I, II & III - 21M)',
         chapterNumber: 3,
-        chapterName: 'Electrochemistry',
+        chapterName: 'Chemical Kinetics',
+        boardExamFocus: {
+          highYield: 'First-order rate equation numericals (e.g. prove t_99% = 2 × t_90%); Arrhenius equation two-temperature activation energy (E_a) calculations.',
+          standardTrap: 'Confusing order (experimental, can be fractional/zero) with molecularity (theoretical integer); using natural log instead of 2.303 log₁₀.',
+          questionType: '3-mark integrated rate law calculation; 3-mark Arrhenius E_a numerical; 2-mark order/molecularity distinction.'
+        },
         topics: [
-          { id: 'chem_12_ch03_t1', topicName: 'Electrochemical Cells & Daniell Cell', ncertSection: '3.1', highYield: true },
-          { id: 'chem_12_ch03_t2', topicName: 'Nernst Equation & Equilibrium Constant Calculation', ncertSection: '3.3', highYield: true },
-          { id: 'chem_12_ch03_t3', topicName: 'Gibbs Free Energy & Cell Potential Relationship', ncertSection: '3.3.2', highYield: true },
-          { id: 'chem_12_ch03_t4', topicName: 'Conductance, Molar Conductivity & Kohlrauschs Law', ncertSection: '3.4', highYield: true },
-          { id: 'chem_12_ch03_t5', topicName: 'Faradays Laws of Electrolysis & Batteries', ncertSection: '3.5', highYield: true }
+          {
+            id: 'chem_12_ch03_t1',
+            topicName: 'Rate of Reaction, Rate Law & Order',
+            ncertSection: '3.1',
+            highYield: true,
+            subtopics: [
+              'Average rate (-Δ[R]/Δt) vs Instantaneous rate (-d[R]/dt)',
+              'Rate Law Expression: Rate = k[A]^x [B]^y (where x, y are experimental orders)',
+              'Order vs Molecularity: Order is experimental (can be 0, fraction, negative); Molecularity is theoretical integer (1, 2, 3, never 0)',
+              'Units of Rate Constant: (mol L⁻¹)^(1-n) s⁻¹ (Zero-order: mol L⁻¹ s⁻¹; First-order: s⁻¹; Second-order: L mol⁻¹ s⁻¹)'
+            ]
+          },
+          {
+            id: 'chem_12_ch03_t2',
+            topicName: 'Integrated Rate Equations & Half-Life',
+            ncertSection: '3.2',
+            highYield: true,
+            subtopics: [
+              'Zero-Order Reactions: [R] = [R]₀ - kt; Half-life t_1/2 = [R]₀ / (2k) ∝ [R]₀; Linear [R] vs t with slope -k',
+              'First-Order Reactions: k = (2.303/t) log₁₀([R]₀/[R]); Half-life t_1/2 = 0.693/k (independent of initial concentration [R]₀)',
+              'Graphs: log[R] vs t has slope -k/2.303; t_1/2 vs [R]₀ is a horizontal line',
+              'Gas Phase First-Order Reactions: k = (2.303/t) log₁₀[p_i / (2p_i - p_t)]',
+              'Pseudo First-Order Reactions: Acid-catalyzed ester hydrolysis (CH₃COOC₂H₅ + H₂O → CH₃COOH + C₂H₅OH) and cane sugar inversion'
+            ]
+          },
+          {
+            id: 'chem_12_ch03_t3',
+            topicName: 'Temperature Dependence & Collision Theory',
+            ncertSection: '3.3',
+            highYield: true,
+            subtopics: [
+              'Arrhenius Equation: k = A e^(-E_a/RT); Logarithmic form: log₁₀ k = log₁₀ A - E_a / (2.303RT)',
+              'Two-temperature formula: log₁₀(k₂/k₁) = (E_a / 2.303R) [(T₂ - T₁) / (T₁T₂)]',
+              'Activation energy graph: log k vs 1/T straight line with slope = -E_a / (2.303R)',
+              'Role of Catalyst: Provides alternate pathway with lower activation energy without altering Δ_r H or K_c',
+              'Collision Theory: Rate = P · Z_AB e^(-E_a/RT) (Activation energy threshold and steric orientation factor P)'
+            ]
+          }
+        ]
+      },
+
+      // --- SECTION 2: INORGANIC CHEMISTRY (14 MARKS) ---
+      {
+        id: 'chem_12_ch04',
+        grade: '12',
+        discipline: 'INORGANIC_CHEMISTRY',
+        unit: 'Inorganic Chemistry (Unit IV & V - 14M)',
+        chapterNumber: 4,
+        chapterName: 'The d- and f-Block Elements',
+        boardExamFocus: {
+          highYield: 'Reasoning on trends in E°(M²⁺/M) reduction potentials; Lanthanoid contraction causes and consequences; Redox reactions of KMnO₄ and K₂Cr₂O₇ in acidic medium.',
+          standardTrap: 'Forgetting that Zn, Cd, Hg are not transition metals because they lack partially filled d-orbitals in both elemental and common ionic states.',
+          questionType: '3-mark periodic trends and reasoning; 3-mark balanced ionic redox reactions of dichromate/permanganate; 2-mark lanthanoids vs actinoids.'
+        },
+        topics: [
+          {
+            id: 'chem_12_ch04_t1',
+            topicName: 'General Trends of 3d-Transition Series',
+            ncertSection: '4.1',
+            highYield: true,
+            subtopics: [
+              'Electronic configurations: Cr (3d⁵ 4s¹) and Cu (3d¹⁰ 4s¹); Why Zn, Cd, Hg are not transition elements',
+              'Atomic and ionic radii trends; Flat in middle (Fe, Co, Ni) due to d-shielding balancing nuclear charge',
+              'Variable oxidation states; Maximum shown by Mn (+7); Stability from reduction potentials (E°_Cu²⁺/Cu is +0.34 V)',
+              'Why Cr²⁺ is strongly reducing while Mn³⁺ is oxidizing (Cr³⁺ achieves stable half-filled t_2g³; Mn²⁺ achieves d⁵)',
+              'Spin-only magnetic moment formula: μ = √(n(n+2)) BM (n = unpaired electrons)',
+              'Formation of colored ions (d-d transitions); Catalytic properties; Interstitial compounds; Alloy formation'
+            ]
+          },
+          {
+            id: 'chem_12_ch04_t2',
+            topicName: 'Preparation and Reactions of K₂Cr₂O₇ and KMnO₄',
+            ncertSection: '4.2',
+            highYield: true,
+            subtopics: [
+              'Potassium Dichromate (K₂Cr₂O₇): Preparation from Chromite ore (FeCr₂O₄) via Na₂CrO₄ and Na₂Cr₂O₇',
+              'pH-dependent interconversion: 2CrO₄²⁻ (yellow) + 2H⁺ ⇌ Cr₂O₇²⁻ (orange) + H₂O',
+              'Oxidizing actions in acid: Cr₂O₇²⁻ + 14H⁺ + 6e⁻ → 2Cr³⁺ + 7H₂O (oxidizes I⁻ → I₂, Fe²⁺ → Fe³⁺, H₂S → S, Sn²⁺ → Sn⁴⁺)',
+              'Potassium Permanganate (KMnO₄): Preparation from Pyrolusite ore (MnO₂) via green K₂MnO₄',
+              'Oxidizing actions in acid: MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O (oxidizes Fe²⁺ → Fe³⁺, C₂O₄²⁻ → CO₂, I⁻ → I₂)',
+              'Oxidizing actions in neutral/faintly alkaline: MnO₄⁻ + 2H₂O + 3e⁻ → MnO₂ + 4OH⁻ (oxidizes I⁻ → IO₃⁻ iodate)'
+            ]
+          },
+          {
+            id: 'chem_12_ch04_t3',
+            topicName: 'Inner Transition Elements (f-Block: Lanthanoids & Actinoids)',
+            ncertSection: '4.3',
+            highYield: true,
+            subtopics: [
+              'Lanthanoid Contraction: Cause (poor shielding of 4f electrons) and consequences (identical radii of Zr ≈ Hf, Nb ≈ Ta; basicity decrease La(OH)₃ to Lu(OH)₃)',
+              'Lanthanoids common oxidation state +3 (Ce⁴⁺ and Eu²⁺ exceptional stabilities)',
+              'Actinoids display wider oxidation states (+3 to +7) due to small energy gap between 5f, 6d, and 7s',
+              'Actinoid contraction is greater than lanthanoid contraction due to poorer shielding by 5f vs 4f electrons'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'chem_12_ch05',
+        grade: '12',
+        discipline: 'INORGANIC_CHEMISTRY',
+        unit: 'Inorganic Chemistry (Unit IV & V - 14M)',
+        chapterNumber: 5,
+        chapterName: 'Coordination Compounds',
+        boardExamFocus: {
+          highYield: 'IUPAC naming of coordination complexes; VBT prediction of hybridization, shape, and magnetic nature ([Co(NH₃)₆]³⁺, [CoF₆]³⁻, [Ni(CN)₄]²⁻, [NiCl₄]²⁻); CFT splitting diagrams and d⁴-d⁷ configurations.',
+          standardTrap: 'Forgetting to add suffix \'-ate\' to central metal when complex is anionic (e.g. ferrate, platinate, cobaltate).',
+          questionType: '3-mark VBT / CFT configuration and magnetic property question; 2-mark IUPAC nomenclature; 2-mark isomerism drawing.'
+        },
+        topics: [
+          {
+            id: 'chem_12_ch05_t1',
+            topicName: 'Nomenclature, Coordination Sphere & Isomerism',
+            ncertSection: '5.1',
+            highYield: true,
+            subtopics: [
+              'Terminology: Coordination entity, coordination number, denticity (bidentate en, oxalate; hexadentate EDTA⁴⁻), ambidentate ligands (NO₂⁻/ONO⁻, SCN⁻/NCS⁻)',
+              'Chelate effect: Chelating ring complexes exhibit enhanced thermodynamic stability',
+              'IUPAC Nomenclature: Alphabetical ligand ordering, anionic complex suffix \'-ate\', oxidation states in Roman numerals',
+              'Structural Isomerism: Linkage (ambidentate), Coordination, Ionization (exchange with counter ion), Solvate/Hydrate',
+              'Stereoisomerism: Geometrical (cis/trans in [MA₂B₂] square planar and [MA₄B₂] octahedral; fac/mer in [MA₃B₃])',
+              'Optical Isomerism: Enantiomers in [Co(en)₃]³⁺ and cis-[Co(en)₂Cl₂]⁺; Trans-[Co(en)₂Cl₂]⁺ is optically inactive (plane of symmetry)'
+            ]
+          },
+          {
+            id: 'chem_12_ch05_t2',
+            topicName: 'Bonding Theories (Werner, VBT, CFT)',
+            ncertSection: '5.2',
+            highYield: true,
+            subtopics: [
+              'Werner\'s Theory: Primary valency (ionizable, oxidation state) vs Secondary valency (non-ionizable, coordination number)',
+              'Valence Bond Theory (VBT): sp³ (Tetrahedral), dsp² (Square planar), sp³d² (Outer orbital, high spin), d²sp³ (Inner orbital, low spin)',
+              'VBT limitations: Cannot explain color, spectra, or relative ligand strength',
+              'Crystal Field Theory (CFT): Octahedral field splitting into lower t_2g (-0.4 Δ_o) and upper e_g (+0.6 Δ_o)',
+              'Spectrochemical Series: I⁻ < Br⁻ < S²⁻ < Cl⁻ < F⁻ < OH⁻ < C₂O₄²⁻ < H₂O < NCS⁻ < EDTA⁴⁻ < NH₃ < en < CN⁻ < CO',
+              'High spin (Δ_o < P, weak field) vs Low spin (Δ_o > P, strong field) configurations for d⁴ to d⁷ ions',
+              'Tetrahedral Field Splitting: Δ_t = (4/9) Δ_o; Pairing energy P > Δ_t always (high spin complexes)',
+              'Color mechanism: d-d electronic transition across Δ_o absorbing complementary light'
+            ]
+          }
+        ]
+      },
+
+      // --- SECTION 3: ORGANIC CHEMISTRY (35 MARKS) ---
+      {
+        id: 'chem_12_ch06',
+        grade: '12',
+        discipline: 'ORGANIC_CHEMISTRY',
+        unit: 'Organic Chemistry (Unit VI to X - 35M)',
+        chapterNumber: 6,
+        chapterName: 'Haloalkanes and Haloarenes',
+        boardExamFocus: {
+          highYield: 'SN1 vs SN2 mechanism comparison (reactivity order, stereochemical inversion vs racemization); Why haloarenes are less reactive towards nucleophilic substitution; Ambident nucleophile reactions (KCN vs AgCN).',
+          standardTrap: 'Using tertiary alkyl halide in Williamson ether synthesis or SN2 substitution where elimination to alkene dominates.',
+          questionType: '3-mark SN1/SN2 reactivity ordering with reasoning; 2-mark named reaction conversion; 2-mark haloarene unreactivity reasoning.'
+        },
+        topics: [
+          {
+            id: 'chem_12_ch06_t1',
+            topicName: 'Preparation and Physical Properties',
+            ncertSection: '6.1',
+            highYield: false,
+            subtopics: [
+              'Preparations from alcohols using SOCl₂ (Darzens process, preferred as SO₂ and HCl are escapable gases), PCl₅, PCl₃, HX',
+              'Free radical halogenation of alkanes and electrophilic addition of HX to alkenes (Markovnikov vs Peroxide Anti-Markovnikov for HBr)',
+              'Halogen Exchange: Finkelstein Reaction (R-X + NaI → R-I in dry acetone) and Swarts Reaction (R-X + AgF/CoF₂ → R-F)',
+              'Boiling point trends: Branching decreases surface area and van der Waals forces, lowering boiling point'
+            ]
+          },
+          {
+            id: 'chem_12_ch06_t2',
+            topicName: 'Nucleophilic Substitution Mechanisms (SN1 vs SN2)',
+            ncertSection: '6.2',
+            highYield: true,
+            subtopics: [
+              'SN2 Mechanism: Single-step concerted, bimolecular, backside attack, Walden Inversion; Reactivity: 1° > 2° > 3° > vinyl/aryl; Favored by strong nucleophiles and polar aprotic solvents',
+              'SN1 Mechanism: Two-step via carbocation intermediate, unimolecular, racemization (inversion + retention); Reactivity: 3° > 2° > 1°; Allylic and benzylic halides show high reactivity due to resonance; Favored by polar protic solvents'
+            ]
+          },
+          {
+            id: 'chem_12_ch06_t3',
+            topicName: 'Reactions of Haloalkanes and Haloarenes',
+            ncertSection: '6.3',
+            highYield: true,
+            subtopics: [
+              'β-Elimination (Dehydrohalogenation) by alcoholic KOH; Saytzeff’s (Zaitsev) Rule: more substituted alkene is major product',
+              'Ambident Nucleophiles: KCN forms alkyl cyanides (R-CN, C-attack); AgCN forms alkyl isocyanides (R-NC, N-attack); KNO₂ forms nitrites (R-ONO); AgNO₂ forms nitroalkanes (R-NO₂)',
+              'Low reactivity of haloarenes: 1. Resonance partial double bond C-X; 2. sp² carbon high electronegativity; 3. Phenyl cation instability; 4. Repulsion with π-cloud',
+              'Electrophilic substitution in haloarenes: Halogens are deactivating but ortho/para directing due to +R overriding -I at o/p'
+            ]
+          },
+          {
+            id: 'chem_12_ch06_t4',
+            topicName: 'Named Reactions of Alkyl & Aryl Halides',
+            ncertSection: '6.4',
+            highYield: true,
+            subtopics: [
+              'Wurtz Reaction: 2R-X + 2Na → R-R + 2NaX in dry ether',
+              'Fittig Reaction: 2Ar-X + 2Na → Ar-Ar (Diphenyl) in dry ether',
+              'Wurtz-Fittig Reaction: Ar-X + R-X + 2Na → Ar-R + 2NaX in dry ether'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'chem_12_ch07',
+        grade: '12',
+        discipline: 'ORGANIC_CHEMISTRY',
+        unit: 'Organic Chemistry (Unit VI to X - 35M)',
+        chapterNumber: 7,
+        chapterName: 'Alcohols, Phenols and Ethers',
+        boardExamFocus: {
+          highYield: 'Mechanism of acid-catalyzed dehydration of ethanol to ethene (443 K) vs ethoxyethane (413 K); Kolbe\'s and Reimer-Tiemann reactions; Williamson ether synthesis and ether cleavage with HI.',
+          standardTrap: 'Cleavage of alkyl-aryl ether with HI: the C-O bond to phenyl cannot break due to partial double bond character, producing phenol and alkyl iodide.',
+          questionType: '3-mark dehydration mechanism; 3-mark named reactions (Reimer-Tiemann, Kolbe); 2-mark ether cleavage with HI.'
+        },
+        topics: [
+          {
+            id: 'chem_12_ch07_t1',
+            topicName: 'Alcohols: Synthesis, Acidity & Distinctions',
+            ncertSection: '7.1',
+            highYield: true,
+            subtopics: [
+              'Preparation: Acid-catalyzed hydration (Markovnikov); Hydroboration-Oxidation (B₂H₆ + H₂O₂/OH⁻ ⇒ Anti-Markovnikov addition of water); Grignard reagent addition (HCHO → 1°, RCHO → 2°, RCOR → 3°)',
+              'Acidity of alcohols: Alcohols are weaker acids than water due to +I effect of alkyl groups (1° > 2° > 3°)',
+              'Lucas Test (conc. HCl + anhyd. ZnCl₂): 3° alcohol gives turbidity immediately, 2° within 5 min, 1° only on heating',
+              'Oxidation: PCC converts 1° alcohols to aldehydes (stops at aldehyde stage) and 2° to ketones; KMnO₄/K₂Cr₂O₇ oxidizes to carboxylic acids',
+              'Dehydrogenation over Cu at 573 K: 1° gives aldehyde, 2° gives ketone, 3° undergoes dehydration to alkene'
+            ]
+          },
+          {
+            id: 'chem_12_ch07_t2',
+            topicName: 'Phenols: Synthesis, Acidity & Named Reactions',
+            ncertSection: '7.2',
+            highYield: true,
+            subtopics: [
+              'Preparation from Cumene (cumene hydroperoxide process yielding phenol + acetone) and from Benzenediazonium chloride',
+              'Acidity of Phenols: More acidic than alcohols due to resonance stabilization of phenoxide ion; EWG (-NO₂) at o/p increases acidity; o-nitrophenol is less acidic than p-nitrophenol due to intramolecular H-bonding',
+              'Kolbe’s Reaction: Phenol + NaOH + CO₂ → Salicylic acid (2-hydroxybenzoic acid)',
+              'Reimer-Tiemann Reaction: Phenol + CHCl₃ + 3NaOH → Salicylaldehyde (intermediate is dichlorocarbene :CCl₂)',
+              'Bromination: With Br₂/CS₂ gives p-bromophenol (major); with Br₂/H₂O gives white precipitate of 2,4,6-tribromophenol',
+              'Nitration: Dilute HNO₃ gives steam-volatile o-nitrophenol (intramolecular H-bond) and p-nitrophenol; Conc. HNO₃ gives Picric acid (2,4,6-trinitrophenol)'
+            ]
+          },
+          {
+            id: 'chem_12_ch07_t3',
+            topicName: 'Ethers: Synthesis & Cleavage',
+            ncertSection: '7.3',
+            highYield: true,
+            subtopics: [
+              'Intermolecular dehydration of ethanol: 2C₂H₅OH → C₂H₅OC₂H₅ at 413 K with conc. H₂SO₄ (at 443 K ethene alkene dominates)',
+              'Williamson Ether Synthesis: R-X + R\'-O⁻Na⁺ → R-O-R\' + NaX (SN2 mechanism, R-X must be primary 1°; if 3° halide is used, elimination dominates to give alkene)',
+              'Cleavage of Ethers by HI: 1°/2° unsymmetrical ethers form smaller alkyl iodide via SN2; if one group is tertiary (3°), it forms 3° alkyl iodide via SN1 carbocation',
+              'Anisole (Ph-O-CH₃) with HI gives Phenol + CH₃I (Ph-O bond has partial double bond character)'
+            ]
+          }
         ]
       },
       {
         id: 'chem_12_ch08',
         grade: '12',
-        branch: 'ORGANIC',
-        unit: 'Organic Chemistry',
+        discipline: 'ORGANIC_CHEMISTRY',
+        unit: 'Organic Chemistry (Unit VI to X - 35M)',
         chapterNumber: 8,
         chapterName: 'Aldehydes, Ketones and Carboxylic Acids',
+        boardExamFocus: {
+          highYield: 'Aldol Condensation and Cannizzaro Reaction; Chemical tests to distinguish pairs (Tollens\', Fehling\'s, Iodoform); Carboxylic acids acidity rankings; Clemmensen & Wolff-Kishner reductions.',
+          standardTrap: 'Performing Fehling\'s test on benzaldehyde (aromatic aldehydes do not reduce Fehling\'s solution); writing aldol product for compounds lacking α-hydrogen.',
+          questionType: 'Guaranteed 5-mark organic synthesis/mechanism question; 3-mark chemical distinguishing tests; 2-mark acidity ranking.'
+        },
         topics: [
-          { id: 'chem_12_ch08_t1', topicName: 'Nomenclature and Carbonyl Structure', ncertSection: '8.1', highYield: false },
-          { id: 'chem_12_ch08_t2', topicName: 'Preparation of Aldehydes (Rosenmund, Stephen, Etard)', ncertSection: '8.2', highYield: true },
-          { id: 'chem_12_ch08_t3', topicName: 'Nucleophilic Addition Reactions (HCN, NaHSO3, Grignard)', ncertSection: '8.4.1', highYield: true },
-          { id: 'chem_12_ch08_t4', topicName: 'Aldol Condensation & Cannizzaro Reaction', ncertSection: '8.4.4', highYield: true },
-          { id: 'chem_12_ch08_t5', topicName: 'Carboxylic Acids Acidity & HVZ Reaction', ncertSection: '8.6', highYield: true }
+          {
+            id: 'chem_12_ch08_t1',
+            topicName: 'Preparation of Carbonyls',
+            ncertSection: '8.1',
+            highYield: true,
+            subtopics: [
+              'Rosenmund Reduction: R-COCl + H₂ → R-CHO over Pd-BaSO₄ / quinoline (poisoned catalyst)',
+              'Stephen Reaction: R-CN + SnCl₂ + HCl → R-CH=NH →(H₃O⁺) R-CHO',
+              'Etard Reaction: Toluene + CrO₂Cl₂ (in CS₂) → Chromium complex →(H₃O⁺) Benzaldehyde',
+              'Gattermann-Koch Reaction: Benzene + CO + HCl →(anhyd. AlCl₃/CuCl) Benzaldehyde',
+              'Ozonolysis of alkenes (O₃ followed by Zn/H₂O) and alkyne hydration (ethyne gives ethanal, propyne gives acetone)'
+            ]
+          },
+          {
+            id: 'chem_12_ch08_t2',
+            topicName: 'Nucleophilic Addition Reactions of Carbonyls',
+            ncertSection: '8.2',
+            highYield: true,
+            subtopics: [
+              'Reactivity towards nucleophilic addition: Aldehydes > Ketones (steric hindrance and +I alkyl groups reduce carbonyl carbon electrophilicity); Aliphatic aldehydes > Aromatic aldehydes',
+              'Addition of HCN (base-catalyzed forming cyanohydrins)',
+              'Addition of NaHSO₃ (bisulphite crystalline adduct for purification)',
+              'Addition of alcohols: Aldehydes give hemiacetals and acetals; Ketones give cyclic ethylene glycol ketals',
+              'Addition of ammonia derivatives (H₂N-Z): Hydroxylamine (oxime), Hydrazine (hydrazone), Semicarbazide (semicarbazone), 2,4-DNP (orange-yellow precipitate)'
+            ]
+          },
+          {
+            id: 'chem_12_ch08_t3',
+            topicName: 'Distinguishing Tests & Carbonyl Named Reactions',
+            ncertSection: '8.3',
+            highYield: true,
+            subtopics: [
+              'Tollens’ Test (Silver Mirror): Positive for all aldehydes (aliphatic and aromatic); R-CHO + 2[Ag(NH₃)₂]⁺ + 3OH⁻ → R-COO⁻ + 2Ag↓ + 4NH₃ + 2H₂O',
+              'Fehling’s Test: Positive for aliphatic aldehydes (red Cu₂O precipitate); Aromatic aldehydes and ketones fail',
+              'Iodoform Test (I₂ + NaOH): Positive for CH₃-C=O and CH₃-CH(OH)- groups (ethanal, all methyl ketones, ethanol, propan-2-ol); yields bright yellow CHI₃ precipitate',
+              'Aldol Condensation: Carbonyls with α-hydrogen with dilute NaOH yield β-hydroxyaldehyde (aldol) which dehydrates on heating to α,β-unsaturated carbonyl',
+              'Cannizzaro Reaction: Aldehydes lacking α-hydrogen (HCHO, PhCHO) with 50% conc. NaOH disproportionate into alcohol and carboxylic acid salt',
+              'Clemmensen Reduction: >C=O + Zn-Hg + conc. HCl → >CH₂; Wolff-Kishner Reduction: >C=O + NH₂NH₂ / KOH / ethylene glycol, Δ → >CH₂ + N₂'
+            ]
+          },
+          {
+            id: 'chem_12_ch08_t4',
+            topicName: 'Carboxylic Acids: Acidity & Reactions',
+            ncertSection: '8.4',
+            highYield: true,
+            subtopics: [
+              'Acidity of Carboxylic Acids: Higher than phenols because carboxylate ion stabilizes negative charge equally over two electronegative oxygen atoms',
+              'Substituent effects: EWG (-NO₂, -CN, -F, -Cl) increase acidity; EDG decrease acidity (CF₃COOH > CCl₃COOH > CHCl₂COOH > NO₂CH₂COOH > HCOOH > PhCOOH > CH₃COOH)',
+              'Hell-Volhard-Zelinsky (HVZ) Reaction: Carboxylic acids with α-hydrogen react with Cl₂/Br₂ and red P to yield α-halocarboxylic acids',
+              'Decarboxylation: Sodium salts of carboxylic acids heated with soda-lime (NaOH + CaO 3:1) yield alkane with one fewer carbon'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'chem_12_ch09',
+        grade: '12',
+        discipline: 'ORGANIC_CHEMISTRY',
+        unit: 'Organic Chemistry (Unit VI to X - 35M)',
+        chapterNumber: 9,
+        chapterName: 'Amines',
+        boardExamFocus: {
+          highYield: 'Basicity order of amines in aqueous solution ((C₂H₅)₂NH > (C₂H₅)₃N > C₂H₅NH₂ > NH₃ vs (CH₃)₂NH > CH₃NH₂ > (CH₃)₃N > NH₃); Carbylamine and Hinsberg tests; Gabriel phthalimide & Hofmann bromamide reactions.',
+          standardTrap: 'Gabriel phthalimide synthesis cannot prepare aromatic primary amines (aniline) because aryl halides do not undergo nucleophilic substitution with phthalimide anion.',
+          questionType: '3-mark basicity order with reasoning (inductive, solvation, steric); 3-mark Hinsberg / Carbylamine test; 2-mark diazonium coupling dyes.'
+        },
+        topics: [
+          {
+            id: 'chem_12_ch09_t1',
+            topicName: 'Classification & Preparations',
+            ncertSection: '9.1',
+            highYield: true,
+            subtopics: [
+              'Reduction of nitro compounds (Fe + HCl preferred over Sn + HCl as FeCl₂ hydrolyzes to regenerate HCl)',
+              'Ammonolysis of alkyl halides (Hofmann method gives mixture of 1°, 2°, 3° and quaternary ammonium salt)',
+              'Reduction of nitriles (R-CN → R-CH₂NH₂) and amides with LiAlH₄',
+              'Gabriel Phthalimide Synthesis: Phthalimide + KOH + R-X → N-alkylphthalimide → 1° aliphatic amine (cannot synthesize aniline as aryl halides do not react)',
+              'Hofmann Bromamide Degradation: R-CONH₂ + Br₂ + 4NaOH → R-NH₂ + Na₂CO₃ + 2NaBr + 2H₂O (gives 1° amine with one less carbon atom)'
+            ]
+          },
+          {
+            id: 'chem_12_ch09_t2',
+            topicName: 'Basicity of Amines',
+            ncertSection: '9.2',
+            highYield: true,
+            subtopics: [
+              'Gas phase basicity: 3° > 2° > 1° > NH₃ (governed purely by +I electron-donating effect)',
+              'Aqueous phase basicity: Interplay of inductive, hydration energy (H-bonding), and steric hindrance',
+              'Methyl-substituted in water: 2° > 1° > 3° > NH₃ [(CH₃)₂NH > CH₃NH₂ > (CH₃)₃N > NH₃]',
+              'Ethyl-substituted in water: 2° > 3° > 1° > NH₃ [(C₂H₅)₂NH > (C₂H₅)₃N > C₂H₅NH₂ > NH₃]',
+              'Basicity of Aniline: Aniline is a weaker base than ammonia and aliphatic amines because nitrogen lone pair is delocalized into the benzene ring via resonance'
+            ]
+          },
+          {
+            id: 'chem_12_ch09_t3',
+            topicName: 'Chemical Tests and Distinctions',
+            ncertSection: '9.3',
+            highYield: true,
+            subtopics: [
+              'Carbylamine Test (Isocyanide test): Specific for 1° amines (aliphatic & aromatic); R-NH₂ + CHCl₃ + 3KOH(alc), Δ → R-NC (foul-smelling isocyanide); 2° and 3° do not respond',
+              'Hinsberg\'s Test (Benzenesulphonyl chloride C₆H₅SO₂Cl): 1° amine gives N-alkylbenzenesulphonamide (soluble in alkali KOH); 2° gives N,N-dialkyl derivative (insoluble in alkali); 3° does not react',
+              'Reaction with HNO₂ (NaNO₂ + HCl): Primary aliphatic amines liberate N₂ gas quantitatively; Primary aromatic amines at 273-278 K form stable Benzenediazonium chloride'
+            ]
+          },
+          {
+            id: 'chem_12_ch09_t4',
+            topicName: 'Diazonium Salts & Azo Dyes',
+            ncertSection: '9.4',
+            highYield: true,
+            subtopics: [
+              'Sandmeyer Reaction: Ar-N₂⁺Cl⁻ + Cu₂Cl₂/HCl → Ar-Cl; with Cu₂Br₂/HBr → Ar-Br; with CuCN/KCN → Ar-CN',
+              'Gattermann Reaction: Ar-N₂⁺Cl⁻ + Cu/HCl → Ar-Cl; with Cu/HBr → Ar-Br',
+              'Azo Coupling Reactions: With Phenol in mildly basic medium (pH 9-10) gives p-hydroxyazobenzene (orange dye); With Aniline in mildly acidic medium (pH 4-5) gives p-aminoazobenzene (yellow dye)'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'chem_12_ch10',
+        grade: '12',
+        discipline: 'ORGANIC_CHEMISTRY',
+        unit: 'Organic Chemistry (Unit VI to X - 35M)',
+        chapterNumber: 10,
+        chapterName: 'Biomolecules',
+        boardExamFocus: {
+          highYield: 'Chemical reactions confirming the open-chain structure of glucose (HI, Br₂ water, Ac₂O, HNO₃); Differences between Amylose and Amylopectin; Structural levels of proteins and denaturation; Peptide bond and Zwitterion.',
+          standardTrap: 'Assuming glucose gives 2,4-DNP or Schiff\'s test in open-chain form (it exists predominantly as cyclic hemiacetal pyranose anomers, failing these aldehyde tests).',
+          questionType: '3-mark glucose structure proof reactions; 2-mark protein denaturation & structure levels; 2-mark nucleotide vs nucleoside / vitamins.'
+        },
+        topics: [
+          {
+            id: 'chem_12_ch10_t1',
+            topicName: 'Carbohydrates: Glucose Structure & Polysaccharides',
+            ncertSection: '10.1',
+            highYield: true,
+            subtopics: [
+              'Classification: Monosaccharides, reducing (free hemiacetal) vs non-reducing sugars (sucrose)',
+              'Glucose Structure Proofs: 1. HI, Δ gives n-hexane (6-carbon straight chain); 2. NH₂OH and HCN give oxime and cyanohydrin (carbonyl); 3. Br₂ water gives gluconic acid (aldehyde); 4. Ac₂O gives pentaacetate (5 distinct -OH); 5. HNO₃ gives saccharic acid (1° alcohol)',
+              'Cyclic Structure & Anomers: α-D-glucose and β-D-glucose differ only at C-1 anomeric carbon',
+              'Disaccharides: Sucrose (α-D-glucose + β-D-fructose, C1-C2 glycosidic, non-reducing, invert sugar [dextro +66.5° hydrolyzes to laevo mixture]); Maltose (α-1,4-glycosidic, reducing); Lactose (β-1,4, reducing)',
+              'Polysaccharides: Starch (Amylose 15-20% water-soluble unbranched C1-C4 + Amylopectin 80-85% insoluble branched C1-C6); Cellulose (straight chain β-1,4 structural polymer); Glycogen (animal starch, highly branched)'
+            ]
+          },
+          {
+            id: 'chem_12_ch10_t2',
+            topicName: 'Amino Acids and Proteins',
+            ncertSection: '10.2',
+            highYield: true,
+            subtopics: [
+              'Amino Acids: α-amino acids; Essential (Valine, Leucine) vs Non-essential (Glycine, Alanine); Optical activity (all chiral except Glycine)',
+              'Zwitterion: Neutral dipolar ion (+H₃N-CH(R)-COO⁻), amphoteric behavior',
+              'Peptide Bond: Amide linkage (-CONH-) formed between -COOH and -NH₂ with elimination of water',
+              'Protein Structures: Primary (amino acid sequence), Secondary (α-helix and β-pleated sheets via H-bonds), Tertiary (fibrous keratin/collagen vs globular albumin/insulin), Quaternary',
+              'Denaturation of Proteins: Disruption of secondary and tertiary structures by heat or pH change; primary structure remains intact (e.g. boiling egg white, curdling milk)'
+            ]
+          },
+          {
+            id: 'chem_12_ch10_t3',
+            topicName: 'Nucleic Acids & Vitamins',
+            ncertSection: '10.3',
+            highYield: true,
+            subtopics: [
+              'Chemical components: Pentose sugar (β-D-ribose in RNA, β-D-2-deoxyribose in DNA), Phosphoric acid, Purines (A, G), Pyrimidines (C, U in RNA, T in DNA)',
+              'Nucleoside (Base + Sugar at C-1\') vs Nucleotide (Base + Sugar + Phosphate at C-5\')',
+              'DNA Double Helix: Held by complementary hydrogen bonds (A = T double bond, G ≡ C triple bond)',
+              'Vitamins: Fat-soluble (A, D, E, K, stored in liver/adipose) vs Water-soluble (B-complex and C, excreted in urine, not stored except B₁₂)',
+              'Deficiency diseases: Vitamin A (Night blindness), Vitamin B₁ (Beri-beri), Vitamin C (Scurvy), Vitamin D (Rickets), Vitamin K (Delayed blood clotting)'
+            ]
+          }
         ]
       }
     ]

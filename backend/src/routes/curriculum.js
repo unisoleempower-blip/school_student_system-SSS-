@@ -53,19 +53,20 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
     // Enrich each chapter and topic with live question count
     const enrichedChapters = chapters.map(ch => {
       const chapterQuestions = allQuestions.filter(q => {
-        const qChap = (q.chapter || q.chapter_name || '').toLowerCase();
-        const tChap = ch.chapterName.toLowerCase();
-        return qChap.includes(tChap) || tChap.includes(qChap);
+        const qChap = (q.chapter || q.chapter_name || '').toLowerCase().trim();
+        const tChap = ch.chapterName.toLowerCase().trim();
+        if (!qChap) return false;
+        return qChap === tChap || qChap.includes(tChap) || tChap.includes(qChap);
       });
 
-      const enrichedTopics = ch.topics.map(t => {
+      const enrichedTopics = ch.topics.map((t, idx) => {
         const tLower = t.topicName.toLowerCase();
-        const topicQuestions = chapterQuestions.filter(q => {
+        let topicQuestions = chapterQuestions.filter(q => {
           const qTopic = (q.topic || '').toLowerCase();
           const qSubtopic = (q.subtopic || '').toLowerCase();
           const qText = `${qTopic} ${qSubtopic}`.toLowerCase();
           
-          if (qText.includes(tLower) || tLower.includes(qTopic)) return true;
+          if (qTopic && (qText.includes(tLower) || tLower.includes(qTopic))) return true;
           if (qSubtopic && tLower.includes(qSubtopic)) return true;
           if (t.ncertSection && q.ncert_mapping?.ncert_section?.includes(t.ncertSection)) return true;
 
@@ -79,6 +80,8 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
           if (tLower.includes('mirror') && qText.includes('mirror')) return true;
           if (tLower.includes('nernst') && qText.includes('nernst')) return true;
           if (tLower.includes('rotational') && qText.includes('rotational')) return true;
+          if (tLower.includes('ether') && qText.includes('ether')) return true;
+          if (tLower.includes('glucose') && (qText.includes('glucose') || qText.includes('carbohydrate'))) return true;
 
           // Check subtopics list
           if (t.subtopics && Array.isArray(t.subtopics)) {
@@ -91,6 +94,17 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
 
           return false;
         });
+
+        // If a topic has 0 questions but chapter has questions that weren't caught due to slight wording variation
+        if (topicQuestions.length === 0 && chapterQuestions.length > 0) {
+          const unassigned = chapterQuestions.filter(q => {
+            const qTopic = (q.topic || '').toLowerCase();
+            return !ch.topics.some(ot => ot.id !== t.id && (ot.topicName.toLowerCase().includes(qTopic) || qTopic.includes(ot.topicName.toLowerCase())));
+          });
+          if (unassigned.length > 0 && idx === 0) {
+            topicQuestions = unassigned;
+          }
+        }
 
         return {
           ...t,
@@ -193,14 +207,12 @@ router.get('/questions', (req, res) => {
 // 4. POST /api/curriculum/generate-topic-question - Generate question for a specific chapter/topic
 router.post('/generate-topic-question', async (req, res) => {
   try {
-    const {
-      grade = '11',
-      subject = 'Biology',
-      chapter = 'Molecular Basis of Inheritance',
-      topic = 'DNA Replication',
-      difficulty = 'MEDIUM',
-      board = 'NEET'
-    } = req.body;
+    const grade = req.body.grade || '12';
+    const subject = req.body.subject || 'Chemistry';
+    const chapter = req.body.chapter || req.body.chapterName || 'Electrochemistry';
+    const topic = req.body.topic || req.body.topicName || 'Galvanic Cells & Nernst Equation';
+    const difficulty = req.body.difficulty || 'MEDIUM';
+    const board = req.body.board || req.body.curriculumBoard || 'CBSE';
 
     console.log(`[CURRICULUM AI] Synthesizing question for ${subject} -> ${chapter} -> ${topic} (${board})...`);
 
@@ -220,6 +232,7 @@ router.post('/generate-topic-question', async (req, res) => {
       grade: String(grade),
       subject,
       chapter,
+      chapter_name: chapter,
       topic,
       subtopic: topic,
       curriculum_board: board,
