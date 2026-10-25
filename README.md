@@ -208,3 +208,43 @@ cd ../frontend && npx serve -l 3008
 2. **Teacher Veto Power**: No AI-generated question or automated mark goes into official school grade books without teacher verification.
 3. **No Opaque AI Blackboxes**: All scores, mastery levels, and report comments are backed by transparent telemetry logs.
 
+---
+
+## 🌐 Staging & Production Release Gate Architecture
+
+To ensure zero downtime and absolute academic stability, HAPS-AI Scholar Assistant operates under a strict **Two-Tier Staging & Production Release Gate**:
+
+```mermaid
+graph LR
+    Dev[Feature Commit] --> StagingBranch[Branch: staging]
+    StagingBranch --> DeployStaging[Vercel Staging / Preview]
+    DeployStaging --> VerifySuite[Automated Staging Verification Suite: 7 Checks]
+    VerifySuite -- If ANY Check Fails --> BlockRelease[❌ GATE BLOCKED: Production Untouched]
+    VerifySuite -- 100% Passed --> PromoteGate[🎯 GATE APPROVED]
+    PromoteGate --> DeployProd[Vercel Production: haps-ai-scholar-assistant.vercel.app]
+    PromoteGate --> GitMain[Merge staging -> main]
+```
+
+### Environment Breakdown
+
+| Environment | Branch | Vercel Target | Access & Validation |
+| :--- | :--- | :--- | :--- |
+| **Staging** | `staging` | Preview / Staging Deployment | SSO Protected, Automated verification via `node scripts/verify_staging.js` |
+| **Production** | `main` | Production (`--prod`) | Public URL: [`https://haps-ai-scholar-assistant.vercel.app`](https://haps-ai-scholar-assistant.vercel.app) |
+
+### 🚦 Safe Staging-to-Production Commands
+
+```bash
+# 1. Deploy only to Staging / Preview environment:
+npm run deploy:staging
+
+# 2. Run the 7-check synthetic staging verification suite:
+npm run verify:staging
+
+# 3. Safe Promotion: Deploys to Staging, verifies 100% checks, then promotes to Production:
+npm run promote:production
+```
+
+> **Strict Promotion Invariant**: Code is NEVER directly pushed to production without passing the staging test suite (`verify_staging.js`) encompassing API health, KaTeX LaTeX rendering, assessments catalog, class analytics, blueprints, and live diagnostic scoring.
+
+

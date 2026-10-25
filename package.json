@@ -7,7 +7,10 @@
     "start": "node backend/src/server.js",
     "dev": "node --watch backend/src/server.js",
     "test": "node scripts/test_evaluator.js",
-    "build": "echo 'Build complete: Static frontend and Serverless API ready'"
+    "build": "echo 'Build complete: Static frontend and Serverless API ready'",
+    "deploy:staging": "./scripts/deploy_vercel.sh --preview",
+    "verify:staging": "node scripts/verify_staging.js",
+    "promote:production": "./scripts/promote_to_production.sh"
   },
   "dependencies": {
     "cors": "^2.8.5",
