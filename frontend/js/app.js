@@ -81,34 +81,121 @@ function initLucideIcons() {
   }
 }
 
+const pendingMathQueue = new Set();
+let katexRetryInterval = null;
+
+function decodeHtmlEntities(str) {
+  if (!str || typeof str !== 'string') return '';
+  return str
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
 /**
- * Robust LaTeX renderer using KaTeX
- * Safely parses display math ($$...$$) and inline math ($...$)
+ * Universal robust LaTeX renderer using KaTeX
+ * Handles:
+ * 1. LaTeX environments: \begin{equation}...\end{equation}, \begin{align}...\end{align}
+ * 2. Display math: $$...$$, \[...\] (including trailing LLM backslashes e.g. \] \ )
+ * 3. Inline math: \(...\), $...$
+ * 4. Automatic entity decoding and newline derivation formatting
+ */
+function renderLatexString(rawText) {
+  if (!rawText || typeof rawText !== 'string') return '';
+
+  let content = rawText;
+
+  // 1. Render LaTeX environments: \begin{...}...\end{...}
+  content = content.replace(/\\begin\{(equation|align|aligned|gather|matrix|pmatrix|bmatrix)\}([\s\S]*?)\\end\{\1\}/g, (match) => {
+    const cleanTex = decodeHtmlEntities(match.trim());
+    if (window.katex) {
+      try {
+        return window.katex.renderToString(cleanTex, { displayMode: true, throwOnError: false });
+      } catch (e) {}
+    }
+    return `<div class="katex-display-fallback">${cleanTex}</div>`;
+  });
+
+  // 2. Render Display Math: $$...$$
+  content = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, tex) => {
+    const cleanTex = decodeHtmlEntities(tex.trim());
+    if (window.katex) {
+      try {
+        return window.katex.renderToString(cleanTex, { displayMode: true, throwOnError: false });
+      } catch (e) {}
+    }
+    return `<div class="katex-display-fallback">${cleanTex}</div>`;
+  });
+
+  // 3. Render Display Math: \[...\] (and consume optional trailing \ from LLM generation)
+  content = content.replace(/\\\[([\s\S]*?)\\\](?:\\)?/g, (match, tex) => {
+    const cleanTex = decodeHtmlEntities(tex.trim());
+    if (window.katex) {
+      try {
+        return window.katex.renderToString(cleanTex, { displayMode: true, throwOnError: false });
+      } catch (e) {}
+    }
+    return `<div class="katex-display-fallback">${cleanTex}</div>`;
+  });
+
+  // 4. Render Inline Math: \(...\)
+  content = content.replace(/\\\(([\s\S]*?)\\\)/g, (match, tex) => {
+    const cleanTex = decodeHtmlEntities(tex.trim());
+    if (window.katex) {
+      try {
+        return window.katex.renderToString(cleanTex, { displayMode: false, throwOnError: false });
+      } catch (e) {}
+    }
+    return `<span class="katex-inline-fallback">${cleanTex}</span>`;
+  });
+
+  // 5. Render Inline Math: $...$
+  content = content.replace(/(^|[^\$])\$([^\$\n]+?)\$(?!\$)/g, (match, prefix, tex) => {
+    const cleanTex = decodeHtmlEntities(tex.trim());
+    let rendered = `<span class="katex-inline-fallback">${cleanTex}</span>`;
+    if (window.katex) {
+      try {
+        rendered = window.katex.renderToString(cleanTex, { displayMode: false, throwOnError: false });
+      } catch (e) {}
+    }
+    return `${prefix}${rendered}`;
+  });
+
+  // 6. Post-processing text outside rendered math:
+  content = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  content = content.replace(/\\(\s*[\r\n]+)/g, '$1');
+  content = content.replace(/([:;,])\s*\\\s*/g, '$1 ');
+
+  // Format line breaks
+  content = content.replace(/\n\s*\n/g, '<br/><br/>');
+  content = content.replace(/\n/g, '<br/>');
+
+  return content;
+}
+
+/**
+ * Universal math renderer for DOM elements
  */
 function renderMathInElement(element) {
-  if (!window.katex || !element) return;
+  if (!element) return;
 
-  const html = element.innerHTML;
-  
-  // Replace display math $$...$$
-  let formatted = html.replace(/\$\$([\s\S]*?)\$\$/g, (match, tex) => {
-    try {
-      return window.katex.renderToString(tex, { displayMode: true, throwOnError: false });
-    } catch (e) {
-      return match;
+  if (!window.katex) {
+    pendingMathQueue.add(element);
+    if (!katexRetryInterval) {
+      katexRetryInterval = setInterval(() => {
+        if (window.katex) {
+          clearInterval(katexRetryInterval);
+          katexRetryInterval = null;
+          pendingMathQueue.forEach(el => renderMathInElement(el));
+          pendingMathQueue.clear();
+        }
+      }, 100);
     }
-  });
+  }
 
-  // Replace inline math $...$
-  formatted = formatted.replace(/\$([^\$\n]+?)\$/g, (match, tex) => {
-    try {
-      return window.katex.renderToString(tex, { displayMode: false, throwOnError: false });
-    } catch (e) {
-      return match;
-    }
-  });
-
-  element.innerHTML = formatted;
+  element.innerHTML = renderLatexString(element.innerHTML);
 }
 
 // -----------------------------------------------------------------------------
@@ -389,8 +476,7 @@ function renderCurrentQuestionInPreview() {
   }
 
   // Set question text
-  qTextEl.innerHTML = q.question_latex;
-  renderMathInElement(qTextEl);
+  qTextEl.innerHTML = renderLatexString(q.question_latex);
 
   // Render options
   optListEl.innerHTML = '';
@@ -401,17 +487,16 @@ function renderCurrentQuestionInPreview() {
       optItem.innerHTML = `
         <div class="latex-option-key">${opt.key}</div>
         <div style="flex:1;">
-          <div class="opt-formula">${opt.latex}</div>
+          <div class="opt-formula">${renderLatexString(opt.latex)}</div>
           ${opt.distractor_trap ? `<span class="distractor-badge">Trap: ${opt.distractor_trap}</span>` : '<span style="color:#10b981;font-size:0.72rem;font-weight:700;">✓ Correct Answer</span>'}
         </div>
       `;
       optListEl.appendChild(optItem);
-      renderMathInElement(optItem);
     });
   }
 
   // Set solution and rubrics
-  let solutionHtml = q.solution_latex || '';
+  let solutionHtml = renderLatexString(q.solution_latex || '');
 
   // Append NCERT Mapping metadata pill if available
   if (q.ncert_mapping) {
@@ -442,7 +527,6 @@ function renderCurrentQuestionInPreview() {
   }
 
   solTextEl.innerHTML = solutionHtml;
-  renderMathInElement(solTextEl);
 }
 
 // -----------------------------------------------------------------------------
@@ -577,7 +661,7 @@ function renderPyqCards(pyqs) {
       </div>
 
       <div class="pyq-latex-body" style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem; line-height: 1.6; padding: 10px 14px; background: rgba(0,0,0,0.18); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-        ${q.question_latex}
+        ${renderLatexString(q.question_latex)}
       </div>
 
       <!-- Multiple Choice Options (if present) -->
@@ -586,7 +670,7 @@ function renderPyqCards(pyqs) {
           ${q.options_latex.map(opt => `
             <div style="display:flex; align-items:center; gap:10px; padding: 8px 12px; background: ${opt.is_correct ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${opt.is_correct ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-subtle)'}; border-radius: 6px;">
               <span style="font-weight:700; font-size:0.85rem; color:${opt.is_correct ? '#10b981' : 'var(--text-muted)'}; min-width:18px;">${opt.key}</span>
-              <div style="font-size:0.88rem; flex:1;" class="pyq-math-inline">${opt.latex}</div>
+              <div style="font-size:0.88rem; flex:1;" class="pyq-math-inline">${renderLatexString(opt.latex)}</div>
               ${opt.is_correct ? '<span style="color:#10b981; font-size:0.72rem; font-weight:700;">✓ Correct</span>' : (opt.distractor_trap ? `<span style="color:#ef4444; font-size:0.68rem; max-width:140px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${opt.distractor_trap}">Trap</span>` : '')}
             </div>
           `).join('')}
@@ -602,7 +686,7 @@ function renderPyqCards(pyqs) {
         <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-subtle);">
           <div style="margin-bottom: 8px; font-size: 0.85rem; color: var(--text-secondary);" class="pyq-math-inline">
             <strong>Full Solution:</strong><br/>
-            ${q.solution_latex}
+            ${renderLatexString(q.solution_latex)}
           </div>
 
           ${q.step_rubric && q.step_rubric.length > 0 ? `
@@ -841,8 +925,7 @@ function setupStudentMode() {
       const hint = hints[hintIdx];
 
       hintNumEl.innerText = state.studentTimer.hintsRevealed;
-      hintTextEl.innerText = hint;
-      renderMathInElement(hintTextEl);
+      hintTextEl.innerHTML = renderLatexString(hint);
       hintBox.classList.add('visible');
       initLucideIcons();
     });
@@ -934,8 +1017,7 @@ function renderStudentQuestion() {
 
   if (!qTextEl || !optListEl) return;
 
-  qTextEl.innerHTML = q.question_latex;
-  renderMathInElement(qTextEl);
+  qTextEl.innerHTML = renderLatexString(q.question_latex);
 
   optListEl.innerHTML = '';
   if (q.options_latex && q.options_latex.length > 0) {
@@ -945,7 +1027,7 @@ function renderStudentQuestion() {
       optItem.innerHTML = `
         <div class="latex-option-key">${opt.key}</div>
         <div style="flex:1;">
-          <div class="opt-formula">${opt.latex}</div>
+          <div class="opt-formula">${renderLatexString(opt.latex)}</div>
         </div>
       `;
 
@@ -1464,8 +1546,7 @@ function renderActiveNtaQuestion() {
   const qText = document.getElementById('studentRenderQuestion');
   const optList = document.getElementById('studentRenderOptions');
 
-  qText.innerHTML = q.question_latex;
-  renderMathInElement(qText);
+  qText.innerHTML = renderLatexString(q.question_latex);
 
   optList.innerHTML = '';
   q.options.forEach(opt => {
@@ -1480,7 +1561,7 @@ function renderActiveNtaQuestion() {
     item.innerHTML = `
       <div class="latex-option-key">${opt.key}</div>
       <div style="flex:1;">
-        <div class="opt-formula">${opt.latex}</div>
+        <div class="opt-formula">${renderLatexString(opt.latex)}</div>
       </div>
     `;
 

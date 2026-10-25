@@ -1057,3 +1057,44 @@ button:active,
   transform: scale(0.97);
 }
 
+/* ==========================================================================
+   KATEX MATHEMATICAL TYPOGRAPHY & EQUATION DISPLAY CONTAINERS
+   ========================================================================== */
+.katex {
+  font-size: 1.08em;
+  text-rendering: auto;
+}
+
+.katex-display {
+  margin: 0.85rem 0 !important;
+  padding: 0.75rem 1.25rem !important;
+  background: rgba(0, 0, 0, 0.28) !important;
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  text-align: center !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.katex-display-fallback {
+  font-family: 'Courier New', Courier, monospace;
+  margin: 0.75rem 0;
+  padding: 0.65rem 1rem;
+  background: rgba(0, 0, 0, 0.35);
+  border-left: 3px solid var(--accent-cyan);
+  border-radius: 4px;
+  color: var(--accent-cyan);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.katex-inline-fallback {
+  font-family: 'Courier New', Courier, monospace;
+  background: rgba(56, 189, 248, 0.12);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--accent-cyan);
+}
+
+

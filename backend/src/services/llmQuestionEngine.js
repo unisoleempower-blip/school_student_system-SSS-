@@ -86,11 +86,12 @@ Output strictly in this JSON format:
       console.log('[LLM ENGINE] Calling Groq Cloud API with LPU acceleration...');
       const groqResult = await callGroqApi({ apiKey: groqKey, systemPrompt, userPrompt });
       if (groqResult) {
+        const cleanPayload = sanitizeQuestionPayload(groqResult.data);
         return {
           id: `groq_${Date.now()}`,
           llm_provider: `Groq LPU (${groqResult.modelUsed})`,
           inference_time_ms: groqResult.durationMs,
-          ...groqResult.data,
+          ...cleanPayload,
           curriculum_board: board,
           grade,
           subject,
@@ -109,11 +110,12 @@ Output strictly in this JSON format:
       console.log('[LLM ENGINE] Calling Google Gemini API...');
       const geminiResult = await callGeminiApi({ apiKey: geminiKey, systemPrompt, userPrompt });
       if (geminiResult) {
+        const cleanPayload = sanitizeQuestionPayload(geminiResult.data);
         return {
           id: `gemini_${Date.now()}`,
           llm_provider: `Google Gemini (${geminiResult.modelUsed})`,
           inference_time_ms: geminiResult.durationMs,
-          ...geminiResult.data,
+          ...cleanPayload,
           curriculum_board: board,
           grade,
           subject,
@@ -289,6 +291,34 @@ async function callGeminiApi({ apiKey, systemPrompt, userPrompt }) {
   throw lastError || new Error('All Gemini model endpoints failed.');
 }
 
+function sanitizeLatexString(str) {
+  if (!str || typeof str !== 'string') return str;
+  let s = str.replace(/\\\]\\/g, '\\]');
+  s = s.replace(/\\\]\s*\\/g, '\\]');
+  s = s.replace(/([:;,])\s*\\\s*(?=\\\[|\$\$)/g, '$1\n');
+  return s;
+}
+
+function sanitizeQuestionPayload(data) {
+  if (!data || typeof data !== 'object') return data;
+  const q = { ...data };
+  if (q.question_latex) q.question_latex = sanitizeLatexString(q.question_latex);
+  if (q.solution_latex) q.solution_latex = sanitizeLatexString(q.solution_latex);
+  if (Array.isArray(q.options_latex)) {
+    q.options_latex = q.options_latex.map(opt => ({
+      ...opt,
+      latex: sanitizeLatexString(opt.latex)
+    }));
+  }
+  if (Array.isArray(q.socratic_hints)) {
+    q.socratic_hints = q.socratic_hints.map(h => sanitizeLatexString(h));
+  }
+  return q;
+}
+
 module.exports = {
-  generateLlmQuestion
+  generateLlmQuestion,
+  sanitizeLatexString,
+  sanitizeQuestionPayload
 };
+
