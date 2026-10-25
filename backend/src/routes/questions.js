@@ -229,5 +229,204 @@ router.post('/import-batch', (req, res) => {
   }
 });
 
+// ============================================================================
+// SUBJECT-WISE SPECIALIZED TABLES: CLASS 10, +1, +2 (MED & NON-MED)
+// ============================================================================
+
+// GET /api/questions/subject-banks/overview/stats - Overview of all subject tables
+router.get('/subject-banks/overview/stats', (req, res) => {
+  try {
+    const banks = inMemoryStore.subjectBanks || {};
+    const stats = {
+      timestamp: new Date().toISOString(),
+      streams: {
+        FOUNDATION_CLASS_10: {
+          class10_maths: {
+            table: 'bank_class10_mathematics',
+            name: 'Class 10 Mathematics',
+            totalQuestions: (banks.class10_maths || []).length,
+            targetExam: 'CBSE / HPBOSE 10th Board'
+          },
+          class10_science: {
+            table: 'bank_class10_science',
+            name: 'Class 10 Science (Physics, Chemistry, Biology)',
+            totalQuestions: (banks.class10_science || []).length,
+            targetExam: 'CBSE / HPBOSE 10th Board'
+          }
+        },
+        NON_MEDICAL_STREAM: {
+          senior_physics: {
+            table: 'bank_senior_physics',
+            name: 'Senior Physics (+1 & +2)',
+            totalQuestions: (banks.senior_physics || []).length,
+            targetExam: 'JEE Main / Advanced / CBSE 12th'
+          },
+          senior_chemistry: {
+            table: 'bank_senior_chemistry',
+            name: 'Senior Chemistry (+1 & +2)',
+            totalQuestions: (banks.senior_chemistry || []).length,
+            targetExam: 'JEE Main / Advanced / CBSE 12th'
+          },
+          senior_mathematics: {
+            table: 'bank_senior_mathematics',
+            name: 'Senior Mathematics (+1 & +2)',
+            totalQuestions: (banks.senior_mathematics || []).length,
+            targetExam: 'JEE Main / Advanced / CBSE 12th'
+          }
+        },
+        MEDICAL_STREAM: {
+          senior_physics: {
+            table: 'bank_senior_physics',
+            name: 'Senior Physics (+1 & +2)',
+            totalQuestions: (banks.senior_physics || []).length,
+            targetExam: 'NEET UG / CBSE 12th'
+          },
+          senior_chemistry: {
+            table: 'bank_senior_chemistry',
+            name: 'Senior Chemistry (+1 & +2)',
+            totalQuestions: (banks.senior_chemistry || []).length,
+            targetExam: 'NEET UG / CBSE 12th'
+          },
+          senior_biology: {
+            table: 'bank_senior_biology',
+            name: 'Senior Biology: Botany & Zoology (+1 & +2)',
+            totalQuestions: (banks.senior_biology || []).length,
+            targetExam: 'NEET UG / CBSE 12th'
+          }
+        }
+      },
+      supportedTables: [
+        'class10_maths',
+        'class10_science',
+        'senior_physics',
+        'senior_chemistry',
+        'senior_mathematics',
+        'senior_biology'
+      ]
+    };
+
+    res.json({ success: true, stats });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/questions/subject-banks/:subjectKey - Fetch questions from specific subject table
+router.get('/subject-banks/:subjectKey', (req, res) => {
+  try {
+    const { subjectKey } = req.params;
+    const banks = inMemoryStore.subjectBanks || {};
+    const tableData = banks[subjectKey];
+
+    if (!tableData) {
+      return res.status(404).json({
+        success: false,
+        error: `Subject bank "${subjectKey}" not found. Valid keys: class10_maths, class10_science, senior_physics, senior_chemistry, senior_mathematics, senior_biology.`
+      });
+    }
+
+    const { chapter, difficulty, targetExam, grade } = req.query;
+    let filtered = [...tableData];
+
+    if (grade) {
+      filtered = filtered.filter(q => String(q.grade) === String(grade));
+    }
+    if (chapter) {
+      filtered = filtered.filter(q => q.chapter_name?.toLowerCase().includes(chapter.toLowerCase()));
+    }
+    if (difficulty) {
+      filtered = filtered.filter(q => q.difficulty?.toUpperCase() === difficulty.toUpperCase());
+    }
+    if (targetExam) {
+      filtered = filtered.filter(q => 
+        (q.target_exam && q.target_exam.toLowerCase().includes(targetExam.toLowerCase())) ||
+        (q.curriculum_board && q.curriculum_board.toLowerCase().includes(targetExam.toLowerCase()))
+      );
+    }
+
+    res.json({
+      success: true,
+      subjectKey,
+      count: filtered.length,
+      questions: filtered
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/questions/subject-banks/:subjectKey/import - Import questions into specific subject table
+router.post('/subject-banks/:subjectKey/import', (req, res) => {
+  try {
+    const { subjectKey } = req.params;
+    const { questions = [], source = 'Teacher Bank Upload' } = req.body;
+
+    const banks = inMemoryStore.subjectBanks || {};
+    if (!banks[subjectKey]) {
+      banks[subjectKey] = [];
+    }
+
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Expected non-empty "questions" array in request body.'
+      });
+    }
+
+    const imported = [];
+    const skipped = [];
+
+    questions.forEach((q, idx) => {
+      if (!q.question_latex) {
+        skipped.push({ index: idx, reason: 'Missing question_latex' });
+        return;
+      }
+
+      const cleanQ = {
+        id: q.id || `${subjectKey}_${Date.now()}_${idx + 1}`,
+        grade: String(q.grade || (subjectKey.startsWith('class10') ? '10' : '11')),
+        stream: q.stream || (subjectKey.includes('maths') && !subjectKey.startsWith('class10') ? 'NON_MEDICAL' : (subjectKey.includes('biology') ? 'MEDICAL' : 'COMMON_SENIOR')),
+        subject: q.subject || (subjectKey.includes('math') ? 'Mathematics' : (subjectKey.includes('physics') ? 'Physics' : (subjectKey.includes('chemistry') ? 'Chemistry' : (subjectKey.includes('biology') ? 'Biology' : 'Science')))),
+        chapter_number: Number(q.chapter_number) || 1,
+        chapter_name: q.chapter_name || q.chapter || 'Chapter Standard',
+        topic: q.topic || 'Core Concept',
+        subtopic: q.subtopic || 'Concept Detail',
+        curriculum_board: q.curriculum_board || q.target_exam || 'CBSE',
+        target_exam: q.target_exam || (subjectKey.includes('biology') ? 'NEET_UG' : (subjectKey.includes('math') && !subjectKey.startsWith('class10') ? 'JEE_MAIN' : 'CBSE')),
+        difficulty: (q.difficulty || 'MEDIUM').toUpperCase(),
+        question_format: q.question_format || q.question_type || 'MCQ_SINGLE',
+        benchmark_time_seconds: Number(q.benchmark_time_seconds) || (subjectKey.includes('biology') ? 45 : 90),
+        marks_weightage: Number(q.marks_weightage) || (subjectKey.startsWith('class10') ? 1 : 4),
+        question_latex: q.question_latex,
+        options_latex: q.options_latex || [],
+        correct_answer_latex: q.correct_answer_latex || q.correct_answer || 'A',
+        solution_latex: q.solution_latex || '',
+        step_rubric: q.step_rubric || [],
+        socratic_hints: q.socratic_hints || [],
+        pyq_appearance: q.pyq_appearance || q.pyq_tag || source,
+        imported_at: new Date().toISOString()
+      };
+
+      banks[subjectKey].push(cleanQ);
+      // Also register in main store for cross-searching
+      inMemoryStore.questions.push(cleanQ);
+      imported.push(cleanQ);
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully imported ${imported.length} questions into "${subjectKey}" table.`,
+      subjectKey,
+      totalInBankNow: banks[subjectKey].length,
+      importedCount: imported.length,
+      skippedCount: skipped.length,
+      skipped
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;
+
 

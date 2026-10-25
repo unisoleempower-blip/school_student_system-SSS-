@@ -12,6 +12,7 @@ const { processTelemetryEvent } = require('../kafka/consumer');
 const { generateWeeklyReport } = require('../services/smartReportService');
 const { getAllClass10Questions } = require('../services/class10PyqBank');
 const { generateLlmQuestion } = require('../services/llmQuestionEngine');
+const { EXAM_BLUEPRINTS, analyzeBankCoverage, generatePatternMatchedExam } = require('../services/examPatternAnalyzer');
 
 // 1. GET /api/assessments - List all test assignments
 router.get('/', (req, res) => {
@@ -380,4 +381,103 @@ router.post('/auto-generate', async (req, res) => {
   }
 });
 
+// ============================================================================
+// 6. AI PATTERN-MATCHED EXAM GENERATION (JEE MAIN, NEET, CBSE & HP BOARD)
+// ============================================================================
+
+// GET /api/assessments/pattern-exam/blueprints - List official exam blueprints
+router.get('/pattern-exam/blueprints', (req, res) => {
+  try {
+    const list = Object.keys(EXAM_BLUEPRINTS).map(k => ({
+      id: k,
+      name: EXAM_BLUEPRINTS[k].name,
+      grade: EXAM_BLUEPRINTS[k].grade,
+      stream: EXAM_BLUEPRINTS[k].stream,
+      subjects: EXAM_BLUEPRINTS[k].subjects,
+      markingScheme: EXAM_BLUEPRINTS[k].markingScheme,
+      defaultBenchmarkSeconds: EXAM_BLUEPRINTS[k].defaultBenchmarkSeconds,
+      sections: EXAM_BLUEPRINTS[k].sections,
+      highYieldTopics: EXAM_BLUEPRINTS[k].highYieldTopics
+    }));
+    res.json({ success: true, count: list.length, blueprints: list });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/assessments/pattern-exam/analyze - AI Pattern Analysis of question bank
+router.post('/pattern-exam/analyze', (req, res) => {
+  try {
+    const { blueprintId = 'JEE_MAIN_NON_MED' } = req.body;
+    const blueprint = EXAM_BLUEPRINTS[blueprintId];
+    if (!blueprint) {
+      return res.status(404).json({
+        success: false,
+        error: `Unknown blueprint "${blueprintId}". Available: ${Object.keys(EXAM_BLUEPRINTS).join(', ')}`
+      });
+    }
+
+    const banks = inMemoryStore.subjectBanks || {};
+    const allQuestions = [];
+    Object.values(banks).forEach(arr => {
+      if (Array.isArray(arr)) allQuestions.push(...arr);
+    });
+
+    const analysis = analyzeBankCoverage(blueprintId, allQuestions);
+    res.json({ success: true, analysis });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/assessments/pattern-exam/generate - 1-Click AI Pattern Exam Paper Generator
+router.post('/pattern-exam/generate', async (req, res) => {
+  try {
+    const {
+      blueprintId = 'JEE_MAIN_NON_MED',
+      mode = 'QUICK_DIAGNOSTIC', // 'QUICK_DIAGNOSTIC' (6-12 Qs) or 'FULL_MOCK' (30-90 Qs)
+      targetSection = '11-Science-A',
+      title = null
+    } = req.body;
+
+    const blueprint = EXAM_BLUEPRINTS[blueprintId];
+    if (!blueprint) {
+      return res.status(404).json({
+        success: false,
+        error: `Invalid blueprintId. Choose from: ${Object.keys(EXAM_BLUEPRINTS).join(', ')}`
+      });
+    }
+
+    const generatedExam = await generatePatternMatchedExam({
+      blueprintId,
+      mode,
+      subjectBank: inMemoryStore.subjectBanks || {},
+      title,
+      targetSection
+    });
+
+    if (!inMemoryStore.assessments) inMemoryStore.assessments = [];
+    inMemoryStore.assessments.unshift(generatedExam);
+
+    // Emit event to telemetry / event stream
+    await emitEvent('assessment.published', generatedExam.id, {
+      title: generatedExam.title,
+      examType: blueprintId,
+      stream: generatedExam.stream,
+      grade: generatedExam.grade,
+      questionCount: generatedExam.questions.length,
+      totalMarks: generatedExam.totalMarks
+    });
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully synthesized ${blueprint.name} test paper matching the official exam pattern.`,
+      exam: generatedExam
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;
+

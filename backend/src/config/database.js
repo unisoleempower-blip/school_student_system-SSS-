@@ -20,6 +20,224 @@ const inMemoryStore = {
     { id: 'b0000000-0000-0000-0000-000000000002', full_name: 'Ananya Thakur', roll_number: '11-S-25', grade: '11', section: 'Science-A', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT' },
     { id: 'a0000000-0000-0000-0000-000000000002', full_name: 'Er. Rajesh Kumar', role: 'TEACHER', email: 'rajesh.phy@himacademy.com' }
   ],
+  // Subject-Wise Specialized Question Banks for:
+  // - Class 10 Foundation (Maths, Science)
+  // - Class 11 & 12 Non-Medical (Physics, Chemistry, Maths -> JEE Main / Adv / Boards)
+  // - Class 11 & 12 Medical (Physics, Chemistry, Biology -> NEET / Boards)
+  subjectBanks: {
+    class10_maths: [
+      {
+        id: 'c10_m_01',
+        grade: '10',
+        stream: 'FOUNDATION',
+        subject: 'Mathematics',
+        chapter_number: 4,
+        chapter_name: 'Quadratic Equations',
+        topic: 'Roots of Quadratic Equations',
+        subtopic: 'Discriminant & Nature of Roots',
+        curriculum_board: 'CBSE_CLASS_10',
+        pyq_appearance: 'CBSE Class 10 Board 2024 (Set 30/1/1) & HPBOSE 2022',
+        difficulty: 'MEDIUM',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 90,
+        marks_weightage: 1,
+        question_latex: 'If the quadratic equation $2x^2 - kx + 3 = 0$ has two equal real roots, what is the value of $k$?',
+        options_latex: [
+          { key: 'A', latex: '$k = \\pm 2\\sqrt{6}$', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: '$k = \\pm 6$', is_correct: false, distractor_trap: 'Forgot square root over 24' },
+          { key: 'C', latex: '$k = \\pm 4\\sqrt{3}$', is_correct: false, distractor_trap: 'Factored 24 incorrectly as $16 \\times 3$' },
+          { key: 'D', latex: '$k = 24$', is_correct: false, distractor_trap: 'Did not solve for $k = \\sqrt{D}$' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: 'For equal real roots, the discriminant $D = b^2 - 4ac = 0$. Here $a = 2, b = -k, c = 3$. Hence $(-k)^2 - 4(2)(3) = 0 \\implies k^2 = 24 \\implies k = \\pm \\sqrt{24} = \\pm 2\\sqrt{6}$.',
+        socratic_hints: [
+          "What is the condition on discriminant $D = b^2 - 4ac$ for equal roots?",
+          "Identify $a, b, c$ from $2x^2 - kx + 3 = 0$.",
+          "Set $b^2 - 4ac = 0$ and solve for $k$."
+        ]
+      },
+      {
+        id: 'c10_m_02',
+        grade: '10',
+        stream: 'FOUNDATION',
+        subject: 'Mathematics',
+        chapter_number: 8,
+        chapter_name: 'Introduction to Trigonometry',
+        topic: 'Trigonometric Identities',
+        subtopic: 'Pythagorean Identities',
+        curriculum_board: 'CBSE_CLASS_10',
+        pyq_appearance: 'CBSE 2023 Standard Set-2',
+        difficulty: 'MEDIUM',
+        question_format: 'SHORT_ANSWER',
+        benchmark_time_seconds: 120,
+        marks_weightage: 3,
+        question_latex: 'Prove that: $$\\frac{\\sin\\theta - 2\\sin^3\\theta}{2\\cos^3\\theta - \\cos\\theta} = \\tan\\theta$$',
+        options_latex: [],
+        correct_answer_latex: '\\tan\\theta',
+        solution_latex: '$$\\text{LHS} = \\frac{\\sin\\theta(1 - 2\\sin^2\\theta)}{\\cos\\theta(2\\cos^2\\theta - 1)}$$. Since $\\sin^2\\theta = 1 - \\cos^2\\theta$, numerator bracket is $1 - 2(1 - \\cos^2\\theta) = 2\\cos^2\\theta - 1$. Hence $\\frac{\\sin\\theta(2\\cos^2\\theta - 1)}{\\cos\\theta(2\\cos^2\\theta - 1)} = \\frac{\\sin\\theta}{\\cos\\theta} = \\tan\\theta = \\text{RHS}$.',
+        step_rubric: [
+          { step: 1, description: 'Factoring out $\\sin\\theta$ from numerator and $\\cos\\theta$ from denominator', marks: 1.0 },
+          { step: 2, description: 'Substituting $\\sin^2\\theta = 1 - \\cos^2\\theta$ in numerator bracket', marks: 1.0 },
+          { step: 3, description: 'Canceling common factor $(2\\cos^2\\theta - 1)$ to obtain $\\tan\\theta$', marks: 1.0 }
+        ]
+      }
+    ],
+    class10_science: [
+      {
+        id: 'c10_s_01',
+        grade: '10',
+        stream: 'FOUNDATION',
+        subject: 'Science',
+        discipline: 'PHYSICS',
+        chapter_number: 10,
+        chapter_name: 'Light – Reflection and Refraction',
+        topic: 'Spherical Mirrors',
+        subtopic: 'Mirror Formula & Magnification',
+        curriculum_board: 'CBSE_CLASS_10',
+        pyq_appearance: 'CBSE 2024 & HPBOSE 2023',
+        difficulty: 'MEDIUM',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 90,
+        marks_weightage: 1,
+        question_latex: 'A concave mirror has a focal length of $15\\,\\text{cm}$. If an object is placed at $30\\,\\text{cm}$ in front of the mirror, the image is formed at:',
+        options_latex: [
+          { key: 'A', latex: '$-30\\,\\text{cm}$ in front of the mirror', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: '$+30\\,\\text{cm}$ behind the mirror', is_correct: false, distractor_trap: 'Failed to apply Cartesian sign convention' },
+          { key: 'C', latex: '$-15\\,\\text{cm}$ at the focus', is_correct: false, distractor_trap: 'Confused center of curvature with focus' },
+          { key: 'D', latex: 'Infinity', is_correct: false, distractor_trap: 'Assumed object was at the focus' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: 'Object is at $u = -30\\,\\text{cm} = 2f$. When an object is at the Center of Curvature $C$, a real and inverted image of the same size is formed at $C$, so $v = -30\\,\\text{cm}$.',
+        socratic_hints: ["Calculate $2f$ for $f = 15\\,\\text{cm}$.", "What is the image position when object is at $C$ ($u = 2f$)?"]
+      }
+    ],
+    senior_physics: [
+      {
+        id: 'snr_p_01',
+        grade: '11',
+        stream: 'COMMON_SENIOR',
+        target_exam: 'JEE_MAIN',
+        subject: 'Physics',
+        chapter_number: 7,
+        chapter_name: 'System of Particles and Rotational Motion',
+        topic: 'Moment of Inertia & Torque',
+        subtopic: 'Rolling Without Slipping',
+        curriculum_board: 'JEE_MAIN',
+        pyq_appearance: 'JEE Main 2024 (27 Jan Shift-1) & HPBOSE 2023',
+        difficulty: 'HARD',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 120,
+        marks_weightage: 4,
+        question_latex: 'A solid sphere of mass $M$ and radius $R$ rolls without slipping down an inclined plane of inclination $\\theta$. Find the linear acceleration $a$ of the center of mass.',
+        options_latex: [
+          { key: 'A', latex: '$a = \\frac{5}{7} g \\sin\\theta$', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: '$a = \\frac{2}{3} g \\sin\\theta$', is_correct: false, distractor_trap: 'Treated sphere as hollow sphere ($I = \\frac{2}{3}MR^2$)' },
+          { key: 'C', latex: '$a = \\frac{1}{2} g \\sin\\theta$', is_correct: false, distractor_trap: 'Treated sphere as disc ($I = \\frac{1}{2}MR^2$)' },
+          { key: 'D', latex: '$a = g \\sin\\theta$', is_correct: false, distractor_trap: 'Ignored rotational kinetic energy / friction torque' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: 'For pure rolling down an incline, acceleration $a = \\frac{g\\sin\\theta}{1 + \\frac{I}{MR^2}}$. For a solid sphere, $I = \\frac{2}{5}MR^2$. Therefore, $$a = \\frac{g\\sin\\theta}{1 + 2/5} = \\frac{5}{7}g\\sin\\theta$$.',
+        socratic_hints: [
+          "Recall the standard formula for linear acceleration in rolling without slipping: $a = \\frac{g\\sin\\theta}{1 + I/(MR^2)}$.",
+          "What is the moment of inertia $I$ of a solid uniform sphere about its diameter?",
+          "Substitute $I = \\frac{2}{5}MR^2$ and simplify the fraction."
+        ]
+      }
+    ],
+    senior_chemistry: [
+      {
+        id: 'snr_c_01',
+        grade: '12',
+        stream: 'COMMON_SENIOR',
+        target_exam: 'NEET_UG',
+        subject: 'Chemistry',
+        branch: 'PHYSICAL',
+        chapter_number: 3,
+        chapter_name: 'Electrochemistry',
+        topic: 'Nernst Equation',
+        subtopic: 'Cell Potential & Equilibrium Constant',
+        curriculum_board: 'NEET_UG',
+        pyq_appearance: 'NEET 2023 & CBSE 2022',
+        difficulty: 'MEDIUM',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 75,
+        marks_weightage: 4,
+        question_latex: 'For the cell reaction $\\text{Zn}(s) + \\text{Cu}^{2+}(aq) \\rightleftharpoons \\text{Zn}^{2+}(aq) + \\text{Cu}(s)$, the standard cell potential $E^\\circ_{\\text{cell}}$ is $1.10\\,\\text{V}$. What is $\\Delta G^\\circ$ for the reaction? (Take $F = 96500\\,\\text{C/mol}$)',
+        options_latex: [
+          { key: 'A', latex: '$-212.3\\,\\text{kJ/mol}$', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: '$+212.3\\,\\text{kJ/mol}$', is_correct: false, distractor_trap: 'Forgot negative sign in $\\Delta G^\\circ = -nFE^\\circ$' },
+          { key: 'C', latex: '$-106.15\\,\\text{kJ/mol}$', is_correct: false, distractor_trap: 'Used $n = 1$ instead of $n = 2$ electrons transferred' },
+          { key: 'D', latex: '$-424.6\\,\\text{kJ/mol}$', is_correct: false, distractor_trap: 'Multiplied by 4 instead of 2' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: '$$\\Delta G^\\circ = -nFE^\\circ_{\\text{cell}}$$. Here $n = 2$ electrons. $\\Delta G^\\circ = -2 \\times 96500 \\times 1.10 = -212300\\,\\text{J/mol} = -212.3\\,\\text{kJ/mol}$.',
+        socratic_hints: ["How many electrons are transferred in $\\text{Zn} \\to \\text{Zn}^{2+}$?", "Recall the thermodynamic relation $\\Delta G^\\circ = -nFE^\\circ$."]
+      }
+    ],
+    senior_mathematics: [
+      {
+        id: 'snr_m_01',
+        grade: '12',
+        stream: 'NON_MEDICAL',
+        target_exam: 'JEE_MAIN',
+        subject: 'Mathematics',
+        math_branch: 'CALCULUS',
+        chapter_number: 7,
+        chapter_name: 'Integrals',
+        topic: 'Definite Integrals',
+        subtopic: 'King Property of Definite Integrals',
+        curriculum_board: 'JEE_MAIN',
+        pyq_appearance: 'JEE Main 2024 (Shift-1)',
+        difficulty: 'HARD',
+        question_format: 'NUMERICAL_INTEGER',
+        benchmark_time_seconds: 150,
+        marks_weightage: 4,
+        question_latex: 'Evaluate the definite integral $I = \\int_{0}^{\\pi/2} \\frac{\\sin^{2026} x}{\\sin^{2026} x + \\cos^{2026} x}\\,dx$. If $I = \\frac{\\pi}{k}$, what is the integer value of $k$?',
+        options_latex: [],
+        correct_answer_latex: '4',
+        solution_latex: 'Applying the King property $\\int_a^b f(x) dx = \\int_a^b f(a+b-x) dx$: $$I = \\int_0^{\\pi/2} \\frac{\\cos^{2026} x}{\\cos^{2026} x + \\sin^{2026} x} dx$$. Adding the two expressions: $$2I = \\int_0^{\\pi/2} 1\\,dx = \\frac{\\pi}{2} \\implies I = \\frac{\\pi}{4}$$. Therefore, $k = 4$.',
+        socratic_hints: [
+          "Apply the identity $\\int_0^a f(x)dx = \\int_0^a f(a-x)dx$.",
+          "What is $\\sin(\\frac{\\pi}{2} - x)$ and $\\cos(\\frac{\\pi}{2} - x)$?",
+          "Add the original integral and transformed integral."
+        ]
+      }
+    ],
+    senior_biology: [
+      {
+        id: 'snr_b_01',
+        grade: '12',
+        stream: 'MEDICAL',
+        target_exam: 'NEET_UG',
+        subject: 'Biology',
+        branch: 'BOTANY',
+        chapter_number: 5,
+        chapter_name: 'Principles of Inheritance and Variation',
+        topic: 'Mendelian Genetics',
+        subtopic: 'Dihybrid Cross & Law of Independent Assortment',
+        curriculum_board: 'NEET_UG',
+        pyq_appearance: 'NEET 2023 & AIPMT 2014',
+        difficulty: 'MEDIUM',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 45,
+        marks_weightage: 4,
+        question_latex: 'In a dihybrid cross between two heterozygous round yellow seeded pea plants ($RrYy \\times RrYy$), what proportion of the $F_2$ offspring will have the genotype $RRYy$?',
+        options_latex: [
+          { key: 'A', latex: '$\\frac{2}{16}$', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: '$\\frac{4}{16}$', is_correct: false, distractor_trap: 'Confused $RRYy$ with double heterozygous $RrYy$' },
+          { key: 'C', latex: '$\\frac{1}{16}$', is_correct: false, distractor_trap: 'Confused with double homozygous $RRYY$' },
+          { key: 'D', latex: '$\\frac{9}{16}$', is_correct: false, distractor_trap: 'Provided phenotypic ratio of Round Yellow instead of genotypic fraction' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: 'In Mendel dihybrid cross: Probability of $RR = 1/4$, and probability of $Yy = 2/4 = 1/2$. Therefore, $P(RRYy) = \\frac{1}{4} \\times \\frac{2}{4} = \\frac{2}{16}$.',
+        socratic_hints: [
+          "Treat the two gene pairs ($R$ and $Y$) independently.",
+          "What is the probability of obtaining $RR$ from $Rr \\times Rr$?",
+          "What is the probability of obtaining $Yy$ from $Yy \\times Yy$? Multiply the probabilities."
+        ]
+      }
+    ]
+  },
   questions: [
     {
       id: 'c0000000-0000-0000-0000-000000000001',
