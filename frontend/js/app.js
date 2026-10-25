@@ -1089,9 +1089,76 @@ async function setupClass10PyqExplorer() {
 
 // Fallback curriculum helper when backend is offline
 function getOfflineCurriculumFallback(subjectKey, grade) {
+  if (subjectKey === 'PHYSICS') {
+    return {
+      subjectKey: 'PHYSICS',
+      subjectName: 'Class 12 Physics',
+      stream: 'COMMON_SENIOR',
+      grades: ['12'],
+      targetExams: ['CBSE_CLASS_12', 'HP_BOARD_CLASS_12', 'NEET_UG', 'JEE_MAIN'],
+      totalChapters: 2,
+      boardHighYieldSummary: {
+        examBoard: 'CBSE / HPBOSE Class 12 Physics (70 Marks Theory)',
+        fiveMarkGuarantees: [
+          { rank: 1, topic: 'Ray Optics Derivations & Ray Diagrams', detail: 'Lens Maker\'s Formula and Microscope/Telescope ray diagrams', chapter: 'Chapter 9: Ray Optics' },
+          { rank: 2, topic: 'Current Electricity & Magnetism', detail: 'Microscopic Ohm\'s Law and Moving Coil Galvanometer', chapter: 'Chapter 3 & 4' },
+          { rank: 3, topic: 'AC Circuits & Resonance', detail: 'Series LCR phasor diagram and Full-wave rectifier', chapter: 'Chapter 7 & 14' }
+        ],
+        caseStudyFourMark: [
+          { topic: 'Optics: TIR & Optical Fibres', detail: 'Total Internal Reflection and mirages', chapter: 'Chapter 9: Ray Optics' },
+          { topic: 'Modern Physics', detail: 'Photoelectric effect graphical analysis', chapter: 'Chapter 11: Dual Nature' }
+        ],
+        threeMarkHeavyweights: [
+          { topic: 'Huygens Wave Theory', detail: 'Proof of Snell\'s Law using secondary wavelets', chapter: 'Chapter 10: Wave Optics' },
+          { topic: 'Gauss\'s Law Applications', detail: 'Field due to infinite plane sheet and wire', chapter: 'Chapter 1: Electric Charges' }
+        ]
+      },
+      chapters: [
+        {
+          id: 'phy_12_ch01',
+          grade: '12',
+          discipline: 'ELECTROSTATICS',
+          unit: 'Electrostatics & Current Electricity (Unit I & II - 16M)',
+          chapterNumber: 1,
+          chapterName: 'Electric Charges and Fields',
+          totalQuestionsInChapter: 1,
+          boardExamFocus: {
+            highYield: 'Gauss\'s Law applications (infinitely long straight wire and uniformly charged infinite plane sheet); Electric field on equatorial line of dipole.',
+            standardTrap: 'Forgetting vector directions when finding net torque/force or drawing electric field lines terminating perpendicularly.',
+            questionType: '3-mark Gauss\'s law derivations, 2/3-mark dipole derivations.'
+          },
+          topics: [
+            { id: 'phy_12_ch01_t1', topicName: 'Fundamentals of Electric Charge & Coulomb\'s Law', ncertSection: '1.1', highYield: true, questionCount: 0, subtopics: ['Quantization of charge (q = ±ne)', 'Coulomb\'s Law in vector form', 'Superposition principle', 'Dielectric constant'] },
+            { id: 'phy_12_ch01_t2', topicName: 'Electric Field & Electric Dipole', ncertSection: '1.2', highYield: true, questionCount: 0, subtopics: ['Field due to point charge', 'Axial field derivation', 'Equatorial field derivation', 'Torque and potential energy in uniform field'] },
+            { id: 'phy_12_ch01_t3', topicName: 'Gauss\'s Law and Its Applications', ncertSection: '1.3', highYield: true, questionCount: 1, subtopics: ['Electric flux (Φ = ∫E·dA)', 'Gauss Theorem (∮E·dA = q/ε₀)', 'Infinitely long charged wire', 'Uniformly charged infinite plane sheet (E = σ/2ε₀)'] }
+          ]
+        },
+        {
+          id: 'phy_12_ch09',
+          grade: '12',
+          discipline: 'OPTICS',
+          unit: 'Electromagnetic Waves & Optics (Unit V & VI - 18M)',
+          chapterNumber: 9,
+          chapterName: 'Ray Optics and Optical Instruments',
+          totalQuestionsInChapter: 1,
+          boardExamFocus: {
+            highYield: 'Lens Maker’s Formula; Single spherical surface refraction; Prism formula; Clean, labelled ray diagrams of Compound Microscope or Astronomical Telescope.',
+            standardTrap: 'Incorrect sign convention for radii of curvature in Lens Maker\'s formula; forgetting image position at near point vs infinity.',
+            questionType: 'Guaranteed 5-mark long answer derivation or 4-mark Case Study.'
+          },
+          topics: [
+            { id: 'phy_12_ch09_t1', topicName: 'Refraction & Total Internal Reflection (TIR)', ncertSection: '9.1', highYield: true, questionCount: 0, subtopics: ['Snell\'s Law', 'TIR conditions (i > i_c)', 'Optical fibers (core > cladding)', 'Mirage and totally reflecting prisms'] },
+            { id: 'phy_12_ch09_t2', topicName: 'Refraction at Spherical Surfaces and Lenses', ncertSection: '9.2', highYield: true, questionCount: 1, subtopics: ['Single spherical surface refraction (n₂/v - n₁/u = (n₂-n₁)/R)', 'Lens Maker\'s Formula derivation', 'Thin lens formula', 'Combination of thin lenses in contact'] },
+            { id: 'phy_12_ch09_t3', topicName: 'Optical Instruments (Rays, Magnification & Adjustments)', ncertSection: '9.4', highYield: true, questionCount: 0, subtopics: ['Compound Microscope at D and infinity', 'Astronomical Telescope normal adjustment', 'Reflecting Cassegrain Telescope advantages'] }
+          ]
+        }
+      ]
+    };
+  }
+
   return {
     subjectKey: subjectKey || 'BIOLOGY',
-    subjectName: subjectKey === 'BIOLOGY' ? 'Biology' : (subjectKey === 'PHYSICS' ? 'Physics' : 'Science'),
+    subjectName: subjectKey === 'BIOLOGY' ? 'Biology' : (subjectKey === 'CHEMISTRY' ? 'Chemistry' : 'Science'),
     stream: subjectKey === 'BIOLOGY' ? 'MEDICAL' : 'COMMON_SENIOR',
     targetExams: ['NEET_UG', 'CBSE_CLASS_12', 'HP_BOARD_CLASS_12'],
     totalChapters: 2,

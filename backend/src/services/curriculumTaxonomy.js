@@ -249,66 +249,808 @@ const CURRICULUM_TAXONOMY = {
   // 2. SENIOR PHYSICS (Class 11 & Class 12) - JEE Main / Advanced / Boards
   // ==========================================================================
   'PHYSICS': {
-    subjectName: 'Physics',
+    subjectName: 'Class 12 Physics',
     stream: 'COMMON_SENIOR',
-    grades: ['11', '12'],
-    targetExams: ['JEE_MAIN', 'JEE_ADVANCED', 'NEET_UG', 'CBSE_CLASS_12'],
+    grades: ['12'],
+    targetExams: ['CBSE_CLASS_12', 'HP_BOARD_CLASS_12', 'NEET_UG', 'JEE_MAIN'],
+    units: [
+      { unitNumber: 'I & II', unitName: 'Electrostatics & Current Electricity', weightageMarks: 16, chapters: [1, 2, 3] },
+      { unitNumber: 'III & IV', unitName: 'Magnetic Effects, Magnetism & EMI/AC', weightageMarks: 17, chapters: [4, 5, 6, 7] },
+      { unitNumber: 'V & VI', unitName: 'Electromagnetic Waves & Optics', weightageMarks: 18, chapters: [8, 9, 10] },
+      { unitNumber: 'VII & VIII', unitName: 'Dual Nature, Atoms and Nuclei', weightageMarks: 12, chapters: [11, 12, 13] },
+      { unitNumber: 'IX', unitName: 'Electronic Devices (Semiconductors)', weightageMarks: 7, chapters: [14] }
+    ],
+    boardHighYieldSummary: {
+      examBoard: 'CBSE / HPBOSE Class 12 Physics (70 Marks Theory)',
+      fiveMarkGuarantees: [
+        {
+          rank: 1,
+          topic: 'Ray Optics Derivations & Ray Diagrams',
+          detail: 'Lens Maker\'s Formula derivation, single spherical surface refraction, or complete labelled ray diagram and magnification of Compound Microscope / Astronomical Telescope.',
+          chapter: 'Chapter 9: Ray Optics and Optical Instruments'
+        },
+        {
+          rank: 2,
+          topic: 'Current Electricity & Magnetism Derivations',
+          detail: 'Microscopic deduction of Ohm\'s law (I = neAv_d ⇒ ρ = m/(ne²τ)), magnetic field on the axis of circular current loop, or Moving Coil Galvanometer principle & conversion math.',
+          chapter: 'Chapter 3: Current Electricity & Chapter 4: Moving Charges'
+        },
+        {
+          rank: 3,
+          topic: 'AC Circuits & Electromagnetic Induction',
+          detail: 'Phasor diagram derivation for Series LCR circuit impedance & resonance, AC Generator working & induced EMF derivation, or Full-Wave Rectifier with capacitor filter.',
+          chapter: 'Chapter 7: Alternating Current & Chapter 14: Semiconductors'
+        }
+      ],
+      caseStudyFourMark: [
+        {
+          topic: 'Optics: TIR & Optical Instruments',
+          detail: 'Total Internal Reflection in optical fibers, mirages, totally reflecting prisms, or compound microscope adjustments.',
+          chapter: 'Chapter 9: Ray Optics'
+        },
+        {
+          topic: 'Modern Physics & Dual Nature',
+          detail: 'Photoelectric effect graphical analysis (V₀ vs ν, intensity vs collector potential) and de Broglie wavelength ratio comparisons.',
+          chapter: 'Chapter 11: Dual Nature of Radiation and Matter'
+        },
+        {
+          topic: 'Capacitance & Combination of Cells',
+          detail: 'Dielectric insertion under battery connected vs disconnected conditions, or parallel/series cell combinations with internal resistances.',
+          chapter: 'Chapter 2: Electrostatic Potential & Chapter 3: Current Electricity'
+        }
+      ],
+      threeMarkHeavyweights: [
+        {
+          topic: 'Wave Optics: Huygens Wave Theory',
+          detail: 'Proof of the Law of Reflection and Snell\'s Law of Refraction using Huygens secondary wavelets construction.',
+          chapter: 'Chapter 10: Wave Optics'
+        },
+        {
+          topic: 'Semiconductor Full-Wave Rectifier',
+          detail: 'Circuit diagram with center-tapped transformer, operation during positive/negative half-cycles, and input/output waveforms.',
+          chapter: 'Chapter 14: Semiconductor Electronics'
+        },
+        {
+          topic: 'Atoms & Nuclei Spectral Transitions',
+          detail: 'Hydrogen spectral series wavelength calculations (Lyman, Balmer limits) and Bohr radius/energy derivations.',
+          chapter: 'Chapter 12: Atoms & Chapter 13: Nuclei'
+        },
+        {
+          topic: 'Gauss\'s Law Applications & Electric Dipole',
+          detail: 'Field due to infinitely long straight wire or infinite plane sheet; torque and potential energy of dipole in uniform field.',
+          chapter: 'Chapter 1: Electric Charges and Fields'
+        }
+      ]
+    },
     chapters: [
-      {
-        id: 'phy_11_ch05',
-        grade: '11',
-        unit: 'Mechanics',
-        chapterNumber: 5,
-        chapterName: 'Work, Energy and Power',
-        topics: [
-          { id: 'phy_11_ch05_t1', topicName: 'Work Done by Constant & Variable Forces', ncertSection: '5.2', highYield: true },
-          { id: 'phy_11_ch05_t2', topicName: 'Work-Energy Theorem & Kinetic Energy', ncertSection: '5.3', highYield: true },
-          { id: 'phy_11_ch05_t3', topicName: 'Conservative Forces & Potential Energy (Spring & Gravity)', ncertSection: '5.7', highYield: true },
-          { id: 'phy_11_ch05_t4', topicName: 'Conservation of Mechanical Energy', ncertSection: '5.8', highYield: true },
-          { id: 'phy_11_ch05_t5', topicName: 'Collisions in 1D & 2D (Elastic & Inelastic)', ncertSection: '5.12', highYield: true }
-        ]
-      },
-      {
-        id: 'phy_11_ch06',
-        grade: '11',
-        unit: 'Mechanics',
-        chapterNumber: 6,
-        chapterName: 'System of Particles and Rotational Motion',
-        topics: [
-          { id: 'phy_11_ch06_t1', topicName: 'Center of Mass & Velocity of COM', ncertSection: '6.1', highYield: true },
-          { id: 'phy_11_ch06_t2', topicName: 'Linear Momentum & Torque (Cross Product)', ncertSection: '6.4', highYield: true },
-          { id: 'phy_11_ch06_t3', topicName: 'Angular Momentum & Conservation of Angular Momentum', ncertSection: '6.6', highYield: true },
-          { id: 'phy_11_ch06_t4', topicName: 'Moment of Inertia (Parallel & Perpendicular Axes Theorems)', ncertSection: '6.8', highYield: true },
-          { id: 'phy_11_ch06_t5', topicName: 'Kinematics & Dynamics of Pure Rolling Motion', ncertSection: '6.11', highYield: true }
-        ]
-      },
+      // --- PART I: CHAPTERS 1 TO 8 ---
       {
         id: 'phy_12_ch01',
         grade: '12',
-        unit: 'Electrodynamics',
+        discipline: 'ELECTROSTATICS',
+        unit: 'Electrostatics & Current Electricity (Unit I & II - 16M)',
         chapterNumber: 1,
         chapterName: 'Electric Charges and Fields',
+        boardExamFocus: {
+          highYield: 'Gauss\'s Law applications (infinitely long straight wire and uniformly charged infinite plane sheet); Electric field on the equatorial line of a dipole.',
+          standardTrap: 'Forgetting vector directions when finding net torque/force or drawing electric field lines terminating perpendicularly on conducting surfaces.',
+          questionType: '3-mark Gauss\'s law derivations, 2/3-mark dipole derivations, 1-mark flux through closed surfaces.'
+        },
         topics: [
-          { id: 'phy_12_ch01_t1', topicName: 'Coulomb Law in Vector Form & Superposition', ncertSection: '1.6', highYield: true },
-          { id: 'phy_12_ch01_t2', topicName: 'Electric Field & Field Lines', ncertSection: '1.8', highYield: true },
-          { id: 'phy_12_ch01_t3', topicName: 'Electric Dipole (Axial, Equatorial & Torque in Field)', ncertSection: '1.10', highYield: true },
-          { id: 'phy_12_ch01_t4', topicName: 'Electric Flux & Gauss Law', ncertSection: '1.14', highYield: true },
-          { id: 'phy_12_ch01_t5', topicName: 'Applications of Gauss Law (Wire, Sheet, Shell)', ncertSection: '1.15', highYield: true }
+          {
+            id: 'phy_12_ch01_t1',
+            topicName: 'Fundamentals of Electric Charge & Coulomb\'s Law',
+            ncertSection: '1.1',
+            highYield: true,
+            subtopics: [
+              'Properties of Charge: Additivity, conservation, and quantization (q = ±ne)',
+              'Coulomb\'s Law in scalar and vector forms: F₁₂ = (1/4πε₀)(q₁q₂/r²) r̂₂₁',
+              'Principle of Superposition for discrete charge distributions',
+              'Relative permittivity / Dielectric constant: ε_r = K = ε/ε₀ = F_vac/F_med'
+            ]
+          },
+          {
+            id: 'phy_12_ch01_t2',
+            topicName: 'Electric Field & Electric Dipole',
+            ncertSection: '1.2',
+            highYield: true,
+            subtopics: [
+              'Electric Field Intensity (E): Field due to a point charge (E = q/(4πε₀r²)) and continuous field lines',
+              'Electric Dipole Moment (p = q(2a))',
+              'Derivation: Electric field on the axial line: E_axial = 2pr/(4πε₀(r²-a²)²) ≈ 2p/(4πε₀r³)',
+              'Derivation: Electric field on the equatorial line: E_equatorial = p/(4πε₀(r²+a²)^(3/2)) ≈ p/(4πε₀r³)',
+              'Relation: E_axial = 2 E_equatorial along opposite relative vectors',
+              'Dipole in Uniform External Field: Torque derivation τ = p × E (τ = pE sin θ)',
+              'Net force = 0 in uniform field; non-zero in non-uniform field',
+              'Potential energy: U = -p · E = -pE cos θ; stable (0°) vs unstable (180°) equilibrium'
+            ]
+          },
+          {
+            id: 'phy_12_ch01_t3',
+            topicName: 'Gauss\'s Law and Its Applications',
+            ncertSection: '1.3',
+            highYield: true,
+            subtopics: [
+              'Electric Flux (Φ_E): Φ_E = ∫ E · dA',
+              'Gauss\'s Theorem: ∮ E · dA = q_enclosed / ε₀',
+              'Derivation: Field due to an infinitely long straight uniformly charged wire: E = λ/(2πε₀r)',
+              'Derivation: Field due to a uniformly charged infinite plane sheet: E = σ/(2ε₀) (independent of distance r)',
+              'Derivation: Field due to a uniformly charged thin spherical shell (radius R): Outside, Surface, Inside (E=0), and E vs r plot'
+            ]
+          }
         ]
       },
       {
+        id: 'phy_12_ch02',
+        grade: '12',
+        discipline: 'ELECTROSTATICS',
+        unit: 'Electrostatics & Current Electricity (Unit I & II - 16M)',
+        chapterNumber: 2,
+        chapterName: 'Electrostatic Potential and Capacitance',
+        boardExamFocus: {
+          highYield: 'Parallel plate capacitor with dielectric slab derivation; Comparison table questions (Battery connected vs. disconnected when slab is inserted); Work done on equipotential surfaces.',
+          standardTrap: 'Mixing up energy loss formulas or failing to recognize that V stays constant when battery remains connected, while Q remains constant if disconnected.',
+          questionType: '3-mark dielectric slab capacitance proof, 2-mark battery disconnected/connected table, 1-mark equipotential surface sketch.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch02_t1',
+            topicName: 'Electrostatic Potential & Potential Energy',
+            ncertSection: '2.1',
+            highYield: true,
+            subtopics: [
+              'Potential (V): V = W/q₀; potential due to a point charge: V = q/(4πε₀r)',
+              'Electric Potential of a Dipole: General formula V = (p cos θ)/(4πε₀r²); axial value p/(4πε₀r²); equatorial value 0',
+              'Equipotential Surfaces: Properties (no work done moving charge W = 0; E ⊥ surface; surfaces never intersect)',
+              'Drawing equipotential surfaces: point charge, uniform E field, dipole, and two identical like charges',
+              'Relationship between E and V: E = -dV/dr (direction of E is along steepest decrease of V)',
+              'Potential Energy of System of Charges: Discrete configurations without and with external fields'
+            ]
+          },
+          {
+            id: 'phy_12_ch02_t2',
+            topicName: 'Capacitance & Dielectrics',
+            ncertSection: '2.2',
+            highYield: true,
+            subtopics: [
+              'Capacitor Principle & Parallel Plate Capacitor: Derivation C₀ = ε₀A/d (vacuum)',
+              'Effect of Dielectrics: Polarization P = χ_e E; Derivation with dielectric slab of thickness t: C = ε₀A / [d - t(1 - 1/K)]',
+              'Fully filled capacitor: C = KC₀',
+              'Combinations: Series 1/C_s = Σ 1/C_i (charge Q constant); Parallel C_p = Σ C_i (potential V constant)',
+              'Energy Stored in a Capacitor: Derivation U = 1/2 CV² = Q²/(2C) = 1/2 QV; Energy density u_E = 1/2 ε₀E²',
+              'Dielectric insertion conditions: Battery connected (V constant) vs Battery disconnected (Q constant)'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch03',
+        grade: '12',
+        discipline: 'CURRENT ELECTRICITY',
+        unit: 'Electrostatics & Current Electricity (Unit I & II - 16M)',
+        chapterNumber: 3,
+        chapterName: 'Current Electricity',
+        boardExamFocus: {
+          highYield: 'Microscopic Ohm\'s Law derivation (I = neAv_d ⇒ ρ = m/(ne²τ)); Equivalent EMF and internal resistance of two parallel cells.',
+          standardTrap: 'Solving 2-loop circuits with incorrect Kirchhoff junction or sign conventions; calculating equivalent resistance of unbalanced bridges.',
+          questionType: '3/5-mark Kirchhoff loop analysis and parallel cell derivation; 2-mark drift velocity reasoning.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch03_t1',
+            topicName: 'Conduction Mechanism & Ohm\'s Law',
+            ncertSection: '3.1',
+            highYield: true,
+            subtopics: [
+              'Drift Velocity (v_d): Relation between drift velocity, relaxation time (τ), and electric field: v_d = -(eE/m)τ',
+              'Derivation: Relation between electric current and drift velocity: I = neAv_d',
+              'Derivation: Deduction of Ohm\'s law and resistivity: ρ = m/(ne²τ), R = ρl/A',
+              'Current density: j = σE (vector form of Ohm\'s Law)',
+              'Mobility (μ): μ = |v_d|/E = eτ/m',
+              'Temperature Dependence of Resistivity: ρ_T = ρ₀[1 + α(T - T₀)]; graphs of ρ vs T for Copper, Silicon, and Nichrome'
+            ]
+          },
+          {
+            id: 'phy_12_ch03_t2',
+            topicName: 'EMF, Internal Resistance, and Cells',
+            ncertSection: '3.2',
+            highYield: true,
+            subtopics: [
+              'Cell EMF (ℰ) vs Terminal Potential (V): Discharging V = ℰ - Ir; Charging V = ℰ + Ir; Open circuit V = ℰ',
+              'Combination of Cells: Series combination derivation (ℰ_eq = ℰ₁ + ℰ₂, r_eq = r₁ + r₂)',
+              'Derivation: Equivalent EMF and internal resistance for cells in parallel: ℰ_eq = (ℰ₁/r₁ + ℰ₂/r₂)/(1/r₁ + 1/r₂), r_eq = r₁r₂/(r₁+r₂)'
+            ]
+          },
+          {
+            id: 'phy_12_ch03_t3',
+            topicName: 'Circuit Laws & Measuring Bridges',
+            ncertSection: '3.3',
+            highYield: true,
+            subtopics: [
+              'Kirchhoff\'s First Law (Junction Rule): Σ I = 0 (Conservation of Charge)',
+              'Kirchhoff\'s Second Law (Loop Rule): Σ ΔV = 0 (Conservation of Energy)',
+              'Wheatstone Bridge: Circuit diagram and balance condition derivation using Kirchhoff\'s laws: R₁/R₂ = R₃/R₄ (no galvanometer current)'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch04',
+        grade: '12',
+        discipline: 'MAGNETISM',
+        unit: 'Magnetic Effects, Magnetism & EMI/AC (Unit III & IV - 17M)',
+        chapterNumber: 4,
+        chapterName: 'Moving Charges and Magnetism',
+        boardExamFocus: {
+          highYield: 'Magnetic field on the axis of a circular current loop; Force per unit length between parallel wires; Moving Coil Galvanometer (MCG) conversion math.',
+          standardTrap: 'Forgetting the condition/role of a radial magnetic field in an MCG; calculating shunt resistance with incorrect full-scale deflection current I_g.',
+          questionType: '5-mark MCG/axial loop derivation; 3-mark galvanometer to ammeter/voltmeter conversion numerical.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch04_t1',
+            topicName: 'Biot-Savart Law and Applications',
+            ncertSection: '4.1',
+            highYield: true,
+            subtopics: [
+              'Biot-Savart Law: dB = (μ₀/4π) [I(dl × r̂) / r²]',
+              'Core Derivation: Magnetic field on the axis of a circular current loop: B = (μ₀ I R²) / [2(R² + x²)^(3/2)]',
+              'Center of the loop (x = 0): B = μ₀I / (2R)',
+              'Right-Hand Thumb Rule for field direction'
+            ]
+          },
+          {
+            id: 'phy_12_ch04_t2',
+            topicName: 'Ampere’s Circuital Law (ACL)',
+            ncertSection: '4.2',
+            highYield: true,
+            subtopics: [
+              'Statement: ∮ B · dl = μ₀ I_enclosed',
+              'Derivation: Magnetic field due to an infinitely long, straight current-carrying conductor: B = μ₀I / (2πr)',
+              'Solenoid: Magnetic field inside a long straight solenoid: B = μ₀ n I'
+            ]
+          },
+          {
+            id: 'phy_12_ch04_t3',
+            topicName: 'Magnetic Forces & Torque',
+            ncertSection: '4.3',
+            highYield: true,
+            subtopics: [
+              'Lorentz Force: F = q(E + v × B); Magnetic force F = q(v × B) (does zero work since F ⊥ v)',
+              'Trajectory in magnetic field: Circular (radius r = mv/(qB)) and Helical (pitch p = 2πmv cos θ/(qB))',
+              'Force on a Current-Carrying Conductor: F = I(L × B)',
+              'Derivation: Force between two parallel, infinite current-carrying conductors: F/L = (μ₀ I₁ I₂) / (2π d)',
+              'Definition of the standard Ampere; Parallel currents attract; antiparallel currents repel',
+              'Torque on a Current Loop: τ = M × B where magnetic moment M = NI A'
+            ]
+          },
+          {
+            id: 'phy_12_ch04_t4',
+            topicName: 'Moving Coil Galvanometer (MCG)',
+            ncertSection: '4.4',
+            highYield: true,
+            subtopics: [
+              'Principle, Construction & Working: Deflecting torque = Restoring torque ⇒ NIAB = kθ ⇒ θ = (NAB/k)I',
+              'Role of radial magnetic field (cylindrical soft iron core + concave poles) to keep θ = 90° at all orientations',
+              'Current sensitivity: I_s = θ/I = NAB/k; Voltage sensitivity: V_s = θ/V = NAB/(kR)',
+              'Why increasing I_s does not necessarily increase V_s',
+              'Conversion to Ammeter: Low shunt resistance in parallel (S = I_g R_g / (I - I_g))',
+              'Conversion to Voltmeter: High resistance in series (R = V/I_g - R_g)'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch05',
+        grade: '12',
+        discipline: 'MAGNETISM',
+        unit: 'Magnetic Effects, Magnetism & EMI/AC (Unit III & IV - 17M)',
+        chapterNumber: 5,
+        chapterName: 'Magnetism and Matter',
+        boardExamFocus: {
+          highYield: 'Comparative table of Dia-, Para-, and Ferromagnetic properties (χ_m, μ_r, behavior in non-uniform field, temperature dependence); Physical implication of Gauss\'s Law in Magnetism.',
+          standardTrap: 'Confusing magnetization M with magnetic moment m or omitting negative sign for diamagnetic susceptibility.',
+          questionType: '2/3-mark comparative table, 1-mark conceptual MCQ on Gauss\'s Law in Magnetism.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch05_t1',
+            topicName: 'Bar Magnet as an Equivalent Solenoid',
+            ncertSection: '5.1',
+            highYield: false,
+            subtopics: [
+              'Magnetic field lines: continuous, closed loops outside (N to S) and inside (S to N) the magnet',
+              'Axial magnetic field of a bar magnet: B_axial = (μ₀/4π)(2m/r³); Equatorial field: B_equatorial = (μ₀/4π)(m/r³)',
+              'Potential energy of a magnetic dipole in B: U = -M · B = -mB cos θ'
+            ]
+          },
+          {
+            id: 'phy_12_ch05_t2',
+            topicName: 'Gauss\'s Law in Magnetism',
+            ncertSection: '5.2',
+            highYield: true,
+            subtopics: [
+              'Statement: ∮ B · dA = 0',
+              'Physical Significance: Absence of isolated magnetic monopoles; net magnetic flux through any closed Gaussian surface is always zero'
+            ]
+          },
+          {
+            id: 'phy_12_ch05_t3',
+            topicName: 'Magnetic Properties of Materials',
+            ncertSection: '5.3',
+            highYield: true,
+            subtopics: [
+              'Definitions: Magnetization (M), Magnetic Intensity (H), Permeability (μ), Relative permeability (μ_r = 1 + χ_m), Susceptibility (χ_m = M/H)',
+              'Diamagnetic: χ_m small and negative (-1 ≤ χ_m < 0), 0 ≤ μ_r < 1; repelled weakly; temperature independent (Meissner effect)',
+              'Paramagnetic: χ_m small and positive, μ_r > 1; weakly attracted; Curie’s Law (χ ∝ 1/T)',
+              'Ferromagnetic: χ_m ≫ 1, μ_r ≫ 1; strongly attracted; domain theory; transition to paramagnetism above Curie temperature T_c'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch06',
+        grade: '12',
+        discipline: 'EMI & AC',
+        unit: 'Magnetic Effects, Magnetism & EMI/AC (Unit III & IV - 17M)',
+        chapterNumber: 6,
+        chapterName: 'Electromagnetic Induction (EMI)',
+        boardExamFocus: {
+          highYield: 'Motional EMF derivations (Blv and rotating rod 1/2 Bωl²); Mutual inductance of two coaxial solenoids.',
+          standardTrap: 'Determining incorrect direction of induced current by failing to apply Lenz\'s Law to the change in magnetic flux.',
+          questionType: '3-mark mutual inductance derivation, 2-mark Lenz\'s law loop direction reasoning.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch06_t1',
+            topicName: 'Magnetic Flux & Induction Laws',
+            ncertSection: '6.1',
+            highYield: true,
+            subtopics: [
+              'Magnetic Flux (Φ_B): Φ_B = B · A = BA cos θ',
+              'Faraday\'s Laws of Induction: ℰ = -dΦ_B/dt',
+              'Lenz\'s Law: Direction of induced EMF opposes the change in flux causing it; verification of Lenz’s Law as Conservation of Energy'
+            ]
+          },
+          {
+            id: 'phy_12_ch06_t2',
+            topicName: 'Motional Electromotive Force',
+            ncertSection: '6.2',
+            highYield: true,
+            subtopics: [
+              'Derivation: Straight conductor of length l translating at velocity v ⊥ B: ℰ = Blv',
+              'Induced current: I = Blv/R; Mechanical power expended = Electrical power dissipated: P = B²l²v²/R',
+              'Rotating Rod Derivation: Conductor of length l rotating with angular velocity ω about one end: ℰ = 1/2 B ω l²'
+            ]
+          },
+          {
+            id: 'phy_12_ch06_t3',
+            topicName: 'Inductance',
+            ncertSection: '6.3',
+            highYield: true,
+            subtopics: [
+              'Self-Induction: Φ = LI ⇒ ℰ = -L dI/dt',
+              'Derivation: Self-inductance of a long solenoid: L = μ₀ N² A / l = μ₀ n² A l; Energy stored: U = 1/2 L I²',
+              'Mutual Induction: Φ₂ = MI₁ ⇒ ℰ₂ = -M dI₁/dt',
+              'Derivation: Mutual inductance of two co-axial long solenoids: M = μ₀ N₁ N₂ A / l = μ₀ n₁ n₂ π r₁² l'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch07',
+        grade: '12',
+        discipline: 'EMI & AC',
+        unit: 'Magnetic Effects, Magnetism & EMI/AC (Unit III & IV - 17M)',
+        chapterNumber: 7,
+        chapterName: 'Alternating Current (AC)',
+        boardExamFocus: {
+          highYield: 'Series LCR impedance and phase angle using phasor diagram; AC Generator working and EMF derivation; Transformer equations and energy loss descriptions.',
+          standardTrap: 'Calculating frequency in LCR using angular frequency ω instead of converting to f in Hertz (f = ω/2π).',
+          questionType: '5-mark LCR phasor derivation or AC Generator; 3-mark transformer calculations and losses.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch07_t1',
+            topicName: 'Pure AC Circuits & Phasors',
+            ncertSection: '7.1',
+            highYield: true,
+            subtopics: [
+              'AC voltage: V = V₀ sin ωt; Root-Mean-Square (RMS) Values: V_rms = V₀/√2; I_rms = I₀/√2',
+              'Pure Resistor: Current and voltage are in phase (ϕ = 0)',
+              'Pure Inductor: Voltage leads current by π/2; Inductive reactance X_L = ωL = 2πfL',
+              'Pure Capacitor: Current leads voltage by π/2; Capacitive reactance X_C = 1/(ωC) = 1/(2πfC)'
+            ]
+          },
+          {
+            id: 'phy_12_ch07_t2',
+            topicName: 'Series LCR Circuit',
+            ncertSection: '7.2',
+            highYield: true,
+            subtopics: [
+              'Phasor Diagram Solution: Impedance Z = √[R² + (X_L - X_C)²]; Phase angle tan ϕ = (X_L - X_C)/R',
+              'Resonance in Series LCR: Condition X_L = X_C ⇒ Z_min = R, current maximum I₀ = V₀/R',
+              'Resonant frequency: ω₀ = 1/√(LC) ⇒ f₀ = 1/(2π√(LC))',
+              'Resonance sharpness and Quality factor (Q): Q = ω₀L/R = (1/R)√(L/C)'
+            ]
+          },
+          {
+            id: 'phy_12_ch07_t3',
+            topicName: 'Power in AC Circuits & Devices',
+            ncertSection: '7.3',
+            highYield: true,
+            subtopics: [
+              'Power Dissipation: P_avg = V_rms I_rms cos ϕ; Power Factor cos ϕ = R/Z',
+              'Wattless Current: Current in purely reactive circuit (ϕ = π/2 ⇒ P_avg = 0)',
+              'AC Generator: Principle, labelled diagram, derivation of induced EMF: ℰ = NBAω sin ωt = ℰ₀ sin ωt',
+              'Transformer: Principle (Mutual induction); Transformation ratio: V_s/V_p = N_s/N_p = I_p/I_s',
+              'Step-up vs. Step-down transformer parameters',
+              'Energy loss mechanisms: Copper losses (I²R), Iron/Eddy current losses (laminated core), Hysteresis loss, Flux leakage'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch08',
+        grade: '12',
+        discipline: 'EM WAVES',
+        unit: 'Electromagnetic Waves & Optics (Unit V & VI - 18M)',
+        chapterNumber: 8,
+        chapterName: 'Electromagnetic Waves',
+        boardExamFocus: {
+          highYield: 'Electromagnetic spectrum application questions (identify EM wave type from wavelength or use case); Displacement current numerical during capacitor charging.',
+          standardTrap: 'Confusing frequency order with wavelength order across the spectrum.',
+          questionType: '2-mark spectrum identification, 2/3-mark displacement current calculation.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch08_t1',
+            topicName: 'Displacement Current & Maxwell\'s Equations',
+            ncertSection: '8.1',
+            highYield: true,
+            subtopics: [
+              'Inconsistency in Ampere\'s Circuital Law across capacitor plates during charging',
+              'Displacement Current: I_d = ε₀ (dΦ_E/dt)',
+              'Modified Ampere-Maxwell Law: ∮ B · dl = μ₀(I_c + I_d) = μ₀ I_c + μ₀ ε₀ (dΦ_E/dt)'
+            ]
+          },
+          {
+            id: 'phy_12_ch08_t2',
+            topicName: 'EM Wave Characteristics',
+            ncertSection: '8.2',
+            highYield: true,
+            subtopics: [
+              'Source: Accelerated charges produce electromagnetic waves',
+              'Transverse nature: E, B, and propagation direction k are mutually perpendicular (c = E₀/B₀)',
+              'Speed: c = 1/√(μ₀ε₀) ≈ 3 × 10⁸ m/s; in medium v = 1/√(με)',
+              'Energy density: Shared equally between electric and magnetic fields (u = 1/2 ε₀E² + B²/(2μ₀) = ε₀E_rms²)'
+            ]
+          },
+          {
+            id: 'phy_12_ch08_t3',
+            topicName: 'The Electromagnetic Spectrum',
+            ncertSection: '8.3',
+            highYield: true,
+            subtopics: [
+              'Order (increasing frequency / decreasing wavelength): Radio → Micro → Infrared → Visible → UV → X-rays → Gamma rays',
+              'Production, detection, wavelength ranges, and dedicated applications for each band',
+              'Microwaves in RADAR/ovens, Infrared in remote controls/physical therapy, UV in water purifiers/LASIK, X-rays in bone imaging'
+            ]
+          }
+        ]
+      },
+
+      // --- PART II: CHAPTERS 9 TO 14 ---
+      {
         id: 'phy_12_ch09',
         grade: '12',
-        unit: 'Optics',
+        discipline: 'OPTICS',
+        unit: 'Electromagnetic Waves & Optics (Unit V & VI - 18M)',
         chapterNumber: 9,
         chapterName: 'Ray Optics and Optical Instruments',
+        boardExamFocus: {
+          highYield: 'Lens Maker’s Formula; Single spherical surface refraction; Prism formula (n = sin((A+δ_m)/2)/sin(A/2)); Clean, labelled ray diagrams of Compound Microscope or Astronomical Telescope.',
+          standardTrap: 'Incorrect sign convention for radii of curvature in Lens Maker\'s formula (R₁ > 0, R₂ < 0 for convex lens); forgetting image position at near point vs infinity.',
+          questionType: 'Guaranteed 5-mark long answer derivation or 4-mark Case Study with labelled ray diagrams.'
+        },
         topics: [
-          { id: 'phy_12_ch09_t1', topicName: 'Reflection by Spherical Mirrors (Mirror Formula & Magnification)', ncertSection: '9.2', highYield: true },
-          { id: 'phy_12_ch09_t2', topicName: 'Refraction & Total Internal Reflection (Optical Fibres)', ncertSection: '9.3', highYield: true },
-          { id: 'phy_12_ch09_t3', topicName: 'Refraction at Spherical Surfaces & Lens Makers Formula', ncertSection: '9.5', highYield: true },
-          { id: 'phy_12_ch09_t4', topicName: 'Combination of Thin Lenses & Power', ncertSection: '9.5.4', highYield: true },
-          { id: 'phy_12_ch09_t5', topicName: 'Refraction through a Prism (Dispersion & Deviation)', ncertSection: '9.6', highYield: true },
-          { id: 'phy_12_ch09_t6', topicName: 'Optical Instruments (Microscope & Astronomical Telescope)', ncertSection: '9.8', highYield: true }
+          {
+            id: 'phy_12_ch09_t1',
+            topicName: 'Refraction & Total Internal Reflection (TIR)',
+            ncertSection: '9.1',
+            highYield: true,
+            subtopics: [
+              'Snell\'s Law: n₁ sin i = n₂ sin r',
+              'Total Internal Reflection conditions: Ray travels from denser to rarer medium; angle of incidence exceeds critical angle (i > i_c)',
+              'Relation: sin i_c = 1/n',
+              'Applications: Optical fibers (core n₁ > cladding n₂), mirage, totally reflecting prisms (45°-90°-45°)'
+            ]
+          },
+          {
+            id: 'phy_12_ch09_t2',
+            topicName: 'Refraction at Spherical Surfaces and Lenses',
+            ncertSection: '9.2',
+            highYield: true,
+            subtopics: [
+              'Derivation: Refraction at a single spherical surface: n₂/v - n₁/u = (n₂ - n₁)/R',
+              'Derivation: Lens Maker\'s Formula: 1/f = (n₂/n₁ - 1)(1/R₁ - 1/R₂)',
+              'Thin lens formula: 1/f = 1/v - 1/u',
+              'Derivation: Combination of two thin lenses in contact: 1/F = 1/f₁ + 1/f₂; Net Power P = P₁ + P₂'
+            ]
+          },
+          {
+            id: 'phy_12_ch09_t3',
+            topicName: 'Prisms',
+            ncertSection: '9.3',
+            highYield: true,
+            subtopics: [
+              'Derivation: Refraction through a triangular glass prism: A = r₁ + r₂, δ = i + e - A',
+              'Minimum deviation condition: i = e, r₁ = r₂ = A/2, δ = δ_m',
+              'Derivation: Refractive index of prism material: n = sin[(A + δ_m)/2] / sin(A/2)'
+            ]
+          },
+          {
+            id: 'phy_12_ch09_t4',
+            topicName: 'Optical Instruments (Rays, Magnification & Adjustments)',
+            ncertSection: '9.4',
+            highYield: true,
+            subtopics: [
+              'Compound Microscope: Ray diagram for image at near point (D) and at infinity (relaxed eye)',
+              'Magnification at D: m = -(v₀/u₀)(1 + D/f_e) ≈ -(L/f₀)(1 + D/f_e); at infinity: m = -(L/f₀)(D/f_e)',
+              'Astronomical Telescope (Refracting): Ray diagrams for normal adjustment and near point',
+              'Magnification: m = -f₀/f_e (at infinity, tube length L = f₀ + f_e); at near point: m = -(f₀/f_e)(1 + f_e/D)',
+              'Reflecting Telescopes (Cassegrain): Ray diagram; Advantages over refracting telescopes (free from chromatic & spherical aberration, lightweight mirrors)'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch10',
+        grade: '12',
+        discipline: 'OPTICS',
+        unit: 'Electromagnetic Waves & Optics (Unit V & VI - 18M)',
+        chapterNumber: 10,
+        chapterName: 'Wave Optics',
+        boardExamFocus: {
+          highYield: 'Proof of Snell’s Law and Law of Reflection using Huygens’ wave theory; Fringe width calculations in YDSE.',
+          standardTrap: 'Confusing conditions for minima in single slit diffraction (a sin θ = nλ) with minima in double slit interference ((2n-1)λ/2).',
+          questionType: '3-mark Huygens derivation of reflection/refraction, 3-mark YDSE numerical on fringe shifts.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch10_t1',
+            topicName: 'Huygens’ Principle',
+            ncertSection: '10.1',
+            highYield: true,
+            subtopics: [
+              'Definitions: Wavefront (locus of points having the same phase); spherical, cylindrical, and plane wavefronts',
+              'Huygens’ Postulates: Secondary wavelets spreading at wave velocity; envelope forms new wavefront',
+              'Derivation: Proof of the Law of Reflection (i = r) using Huygens\' construction',
+              'Derivation: Proof of the Law of Refraction (Snell\'s Law: sin i / sin r = v₁/v₂ = n₂/n₁) using Huygens\' construction'
+            ]
+          },
+          {
+            id: 'phy_12_ch10_t2',
+            topicName: 'Interference of Light & Young\'s Double Slit Experiment (YDSE)',
+            ncertSection: '10.2',
+            highYield: true,
+            subtopics: [
+              'Coherent Sources: Sources having constant or zero phase difference; why two independent sources cannot be coherent',
+              'Conditions for Interference: Constructive (Δx = nλ, Δϕ = 2nπ); Destructive (Δx = (2n-1)λ/2, Δϕ = (2n-1)π)',
+              'Resultant intensity: I = 4I₀ cos²(ϕ/2) (for identical sources)',
+              'Fringe Width expression: β = λD/d; Equal spacing of dark and bright fringes',
+              'Effect of changing variables: dipping apparatus in water (β\' = β/μ), changing slit separation d, white light central white fringe'
+            ]
+          },
+          {
+            id: 'phy_12_ch10_t3',
+            topicName: 'Diffraction of Light (Single Slit)',
+            ncertSection: '10.3',
+            highYield: true,
+            subtopics: [
+              'Qualitative explanation of diffraction as bending around obstacles',
+              'Single Slit Diffraction Pattern: Minima condition a sin θ = nλ (n = ±1, ±2, ...); Secondary maxima a sin θ = (2n+1)λ/2',
+              'Angular width of central maximum: 2θ = 2λ/a; Linear width: 2β₀ = 2λD/a',
+              'Differences between Interference (YDSE) and Single Slit Diffraction (fringe width uniformity, intensity distribution)'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch11',
+        grade: '12',
+        discipline: 'MODERN PHYSICS',
+        unit: 'Dual Nature, Atoms and Nuclei (Unit VII & VIII - 12M)',
+        chapterNumber: 11,
+        chapterName: 'Dual Nature of Radiation and Matter',
+        boardExamFocus: {
+          highYield: 'Stopping potential (V₀) vs. Frequency (ν) graphs (identifying work function and Planck\'s constant from slope/intercepts); de Broglie wavelength ratio numericals.',
+          standardTrap: 'Forgetting to convert electron-volts (eV) to Joules when calculating threshold wavelength or work function in SI units.',
+          questionType: '4-mark Case Study with graphs, 3-mark Einstein photoelectric equation numerical.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch11_t1',
+            topicName: 'Photoelectric Effect',
+            ncertSection: '11.1',
+            highYield: true,
+            subtopics: [
+              'Key Terms: Work function (Φ₀), threshold frequency (ν₀), threshold wavelength (λ₀), stopping potential (V₀)',
+              'Experimental Observations (Lenard & Millikan): Effect of intensity on photoelectric current (I ∝ Intensity)',
+              'Effect of potential: saturation current vs stopping potential V₀',
+              'Effect of frequency on stopping potential: V₀ increases linearly with ν',
+              'Instantaneous emission process (no time lag, Δt < 10⁻⁹ s)',
+              'Why Classical Wave Theory failed to explain threshold frequency, instantaneous emission, and kinetic energy independence'
+            ]
+          },
+          {
+            id: 'phy_12_ch11_t2',
+            topicName: 'Einstein’s Photoelectric Equation',
+            ncertSection: '11.2',
+            highYield: true,
+            subtopics: [
+              'Formulation: K_max = hν - Φ₀ ⇒ eV₀ = hν - hν₀',
+              'Explanation of experimental laws using Einstein\'s photon concept',
+              'Graphical Analysis: Stopping potential (V₀) vs Frequency (ν): Slope h/e (universal constant), intercept on frequency axis ν₀, intercept on potential axis -Φ₀/e',
+              'K_max vs ν graph: Slope h'
+            ]
+          },
+          {
+            id: 'phy_12_ch11_t3',
+            topicName: 'de Broglie Hypothesis & Matter Waves',
+            ncertSection: '11.3',
+            highYield: true,
+            subtopics: [
+              'de Broglie wavelength: λ = h/p = h/(mv)',
+              'In terms of Kinetic Energy (K): λ = h / √(2mK)',
+              'In terms of accelerating potential (V) for an electron: λ = h / √(2mqV) = 1.227 / √V nm',
+              'Comparison of de Broglie wavelengths of different particles (electron, proton, alpha particle) accelerated through same potential V'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch12',
+        grade: '12',
+        discipline: 'MODERN PHYSICS',
+        unit: 'Dual Nature, Atoms and Nuclei (Unit VII & VIII - 12M)',
+        chapterNumber: 12,
+        chapterName: 'Atoms',
+        boardExamFocus: {
+          highYield: 'Derivation of orbit radius r_n and total energy E_n using Bohr\'s postulates; Energy level diagram of Hydrogen with spectral transitions (Lyman, Balmer, Paschen).',
+          standardTrap: 'Calculating energy/wavelength ratios without converting eV to Joules when using SI units, or mixing up K, U, and total E negative signs (E = -K = U/2).',
+          questionType: '3-mark Bohr derivation, 2/3-mark spectral series wavelength numerical.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch12_t1',
+            topicName: 'Alpha-Particle Scattering Experiment (Rutherford)',
+            ncertSection: '12.1',
+            highYield: false,
+            subtopics: [
+              'Setup: Geiger-Marsden experiment, thin gold foil, ZnS detector screen',
+              'Observations and deductions: Most α-particles pass undeflected; roughly 1 in 8000 rebounds back (180°)',
+              'Distance of Closest Approach (r₀): 1/2 m v² = (1/4πε₀)[(2e)(Ze)/r₀] ⇒ r₀ = 2Ze² / (4πε₀ K)',
+              'Impact Parameter (b): Definition and relation to scattering angle θ (b = (1/4πε₀) [Ze² cot(θ/2) / K])'
+            ]
+          },
+          {
+            id: 'phy_12_ch12_t2',
+            topicName: 'Bohr Model of the Hydrogen Atom',
+            ncertSection: '12.2',
+            highYield: true,
+            subtopics: [
+              'Bohr\'s Postulates: 1. Electrostatic centripetal force; 2. Quantization of angular momentum mvr = nh/(2π); 3. Energy emission upon transition hν = E₂ - E₁',
+              'Core Derivations: Orbit radius r_n = (n²h²ε₀)/(πme²) ∝ n² (r₁ = 0.529 Å for H)',
+              'Orbital speed: v_n = e²/(2ε₀nh) ∝ 1/n',
+              'Kinetic Energy: K = e²/(8πε₀r); Potential Energy: U = -e²/(4πε₀r); Total Energy: E = -e²/(8πε₀r) = -K = U/2',
+              'Quantized Energy Expression: E_n = -13.6 / n² eV'
+            ]
+          },
+          {
+            id: 'phy_12_ch12_t3',
+            topicName: 'Hydrogen Spectral Series',
+            ncertSection: '12.3',
+            highYield: true,
+            subtopics: [
+              'Rydberg Formula: 1/λ = R_H (1/n₁² - 1/n₂²) where R_H ≈ 1.097 × 10⁷ m⁻¹',
+              'Series Categorization: Lyman (n₁=1, UV), Balmer (n₁=2, Visible), Paschen (n₁=3, IR), Brackett (n₁=4, IR), Pfund (n₁=5, Far IR)',
+              'Calculating shortest wavelength (series limit, n₂=∞) vs longest wavelength (immediate next level n₂=n₁+1)'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch13',
+        grade: '12',
+        discipline: 'MODERN PHYSICS',
+        unit: 'Dual Nature, Atoms and Nuclei (Unit VII & VIII - 12M)',
+        chapterNumber: 13,
+        chapterName: 'Nuclei',
+        boardExamFocus: {
+          highYield: 'Proof that nuclear density is independent of mass number A; Interpreting the Binding Energy per nucleon curve to explain energy release in fission and fusion.',
+          standardTrap: 'Forgetting to subtract electron masses or confusing atomic mass with nuclear mass in mass defect calculations.',
+          questionType: '3-mark binding energy curve explanation, 2-mark density independence proof.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch13_t1',
+            topicName: 'Nuclear Composition and Size',
+            ncertSection: '13.1',
+            highYield: true,
+            subtopics: [
+              'Nuclear composition: Protons, neutrons, atomic number (Z), mass number (A), isotopes, isobars, isotones',
+              'Nuclear Radius: R = R₀ A^(1/3) (R₀ ≈ 1.2 fm)',
+              'Nuclear Density: Independence of mass number A (nuclear density is roughly constant across all nuclei, ρ ≈ 2.3 × 10¹⁷ kg/m³)'
+            ]
+          },
+          {
+            id: 'phy_12_ch13_t2',
+            topicName: 'Mass Defect and Nuclear Binding Energy',
+            ncertSection: '13.2',
+            highYield: true,
+            subtopics: [
+              'Einstein\'s mass-energy relation: E = mc² (1 amu ≈ 931.5 MeV)',
+              'Mass defect: Δm = [Z m_p + (A - Z)m_n] - M_nucleus',
+              'Binding Energy: E_b = Δm · c²; Binding Energy per nucleon: E_bn = E_b / A',
+              'The Binding Energy per Nucleon Curve: Peak around Iron (⁵⁶Fe, ~8.75 MeV/nucleon)',
+              'Lower E_bn for lighter nuclei (A < 30) explaining Nuclear Fusion; decrease for heavier nuclei (A > 170) explaining Nuclear Fission'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'phy_12_ch14',
+        grade: '12',
+        discipline: 'ELECTRONICS',
+        unit: 'Electronic Devices (Semiconductors) (Unit IX - 7M)',
+        chapterNumber: 14,
+        chapterName: 'Semiconductor Electronics: Materials, Devices, and Simple Circuits',
+        boardExamFocus: {
+          highYield: 'Working and circuit diagram of Full-Wave Rectifier with input/output waveforms (5-mark or 3-mark anchor); Forward and Reverse bias V-I characteristic curves.',
+          standardTrap: 'Drawing reverse bias V-I characteristics with milliampere (mA) scale instead of microampere (μA) scale.',
+          questionType: '5-mark Full-Wave Rectifier with filter, 3-mark V-I characteristics and junction formation explanation.'
+        },
+        topics: [
+          {
+            id: 'phy_12_ch14_t1',
+            topicName: 'Energy Bands in Solids & Semiconductor Physics',
+            ncertSection: '14.1',
+            highYield: true,
+            subtopics: [
+              'Energy Bands: Valence band, conduction band, forbidden energy gap (E_g)',
+              'Conductors (E_g = 0 or overlapping bands), Insulators (E_g > 3 eV), Semiconductors (E_g < 3 eV; Si 1.1 eV, Ge 0.7 eV)',
+              'Intrinsic Semiconductors: Pure Silicon/Germanium; n_e = n_h = n_i; thermal generation of electron-hole pairs',
+              'Extrinsic Semiconductors (Doping): n-type (pentavalent P, As, Sb; majority electrons n_e ≫ n_h); p-type (trivalent B, Al, In; majority holes n_h ≫ n_e)',
+              'Mass-action law: n_e · n_h = n_i²'
+            ]
+          },
+          {
+            id: 'phy_12_ch14_t2',
+            topicName: 'The p-n Junction Diode',
+            ncertSection: '14.2',
+            highYield: true,
+            subtopics: [
+              'Junction Formation Mechanics: Diffusion current creating depletion region and space-charge layer',
+              'Barrier potential (V_B) and drift current (opposing diffusion); Equilibrium: I_diff = I_drift',
+              'Forward Bias: p to +, n to -; depletion layer narrows, low resistance, current in milliamperes (mA)',
+              'Reverse Bias: p to -, n to +; depletion layer widens, high resistance, tiny reverse saturation current in microamperes (μA)',
+              'V-I Characteristics: Complete labelled graph showing knee voltage, linear forward zone, and reverse breakdown'
+            ]
+          },
+          {
+            id: 'phy_12_ch14_t3',
+            topicName: 'Diode as a Rectifier',
+            ncertSection: '14.3',
+            highYield: true,
+            subtopics: [
+              'Half-Wave Rectifier: Circuit diagram, operation during positive and negative AC half-cycles, waveforms (Efficiency ≈ 40.6%)',
+              'Full-Wave Rectifier (Center-Tapped): Circuit diagram with two diodes and center-tapped transformer',
+              'Working mechanism: D₁ conducts during positive half-cycle, D₂ conducts during negative half-cycle; unidirectional load current',
+              'Input and output voltage waveforms (Efficiency ≈ 81.2%)',
+              'Role of capacitor filter: Smoothing rectified DC ripples by charging during peak voltage and discharging through R_L'
+            ]
+          }
         ]
       }
     ]
