@@ -4,6 +4,12 @@
 **Prepared by:** UNISOLE Skill AI Labs  
 **Curriculum Scope:** Classes VI – XII | HP Board, CBSE Board, JEE, NEET, Olympiads  
 
+[![Vercel Production Deployment](https://img.shields.io/badge/Vercel-Live%20Website-success?logo=vercel&style=for-the-badge)](https://haps-ai-scholar-assistant.vercel.app)
+[![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?logo=github-actions&style=for-the-badge)](https://github.com/unisoleempower-blip/school_student_system-SSS-/actions)
+
+🌐 **Live Production Website**: [https://haps-ai-scholar-assistant.vercel.app](https://haps-ai-scholar-assistant.vercel.app)  
+🚀 **Live API Gateway Health**: [https://haps-ai-scholar-assistant.vercel.app/api/health](https://haps-ai-scholar-assistant.vercel.app/api/health)
+
 ---
 
 ## 🌟 Executive Summary & Vision
