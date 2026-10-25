@@ -16,8 +16,12 @@ let isConnected = false;
 // Mock in-memory store for instant offline development & test suites
 const inMemoryStore = {
   users: [
-    { id: 'b0000000-0000-0000-0000-000000000001', full_name: 'Aryan Sharma', roll_number: '11-S-24', grade: '11', section: 'Science-A', board: 'CBSE', target_exam: 'JEE_ADVANCED', role: 'STUDENT' },
-    { id: 'b0000000-0000-0000-0000-000000000002', full_name: 'Ananya Thakur', roll_number: '11-S-25', grade: '11', section: 'Science-A', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000001', full_name: 'Aryan Sharma', roll_number: '11-S-24', grade: '10', section: 'Science-A', board: 'CBSE', target_exam: 'JEE_ADVANCED', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000002', full_name: 'Ananya Thakur', roll_number: '11-S-25', grade: '10', section: 'Science-A', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000003', full_name: 'Rohit Verma', roll_number: '11-S-26', grade: '10', section: 'Science-A', board: 'CBSE', target_exam: 'JEE_MAIN', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000004', full_name: 'Simran Kaur', roll_number: '11-S-27', grade: '10', section: 'Science-A', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000005', full_name: 'Aditya Chauhan', roll_number: '11-S-28', grade: '10', section: 'Science-A', board: 'CBSE', target_exam: 'JEE_MAIN', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000006', full_name: 'Mehak Sharma', roll_number: '11-S-29', grade: '10', section: 'Science-A', board: 'CBSE', target_exam: 'NEET_UG', role: 'STUDENT' },
     { id: 'a0000000-0000-0000-0000-000000000002', full_name: 'Er. Rajesh Kumar', role: 'TEACHER', email: 'rajesh.phy@himacademy.com' }
   ],
   // Subject-Wise Specialized Question Banks for:
@@ -450,6 +454,367 @@ const inMemoryStore = {
         }
       ],
       createdAt: new Date().toISOString()
+    }
+  ],
+  submissions: [
+    {
+      submissionId: 'sub_10_sci_01_aryan',
+      assessmentId: 'asgn_10_sci_01',
+      assessmentTitle: 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      studentId: 'b0000000-0000-0000-0000-000000000001',
+      studentName: 'Aryan Sharma',
+      rollNumber: '11-S-24',
+      grade: '10',
+      section: 'Science-A',
+      totalScore: 12,
+      totalMarks: 12,
+      percentage: 100,
+      totalTimeSpentSeconds: 219,
+      smartCardSummary: 'Mastered all 3 topics with sub-benchmark speeds. Flawless application of sign conventions and electrical units.',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_asgn_01',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Spherical Mirrors',
+          timeSpentSeconds: 68,
+          benchmarkSeconds: 90,
+          isCorrect: true,
+          selectedOption: 'B',
+          correctAnswer: 'B',
+          mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Applied mirror formula with correct sign conventions.' }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_asgn_02',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Refraction & Snell Law',
+          timeSpentSeconds: 61,
+          benchmarkSeconds: 75,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Correctly solved v = c/n for water.' }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_asgn_03',
+          topic: 'Electricity',
+          subtopic: 'Joule Heating & Resistance',
+          timeSpentSeconds: 90,
+          benchmarkSeconds: 90,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Converted 2 hours into 7200 seconds accurately.' }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 2).toISOString()
+    },
+    {
+      submissionId: 'sub_10_sci_01_ananya',
+      assessmentId: 'asgn_10_sci_01',
+      assessmentTitle: 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      studentId: 'b0000000-0000-0000-0000-000000000002',
+      studentName: 'Ananya Thakur',
+      rollNumber: '11-S-25',
+      grade: '10',
+      section: 'Science-A',
+      totalScore: 8,
+      totalMarks: 12,
+      percentage: 67,
+      totalTimeSpentSeconds: 285,
+      smartCardSummary: 'Strong optics comprehension. Stumbled on time-unit conversion (2 hours to seconds) in Joule heating.',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_asgn_01',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Spherical Mirrors',
+          timeSpentSeconds: 82,
+          benchmarkSeconds: 90,
+          isCorrect: true,
+          selectedOption: 'B',
+          correctAnswer: 'B',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Accurate mirror formula calculation.' }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_asgn_02',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Refraction & Snell Law',
+          timeSpentSeconds: 68,
+          benchmarkSeconds: 75,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Quick Snell law speed ratio computation.' }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_asgn_03',
+          topic: 'Electricity',
+          subtopic: 'Joule Heating & Resistance',
+          timeSpentSeconds: 135,
+          benchmarkSeconds: 90,
+          isCorrect: false,
+          selectedOption: 'B',
+          correctAnswer: 'A',
+          mistakeClassification: {
+            type: 'CALCULATION',
+            label: 'Unit Conversion Failure',
+            explanation: 'Forgot to convert 2 hours into 7200 seconds ($2 \\times 3600\\,\\text{s}$).',
+            distractorTrap: 'Selected option computed without multiplying time by 3600.'
+          }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 2.5).toISOString()
+    },
+    {
+      submissionId: 'sub_10_sci_01_rohit',
+      assessmentId: 'asgn_10_sci_01',
+      assessmentTitle: 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      studentId: 'b0000000-0000-0000-0000-000000000003',
+      studentName: 'Rohit Verma',
+      rollNumber: '11-S-26',
+      grade: '10',
+      section: 'Science-A',
+      totalScore: 4,
+      totalMarks: 12,
+      percentage: 33,
+      totalTimeSpentSeconds: 340,
+      smartCardSummary: 'Critical hesitation in Cartesian sign conventions and formula inversion in Snell law. Needs 1-on-1 re-teaching.',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_asgn_01',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Spherical Mirrors',
+          timeSpentSeconds: 145,
+          benchmarkSeconds: 90,
+          isCorrect: false,
+          selectedOption: 'C',
+          correctAnswer: 'B',
+          mistakeClassification: {
+            type: 'SIGN_CONVENTION',
+            label: 'Sign Convention Failure',
+            explanation: 'Assumed positive sign for real image distance (+30cm instead of -30cm).',
+            distractorTrap: 'Violated Cartesian sign convention where real image in front of mirror has negative distance.'
+          }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_asgn_02',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Refraction & Snell Law',
+          timeSpentSeconds: 95,
+          benchmarkSeconds: 75,
+          isCorrect: false,
+          selectedOption: 'B',
+          correctAnswer: 'A',
+          mistakeClassification: {
+            type: 'FORMULA_BASED',
+            label: 'Formula Inversion Error',
+            explanation: 'Multiplied speed of light by refractive index ($c \\times n$) instead of dividing ($c / n$).',
+            distractorTrap: 'Speed of light in any material medium cannot exceed c ($3 \\times 10^8$ m/s).'
+          }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_asgn_03',
+          topic: 'Electricity',
+          subtopic: 'Joule Heating & Resistance',
+          timeSpentSeconds: 100,
+          benchmarkSeconds: 90,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Correctly evaluated H = P * t.' }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 3).toISOString()
+    },
+    {
+      submissionId: 'sub_10_sci_01_simran',
+      assessmentId: 'asgn_10_sci_01',
+      assessmentTitle: 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      studentId: 'b0000000-0000-0000-0000-000000000004',
+      studentName: 'Simran Kaur',
+      rollNumber: '11-S-27',
+      grade: '10',
+      section: 'Science-A',
+      totalScore: 8,
+      totalMarks: 12,
+      percentage: 67,
+      totalTimeSpentSeconds: 270,
+      smartCardSummary: 'High procedural accuracy in optics. Lost marks on Q3 due to parameter extraction error ($t=1\\text{h}$ instead of $2\\text{h}$).',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_asgn_01',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Spherical Mirrors',
+          timeSpentSeconds: 75,
+          benchmarkSeconds: 90,
+          isCorrect: true,
+          selectedOption: 'B',
+          correctAnswer: 'B',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Accurate mirror formula application.' }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_asgn_02',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Refraction & Snell Law',
+          timeSpentSeconds: 70,
+          benchmarkSeconds: 75,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Correctly calculated 3e8 * 3/4.' }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_asgn_03',
+          topic: 'Electricity',
+          subtopic: 'Joule Heating & Resistance',
+          timeSpentSeconds: 125,
+          benchmarkSeconds: 90,
+          isCorrect: false,
+          selectedOption: 'C',
+          correctAnswer: 'A',
+          mistakeClassification: {
+            type: 'CALCULATION',
+            label: 'Parameter Extraction Mistake',
+            explanation: 'Substituted time $t = 1\\,\\text{hour}$ instead of given $2\\,\\text{hours}$.',
+            distractorTrap: 'Selected option yielded exactly half the total energy.'
+          }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 3.5).toISOString()
+    },
+    {
+      submissionId: 'sub_10_sci_01_aditya',
+      assessmentId: 'asgn_10_sci_01',
+      assessmentTitle: 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      studentId: 'b0000000-0000-0000-0000-000000000005',
+      studentName: 'Aditya Chauhan',
+      rollNumber: '11-S-28',
+      grade: '10',
+      section: 'Science-A',
+      totalScore: 4,
+      totalMarks: 12,
+      percentage: 33,
+      totalTimeSpentSeconds: 360,
+      smartCardSummary: 'Significant time overrun on spherical mirrors (160s vs 90s). Needs concept re-teaching on mirror ray geometries.',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_asgn_01',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Spherical Mirrors',
+          timeSpentSeconds: 160,
+          benchmarkSeconds: 90,
+          isCorrect: false,
+          selectedOption: 'A',
+          correctAnswer: 'B',
+          mistakeClassification: {
+            type: 'CONCEPTUAL',
+            label: 'Ray Geometry Confusion',
+            explanation: 'Substituted focal length $f$ as the image distance $v$ without applying equation.',
+            distractorTrap: 'Confused object placement at $2f$ with focus.'
+          }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_asgn_02',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Refraction & Snell Law',
+          timeSpentSeconds: 85,
+          benchmarkSeconds: 75,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Snell law calculated accurately.' }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_asgn_03',
+          topic: 'Electricity',
+          subtopic: 'Joule Heating & Resistance',
+          timeSpentSeconds: 115,
+          benchmarkSeconds: 90,
+          isCorrect: false,
+          selectedOption: 'B',
+          correctAnswer: 'A',
+          mistakeClassification: {
+            type: 'CALCULATION',
+            label: 'Unit Conversion Failure',
+            explanation: 'Substituted raw hours into Joule formula without converting to SI seconds.',
+            distractorTrap: 'Selected option missing $3600\\text{s}$ factor.'
+          }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 4).toISOString()
+    },
+    {
+      submissionId: 'sub_10_sci_01_mehak',
+      assessmentId: 'asgn_10_sci_01',
+      assessmentTitle: 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      studentId: 'b0000000-0000-0000-0000-000000000006',
+      studentName: 'Mehak Sharma',
+      rollNumber: '11-S-29',
+      grade: '10',
+      section: 'Science-A',
+      totalScore: 8,
+      totalMarks: 12,
+      percentage: 67,
+      totalTimeSpentSeconds: 245,
+      smartCardSummary: 'Swift problem solver (sub-benchmark on Q1 & Q3). Quick recap suggested on refractive index constants.',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_asgn_01',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Spherical Mirrors',
+          timeSpentSeconds: 80,
+          benchmarkSeconds: 90,
+          isCorrect: true,
+          selectedOption: 'B',
+          correctAnswer: 'B',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Proper mirror equation solved.' }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_asgn_02',
+          topic: 'Light – Reflection and Refraction',
+          subtopic: 'Refraction & Snell Law',
+          timeSpentSeconds: 110,
+          benchmarkSeconds: 75,
+          isCorrect: false,
+          selectedOption: 'C',
+          correctAnswer: 'A',
+          mistakeClassification: {
+            type: 'CONCEPTUAL',
+            label: 'Material Constant Confusion',
+            explanation: 'Used glass refractive index ($1.5$) instead of water ($4/3$).',
+            distractorTrap: 'Confused refractive indices of dense flint glass and water.'
+          }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_asgn_03',
+          topic: 'Electricity',
+          subtopic: 'Joule Heating & Resistance',
+          timeSpentSeconds: 55,
+          benchmarkSeconds: 90,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Rapid and accurate calculation.' }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 4.5).toISOString()
     }
   ]
 };

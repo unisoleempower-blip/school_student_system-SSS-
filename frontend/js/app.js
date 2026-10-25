@@ -77,6 +77,7 @@ function initApp() {
   setupClass10PyqExplorer();
   setupTestAssignmentBuilder();
   setupStudentAssignedTests();
+  setupClassAnalytics();
 }
 
 
@@ -276,6 +277,10 @@ function setupTeacherSubTabs() {
 
       if (targetTabId === 'tabClass10Pyq' && allClass10Pyqs.length === 0) {
         setupClass10PyqExplorer();
+      }
+
+      if (targetTabId === 'tabClassAnalytics') {
+        loadClassAnalytics();
       }
 
       initLucideIcons();
@@ -2023,4 +2028,397 @@ function displayDiagnosticResults(results) {
   modal.classList.add('active');
   initLucideIcons();
 }
+
+// ============================================================================
+// TEACHER CLASS-WISE EXAM ANALYTICS & STUDENT DRILL-DOWN CONTROLLER
+// ============================================================================
+
+let currentAnalyticsData = null;
+
+function setupClassAnalytics() {
+  const selectAssessment = document.getElementById('selectAnalyticsAssessment');
+  const btnRefresh = document.getElementById('btnRefreshAnalytics');
+  const btnCloseModal = document.getElementById('btnCloseStudentDrilldown');
+  const drilldownModal = document.getElementById('modalStudentDrilldown');
+
+  if (selectAssessment) {
+    selectAssessment.addEventListener('change', (e) => {
+      const selectedId = e.target.value;
+      if (selectedId) loadClassAnalytics(selectedId);
+    });
+  }
+
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', () => {
+      const selectedId = selectAssessment ? selectAssessment.value : null;
+      loadClassAnalytics(selectedId);
+    });
+  }
+
+  if (btnCloseModal) {
+    btnCloseModal.addEventListener('click', closeStudentDrilldown);
+  }
+
+  if (drilldownModal) {
+    drilldownModal.addEventListener('click', (e) => {
+      if (e.target === drilldownModal) {
+        closeStudentDrilldown();
+      }
+    });
+  }
+}
+
+async function loadClassAnalytics(assessmentId) {
+  try {
+    const url = assessmentId 
+      ? `http://localhost:5050/api/analytics/class-dashboard?assessmentId=${assessmentId}`
+      : `http://localhost:5050/api/analytics/class-dashboard`;
+
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.success) {
+      console.warn('[CLASS ANALYTICS] Fetch failed:', data.error);
+      return;
+    }
+
+    currentAnalyticsData = data;
+
+    // Populate dropdown if needed
+    const selectAssessment = document.getElementById('selectAnalyticsAssessment');
+    if (selectAssessment && data.availableAssessments) {
+      const currentVal = assessmentId || data.assessment.id;
+      selectAssessment.innerHTML = data.availableAssessments.map(a => `
+        <option value="${a.id}" ${a.id === currentVal ? 'selected' : ''}>
+          ${a.title} (${a.grade ? 'Class ' + a.grade : 'General'})
+        </option>
+      `).join('');
+    }
+
+    renderClassAnalytics(data);
+  } catch (err) {
+    console.error('[CLASS ANALYTICS] Network error:', err.message);
+  }
+}
+
+function renderClassAnalytics(data) {
+  if (!data || !data.classSummary) return;
+
+  const { classSummary, assessment, questionAnalytics, highlights, pedagogicalActionPlan, studentRoster } = data;
+
+  // 1. KPI Cards
+  const kpiAvgScore = document.getElementById('kpiAvgScore');
+  const kpiAvgSub = document.getElementById('kpiAvgSub');
+  const kpiHighestScore = document.getElementById('kpiHighestScore');
+  const kpiHighestStudent = document.getElementById('kpiHighestStudent');
+  const kpiLowestScore = document.getElementById('kpiLowestScore');
+  const kpiLowestStudent = document.getElementById('kpiLowestStudent');
+  const kpiAvgVelocity = document.getElementById('kpiAvgVelocity');
+  const kpiAvgVelocitySub = document.getElementById('kpiAvgVelocitySub');
+
+  if (kpiAvgScore) {
+    kpiAvgScore.innerHTML = `${classSummary.averageScore} <span style="font-size:1rem; color:var(--text-muted); font-weight:500;">/ ${assessment.totalMarks}</span> <span style="font-size:0.95rem; color:var(--accent-cyan);">(${classSummary.averagePercentage})</span>`;
+  }
+  if (kpiAvgSub) {
+    kpiAvgSub.innerText = `${classSummary.totalSubmissions} / ${classSummary.classEnrolledCount} Students Tested (${classSummary.participationRate})`;
+  }
+
+  if (kpiHighestScore) {
+    kpiHighestScore.innerHTML = `${classSummary.highestScore.score} <span style="font-size:1rem; color:var(--text-muted); font-weight:500;">/ ${assessment.totalMarks}</span> <span style="font-size:0.95rem;">(${classSummary.highestScore.percentage}%)</span>`;
+  }
+  if (kpiHighestStudent) {
+    const names = (classSummary.highestScore.students || []).map(s => s.studentName).join(', ');
+    kpiHighestStudent.innerText = names || 'Topper';
+  }
+
+  if (kpiLowestScore) {
+    kpiLowestScore.innerHTML = `${classSummary.lowestScore.score} <span style="font-size:1rem; color:var(--text-muted); font-weight:500;">/ ${assessment.totalMarks}</span> <span style="font-size:0.95rem;">(${classSummary.lowestScore.percentage}%)</span>`;
+  }
+  if (kpiLowestStudent) {
+    const names = (classSummary.lowestScore.students || []).map(s => s.studentName).join(', ');
+    kpiLowestStudent.innerText = names || 'Remedial Focus';
+  }
+
+  if (kpiAvgVelocity) {
+    const mins = Math.floor(classSummary.averageTimeSpentSeconds / 60);
+    const secs = classSummary.averageTimeSpentSeconds % 60;
+    kpiAvgVelocity.innerText = `${mins}m ${secs}s`;
+  }
+  if (kpiAvgVelocitySub) {
+    const avgPerQ = Math.round(classSummary.averageTimeSpentSeconds / (assessment.totalQuestions || 1));
+    kpiAvgVelocitySub.innerText = `Pacing: ~${avgPerQ}s / Question (Benchmark: 90s)`;
+  }
+
+  // 2. Highlights
+  const txtMostAttemptedTitle = document.getElementById('txtMostAttemptedTitle');
+  const txtMostAttemptedDetail = document.getElementById('txtMostAttemptedDetail');
+  const badgeMostAttemptedRate = document.getElementById('badgeMostAttemptedRate');
+
+  if (highlights.mostAttempted) {
+    if (txtMostAttemptedTitle) txtMostAttemptedTitle.innerText = `Q${highlights.mostAttempted.questionIndex}: ${highlights.mostAttempted.subtopic}`;
+    if (txtMostAttemptedDetail) txtMostAttemptedDetail.innerText = `${highlights.mostAttempted.attemptCount} / ${classSummary.totalSubmissions} students attempted this question.`;
+    if (badgeMostAttemptedRate) badgeMostAttemptedRate.innerText = highlights.mostAttempted.attemptRate;
+  }
+
+  const txtMostWrongTitle = document.getElementById('txtMostWrongTitle');
+  const txtMostWrongDetail = document.getElementById('txtMostWrongDetail');
+  const badgeMostWrongRate = document.getElementById('badgeMostWrongRate');
+
+  if (highlights.mostWrong) {
+    if (txtMostWrongTitle) txtMostWrongTitle.innerText = `Q${highlights.mostWrong.questionIndex}: ${highlights.mostWrong.subtopic}`;
+    if (txtMostWrongDetail) txtMostWrongDetail.innerText = `${highlights.mostWrong.wrongCount} students made errors. Primary trap: ${highlights.mostWrong.dominantMistake}.`;
+    if (badgeMostWrongRate) badgeMostWrongRate.innerText = `${highlights.mostWrong.errorRate} Error`;
+  }
+
+  const txtTimeHotspotTitle = document.getElementById('txtTimeHotspotTitle');
+  const txtTimeHotspotDetail = document.getElementById('txtTimeHotspotDetail');
+  const badgeTimeLag = document.getElementById('badgeTimeLag');
+
+  if (pedagogicalActionPlan.timeManagementAlerts && pedagogicalActionPlan.timeManagementAlerts.length > 0) {
+    const tAlert = pedagogicalActionPlan.timeManagementAlerts[0];
+    if (txtTimeHotspotTitle) txtTimeHotspotTitle.innerText = `Q${tAlert.questionIndex}: ${tAlert.concept}`;
+    if (txtTimeHotspotDetail) txtTimeHotspotDetail.innerText = `Avg ${tAlert.avgTime} vs ${tAlert.benchmarkTime} benchmark. ${tAlert.timeLagSeconds} time lag.`;
+    if (badgeTimeLag) badgeTimeLag.innerText = tAlert.timeLagSeconds;
+  } else if (questionAnalytics.length > 0) {
+    const slowQ = [...questionAnalytics].sort((a,b) => b.avgTimeSpentSeconds - a.avgTimeSpentSeconds)[0];
+    if (txtTimeHotspotTitle) txtTimeHotspotTitle.innerText = `Q${slowQ.questionIndex}: ${slowQ.subtopic}`;
+    if (txtTimeHotspotDetail) txtTimeHotspotDetail.innerText = `Students spent ${slowQ.avgTimeSpentSeconds}s on average (Benchmark: ${slowQ.benchmarkSeconds}s).`;
+    if (badgeTimeLag) badgeTimeLag.innerText = `${slowQ.avgTimeSpentSeconds}s`;
+  }
+
+  // 3. Pedagogical Action Plan (Quick Recap vs Teach Once Again)
+  const recapContainer = document.getElementById('recapConceptsContainer');
+  if (recapContainer) {
+    const recaps = pedagogicalActionPlan.quickRecapNeeded || [];
+    if (recaps.length === 0) {
+      recapContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">No concepts in the 50%–75% recap bracket. Excellent retention!</p>';
+    } else {
+      recapContainer.innerHTML = recaps.map(r => `
+        <div class="directive-card recap-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <strong style="color:var(--text-primary); font-size:0.9rem;">Q${r.questionIndex}: ${r.concept}</strong>
+            <span class="speed-badge optimal" style="background:rgba(245,158,11,0.2); color:#fbbf24;">${r.accuracyRate} Accuracy</span>
+          </div>
+          <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:6px;">Topic: ${r.topic} &bull; Dominant error: <span class="badge-mistake badge-mistake-formula">${r.dominantMistake}</span></p>
+          <div style="background:rgba(0,0,0,0.2); padding:6px 10px; border-radius:4px; font-size:0.78rem; color:#fde68a;">
+            <i data-lucide="check" style="width:12px;height:12px;vertical-align:middle;"></i> ${r.recommendation}
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  const reteachContainer = document.getElementById('reteachConceptsContainer');
+  if (reteachContainer) {
+    const reteaches = pedagogicalActionPlan.teachOnceAgainNeeded || [];
+    if (reteaches.length === 0) {
+      reteachContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">No critical gaps (<50% accuracy). Class demonstrated solid foundational mastery.</p>';
+    } else {
+      reteachContainer.innerHTML = reteaches.map(t => `
+        <div class="directive-card reteach-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <strong style="color:#f87171; font-size:0.9rem;">Q${t.questionIndex}: ${t.concept}</strong>
+            <span class="speed-badge hesitating" style="background:rgba(244,63,94,0.2); color:#fb7185;">${t.accuracyRate} Accuracy &bull; ${t.studentsStruggledCount} Failed</span>
+          </div>
+          <p style="font-size:0.78rem; color:var(--text-secondary); margin-bottom:6px;">Topic: ${t.topic} &bull; Stumble type: <span class="badge-mistake badge-mistake-calc">${t.dominantMistake}</span></p>
+          <div style="background:rgba(0,0,0,0.25); padding:6px 10px; border-radius:4px; font-size:0.78rem; color:#fecdd3;">
+            <i data-lucide="alert-circle" style="width:12px;height:12px;vertical-align:middle;"></i> ${t.recommendation}
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // 4. Question Breakdown Matrix Table
+  const qTableBody = document.getElementById('classQuestionBreakdownTableBody');
+  if (qTableBody && questionAnalytics) {
+    qTableBody.innerHTML = questionAnalytics.map(q => {
+      const isHighFail = q.errorRate >= 50;
+      const isRecap = q.accuracyRate >= 50 && q.accuracyRate < 75;
+      const statusBadge = isHighFail
+        ? '<span class="speed-badge hesitating" style="background:rgba(244,63,94,0.2); color:#fb7185;">Teach Once Again</span>'
+        : (isRecap ? '<span class="speed-badge optimal" style="background:rgba(245,158,11,0.2); color:#fbbf24;">Quick Recap</span>' : '<span class="speed-badge fast">Mastered</span>');
+
+      const mistakeBadge = q.dominantMistake !== 'None'
+        ? `<span class="badge-mistake badge-mistake-${q.dominantMistake.toLowerCase().includes('calc') ? 'calc' : (q.dominantMistake.toLowerCase().includes('sign') ? 'sign' : (q.dominantMistake.toLowerCase().includes('formula') ? 'formula' : 'conceptual'))}">${q.dominantMistake}</span>`
+        : '<span class="badge-mistake badge-mistake-none">None</span>';
+
+      return `
+        <tr style="border-bottom: 1px solid var(--border-subtle);">
+          <td style="padding: 10px 8px; font-weight:700; color:var(--accent-blue);">Q${q.questionIndex}</td>
+          <td style="padding: 10px 8px;">
+            <div style="font-weight:600; color:var(--text-primary);">${q.subtopic}</div>
+            <div style="font-size:0.72rem; color:var(--text-muted);">${q.topic}</div>
+          </td>
+          <td style="padding: 10px 8px;">
+            <strong>${q.attemptRate}%</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${q.attemptCount}/${classSummary.totalSubmissions})</span>
+          </td>
+          <td style="padding: 10px 8px;">
+            <span style="font-weight:700; color:${q.accuracyRate >= 70 ? '#34d399' : (q.accuracyRate >= 50 ? '#fbbf24' : '#fb7185')};">${q.accuracyRate}%</span>
+          </td>
+          <td style="padding: 10px 8px;">
+            <span>${q.avgTimeSpentSeconds}s</span> <span style="font-size:0.72rem; color:var(--text-muted);">(${q.benchmarkSeconds}s)</span>
+          </td>
+          <td style="padding: 10px 8px;">${mistakeBadge}</td>
+          <td style="padding: 10px 8px;">${statusBadge}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // 5. Student Performance Roster Table
+  const sTableBody = document.getElementById('classStudentRosterTableBody');
+  if (sTableBody && studentRoster) {
+    sTableBody.innerHTML = studentRoster.map(s => {
+      const mins = Math.floor(s.totalTimeSpentSeconds / 60);
+      const secs = s.totalTimeSpentSeconds % 60;
+      const scoreColor = s.percentage >= 70 ? '#34d399' : (s.percentage >= 50 ? '#fbbf24' : '#fb7185');
+      const scoreBg = s.percentage >= 70 ? 'rgba(16,185,129,0.15)' : (s.percentage >= 50 ? 'rgba(245,158,11,0.15)' : 'rgba(244,63,94,0.15)');
+
+      const mistakeBadge = s.wrongQuestionsCount > 0
+        ? `<span class="badge-mistake badge-mistake-calc">${s.primaryMistake}</span>`
+        : `<span class="badge-mistake badge-mistake-none">Flawless</span>`;
+
+      return `
+        <tr style="border-bottom: 1px solid var(--border-subtle);">
+          <td style="padding: 10px 8px; font-weight:600; color:var(--text-muted);">${s.rollNumber}</td>
+          <td style="padding: 10px 8px;">
+            <div style="font-weight:700; color:var(--text-primary);">${s.studentName}</div>
+            <div style="font-size:0.72rem; color:var(--text-secondary); max-width:280px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${s.smartCardSummary || 'Completed test'}</div>
+          </td>
+          <td style="padding: 10px 8px;">
+            <span class="pilot-tag" style="background:${scoreBg}; color:${scoreColor}; font-weight:700; font-size:0.78rem;">
+              ${s.score}/${s.totalMarks} (${s.percentage}%)
+            </span>
+          </td>
+          <td style="padding: 10px 8px; font-size:0.8rem;">${mins}m ${secs}s</td>
+          <td style="padding: 10px 8px; font-size:0.8rem; font-weight:600; color:${s.wrongQuestionsCount === 0 ? '#34d399' : '#fb7185'};">
+            ${s.wrongQuestionsCount} Wrong
+          </td>
+          <td style="padding: 10px 8px;">${mistakeBadge}</td>
+          <td style="padding: 10px 8px; text-align: right;">
+            <button class="btn-secondary" onclick="openStudentDrilldown('${s.studentId}', '${assessment.id}')" style="font-size:0.75rem; padding:5px 10px; border-radius:6px;">
+              <i data-lucide="eye" style="width:13px; height:13px;"></i> Inspect Drill-Down
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  initLucideIcons();
+}
+
+// 6. Individual Student Drill-Down
+async function openStudentDrilldown(studentId, assessmentId) {
+  try {
+    const res = await fetch(`http://localhost:5050/api/analytics/student-test-drilldown/${studentId}/${assessmentId}`);
+    const data = await res.json();
+
+    if (!data.success) {
+      alert(data.error || 'Failed to load student drilldown.');
+      return;
+    }
+
+    const { student, submission, questionBreakdown, smartCard } = data;
+
+    // Header info
+    const rollEl = document.getElementById('drilldownStudentRoll');
+    const examEl = document.getElementById('drilldownStudentTargetExam');
+    const nameEl = document.getElementById('drilldownStudentName');
+    const testTitleEl = document.getElementById('drilldownTestTitle');
+    const scoreBadge = document.getElementById('drilldownScoreBadge');
+    const timeBadge = document.getElementById('drilldownTimeBadge');
+    const summaryText = document.getElementById('drilldownSummaryText');
+    const teacherAction = document.getElementById('drilldownTeacherAction');
+    const parentSnippet = document.getElementById('drilldownParentSnippet');
+    const qList = document.getElementById('drilldownQuestionsList');
+
+    if (rollEl) rollEl.innerText = `Roll: ${student.rollNumber || '11-S-24'}`;
+    if (examEl) examEl.innerText = student.targetExam || 'CBSE';
+    if (nameEl) nameEl.innerText = student.fullName;
+    if (testTitleEl) testTitleEl.innerText = submission.assessmentTitle;
+    if (scoreBadge) scoreBadge.innerText = `${submission.totalScore}/${submission.totalMarks} (${submission.percentage}%)`;
+    if (timeBadge) timeBadge.innerText = smartCard.totalTimeFormatted;
+    if (summaryText) summaryText.innerText = smartCard.shortSummary;
+    if (teacherAction) teacherAction.innerText = smartCard.teacherActionDirective;
+    if (parentSnippet) parentSnippet.innerText = smartCard.parentWhatsAppSnippet;
+
+    if (qList && questionBreakdown) {
+      qList.innerHTML = questionBreakdown.map(q => {
+        const isCorrect = q.isCorrect;
+        const timeRatio = q.timeRatio;
+        const pacing = q.speedPacing;
+        const m = q.mistakeClassification || {};
+
+        let badgeClass = 'badge-mistake-none';
+        if (!isCorrect) {
+          const type = (m.type || '').toUpperCase();
+          if (type.includes('CALC')) badgeClass = 'badge-mistake-calc';
+          else if (type.includes('SIGN')) badgeClass = 'badge-mistake-sign';
+          else if (type.includes('FORMULA')) badgeClass = 'badge-mistake-formula';
+          else if (type.includes('TIME')) badgeClass = 'badge-mistake-time';
+          else badgeClass = 'badge-mistake-conceptual';
+        }
+
+        const pacingColor = pacing === 'FAST' ? '#10b981' : (pacing === 'OPTIMAL' ? '#38bdf8' : '#f59e0b');
+
+        return `
+          <div style="background:rgba(255,255,255,0.02); border:1px solid ${isCorrect ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.35)'}; border-radius:var(--radius-md); padding:1rem;">
+            <!-- Question Header -->
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+              <div>
+                <strong style="color:var(--text-primary); font-size:0.95rem;">Q${q.questionIndex}: ${q.subtopic}</strong>
+                <span style="font-size:0.75rem; color:var(--text-muted); display:block;">Topic: ${q.topic}</span>
+              </div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="speed-badge" style="background:${pacing === 'FAST' ? 'rgba(16,185,129,0.2)' : (pacing === 'OPTIMAL' ? 'rgba(56,189,248,0.2)' : 'rgba(245,158,11,0.2)')}; color:${pacingColor};">
+                  ⏱️ ${q.timeSpentSeconds}s (Target: ${q.benchmarkSeconds}s) &bull; ${pacing}
+                </span>
+                <span class="pilot-tag" style="background:${isCorrect ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)'}; color:${isCorrect ? '#34d399' : '#fb7185'}; font-weight:700;">
+                  ${isCorrect ? 'CORRECT (+4M)' : 'INCORRECT'}
+                </span>
+              </div>
+            </div>
+
+            <!-- Mistake Classification & Explanation -->
+            <div style="background:rgba(0,0,0,0.25); border-radius:var(--radius-sm); padding:10px 12px; margin-top:8px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                <span class="badge-mistake ${badgeClass}">${m.label || m.type}</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">
+                  Selected: <strong style="color:${isCorrect ? '#34d399' : '#fb7185'};">${q.selectedOption || 'None'}</strong> | Expected: <strong style="color:#34d399;">${q.correctAnswer}</strong>
+                </span>
+              </div>
+              <p style="font-size:0.82rem; color:var(--text-primary); margin-bottom:2px; line-height:1.4;">
+                ${m.explanation || ''}
+              </p>
+              ${m.distractorTrap ? `
+                <div style="font-size:0.75rem; color:#fca5a5; margin-top:4px;">
+                  ⚠️ <em>Trap identified: ${m.distractorTrap}</em>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    const modal = document.getElementById('modalStudentDrilldown');
+    if (modal) modal.classList.add('active');
+    initLucideIcons();
+  } catch (err) {
+    console.error('[STUDENT DRILLDOWN] Error:', err.message);
+  }
+}
+
+function closeStudentDrilldown() {
+  const modal = document.getElementById('modalStudentDrilldown');
+  if (modal) modal.classList.remove('active');
+}
+
+// Global exposure for inline onclick handlers
+window.openStudentDrilldown = openStudentDrilldown;
+window.closeStudentDrilldown = closeStudentDrilldown;
+window.loadClassAnalytics = loadClassAnalytics;
+
 

@@ -229,6 +229,40 @@ router.post('/:id/submit', async (req, res) => {
     const updatedReport = await generateWeeklyReport(studentId);
     inMemoryStore.weeklyReports.unshift(updatedReport);
 
+    // Save to inMemoryStore.submissions for real-time teacher classroom analytics
+    if (!inMemoryStore.submissions) inMemoryStore.submissions = [];
+    const submissionRecord = {
+      submissionId: `sub_${id}_${studentId}_${Date.now()}`,
+      assessmentId: id,
+      assessmentTitle: assessment.title,
+      studentId,
+      studentName,
+      rollNumber: student?.roll_number || '11-S-24',
+      grade: assessment.grade || '10',
+      section: assessment.section || 'Science-A',
+      totalScore,
+      totalMarks,
+      percentage,
+      totalTimeSpentSeconds: totalTimeSpent,
+      smartCardSummary: `Scored ${percentage}% on ${assessment.title}. Mastered ${mastered.length} subtopics, needs recap on ${recap.length}, critical weakness on ${weak.length}.`,
+      questionBreakdown: questionBreakdown.map(qb => {
+        let errorType = 'NONE';
+        if (!qb.isCorrect) {
+          errorType = qb.timeSpentSeconds > (qb.benchmarkSeconds * 1.5) ? 'TIME_PRESSURE' : 'CONCEPTUAL';
+        }
+        return {
+          ...qb,
+          mistakeClassification: {
+            type: errorType,
+            label: qb.isCorrect ? 'Correct Execution' : (errorType === 'TIME_PRESSURE' ? 'Time Pressure Hesitation' : 'Conceptual Error'),
+            explanation: qb.isCorrect ? 'Accurate problem solution.' : 'Error in formula or concept execution.'
+          }
+        };
+      }),
+      submittedAt: new Date().toISOString()
+    };
+    inMemoryStore.submissions.unshift(submissionRecord);
+
     res.json({
       success: true,
       message: 'Test submitted and evaluated with sub-second diagnostic classification.',

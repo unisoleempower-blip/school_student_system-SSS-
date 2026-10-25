@@ -86,6 +86,10 @@
           <i data-lucide="activity" style="width:16px; height:16px;"></i>
           Live Telemetry & Diagnostics
         </button>
+        <button class="sub-tab-btn" id="tabBtnClassAnalytics" data-tab="tabClassAnalytics">
+          <i data-lucide="bar-chart-2" style="width:16px; height:16px;"></i>
+          Class & Student Exam Analytics
+        </button>
         <button class="sub-tab-btn" id="tabBtnHandwritten" data-tab="tabHandwritten">
           <i data-lucide="file-check-2" style="width:16px; height:16px;"></i>
           Handwritten Sheet Evaluator
@@ -693,6 +697,291 @@
         <!-- PYQ Cards List Container -->
         <div id="class10PyqContainer" style="display: flex; flex-direction: column; gap: 1.25rem;">
           <!-- Dynamically populated via app.js -->
+        </div>
+      </div>
+
+      <!-- TAB 6: CLASS & STUDENT EXAM ANALYTICS DASHBOARD -->
+      <div class="teacher-tab-content" id="tabClassAnalytics" style="display:none;">
+        <!-- Header Banner with Assessment Selector -->
+        <div class="glass-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(30, 58, 138, 0.3), rgba(15, 23, 42, 0.6)); border: 1px solid rgba(59, 130, 246, 0.4);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <span class="pilot-tag" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.4);">
+                  <i data-lucide="bar-chart-2" style="width:12px; height:12px; display:inline-block; vertical-align:middle;"></i>
+                  Real-Time Classroom Telemetry
+                </span>
+                <span class="pilot-tag" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.4);">
+                  Class 10 &bull; Section A
+                </span>
+                <span class="pilot-tag" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border-color: rgba(245, 158, 11, 0.3);">
+                  Teacher Co-Pilot Diagnostic
+                </span>
+              </div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+                Classroom Assessment Intelligence & Student Drill-Down
+              </h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 840px;">
+                Comprehensive analytics on class score variance, question-level attempt & failure rates, time friction hotspots, concepts requiring a quick 5-min recap vs. re-teaching, and deep student mistake classification (conceptual, formula-based, or calculation).
+              </p>
+            </div>
+
+            <!-- Controls: Select Test + Refresh -->
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+              <div>
+                <label style="font-size: 0.72rem; color: var(--text-muted); display: block; margin-bottom: 3px; font-weight: 600;">Active Test Assessment</label>
+                <select class="form-select" id="selectAnalyticsAssessment" style="min-width: 280px; font-size: 0.82rem; padding: 6px 12px;">
+                  <option value="">Loading assessments...</option>
+                </select>
+              </div>
+              <div style="align-self: flex-end;">
+                <button class="btn-primary" id="btnRefreshAnalytics" style="padding: 7px 14px; font-size: 0.82rem;">
+                  <i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> Refresh Metrics
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 1. Class Performance Overview (KPI Cards) -->
+        <div class="analytics-kpi-grid" id="analyticsKpiGrid">
+          <div class="analytics-kpi-card">
+            <div class="analytics-kpi-label">
+              <span>Class Average Score</span>
+              <i data-lucide="award" style="width:16px; height:16px; color:var(--accent-blue);"></i>
+            </div>
+            <div class="analytics-kpi-val" id="kpiAvgScore">--</div>
+            <div class="analytics-kpi-sub" id="kpiAvgSub">Calculating class average...</div>
+          </div>
+
+          <div class="analytics-kpi-card kpi-emerald">
+            <div class="analytics-kpi-label">
+              <span>Highest Score (Topper)</span>
+              <i data-lucide="trophy" style="width:16px; height:16px; color:#10b981;"></i>
+            </div>
+            <div class="analytics-kpi-val" id="kpiHighestScore" style="color:#34d399;">--</div>
+            <div class="analytics-kpi-sub" id="kpiHighestStudent">Top Student</div>
+          </div>
+
+          <div class="analytics-kpi-card kpi-rose">
+            <div class="analytics-kpi-label">
+              <span>Lowest Score (Remedial Focus)</span>
+              <i data-lucide="alert-triangle" style="width:16px; height:16px; color:#f43f5e;"></i>
+            </div>
+            <div class="analytics-kpi-val" id="kpiLowestScore" style="color:#fb7185;">--</div>
+            <div class="analytics-kpi-sub" id="kpiLowestStudent">Remedial Attention</div>
+          </div>
+
+          <div class="analytics-kpi-card kpi-amber">
+            <div class="analytics-kpi-label">
+              <span>Avg Solving Velocity</span>
+              <i data-lucide="clock" style="width:16px; height:16px; color:#f59e0b;"></i>
+            </div>
+            <div class="analytics-kpi-val" id="kpiAvgVelocity">--</div>
+            <div class="analytics-kpi-sub" id="kpiAvgVelocitySub">Target: 90s / Question</div>
+          </div>
+        </div>
+
+        <!-- 2. Question-Level Highlights Grid -->
+        <div class="grid-3col" style="margin-bottom: 1.5rem; gap: 1rem;">
+          <!-- Most Attempted Question -->
+          <div class="glass-card" style="border-left: 4px solid #10b981;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
+              <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); font-weight:700;">
+                <i data-lucide="check-circle-2" style="width:14px; height:14px; vertical-align:middle; color:#10b981;"></i> Most Attempted Question
+              </span>
+              <span class="speed-badge fast" id="badgeMostAttemptedRate">--%</span>
+            </div>
+            <h4 id="txtMostAttemptedTitle" style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin-bottom:4px;">Loading...</h4>
+            <p id="txtMostAttemptedDetail" style="font-size:0.78rem; color:var(--text-secondary); line-height:1.4;">Class engagement breakdown</p>
+          </div>
+
+          <!-- Most Wrong / Failed Question -->
+          <div class="glass-card" style="border-left: 4px solid #f43f5e;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
+              <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); font-weight:700;">
+                <i data-lucide="x-circle" style="width:14px; height:14px; vertical-align:middle; color:#f43f5e;"></i> Most Failed / Wrong Question
+              </span>
+              <span class="speed-badge hesitating" id="badgeMostWrongRate" style="background:rgba(244,63,94,0.2); color:#fb7185;">--% Error</span>
+            </div>
+            <h4 id="txtMostWrongTitle" style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin-bottom:4px;">Loading...</h4>
+            <p id="txtMostWrongDetail" style="font-size:0.78rem; color:var(--text-secondary); line-height:1.4;">Primary misconception analysis</p>
+          </div>
+
+          <!-- Where Students Need More Time -->
+          <div class="glass-card" style="border-left: 4px solid #38bdf8;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px;">
+              <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-muted); font-weight:700;">
+                <i data-lucide="timer" style="width:14px; height:14px; vertical-align:middle; color:#38bdf8;"></i> Time Management Hotspot
+              </span>
+              <span class="speed-badge optimal" id="badgeTimeLag">--</span>
+            </div>
+            <h4 id="txtTimeHotspotTitle" style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin-bottom:4px;">Loading...</h4>
+            <p id="txtTimeHotspotDetail" style="font-size:0.78rem; color:var(--text-secondary); line-height:1.4;">Algebraic hesitation or unit lag</p>
+          </div>
+        </div>
+
+        <!-- 3. Pedagogical Action Plan (Quick Recap vs Teach Once Again) -->
+        <div class="grid-2col" style="margin-bottom: 1.5rem; gap: 1rem;">
+          <!-- Panel Left: Quick Recap Needed (5-10 min) -->
+          <div class="glass-card">
+            <div class="card-header" style="margin-bottom: 0.75rem;">
+              <div class="card-title-group">
+                <div class="card-icon" style="background:rgba(245, 158, 11, 0.15); color:#f59e0b;">
+                  <i data-lucide="zap" style="width:18px; height:18px;"></i>
+                </div>
+                <div>
+                  <h3 class="card-title" style="font-size:1.05rem;">⚡ Quick Recap Needed (5–10 Min Review)</h3>
+                  <p class="card-subtitle">Moderate accuracy (50%–75%). Reinforce key definitions & Cartesian sign rules.</p>
+                </div>
+              </div>
+            </div>
+            <div id="recapConceptsContainer">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Panel Right: Teach Once Again (Re-Teach / Residential Prep) -->
+          <div class="glass-card">
+            <div class="card-header" style="margin-bottom: 0.75rem;">
+              <div class="card-title-group">
+                <div class="card-icon" style="background:rgba(244, 63, 94, 0.15); color:#f43f5e;">
+                  <i data-lucide="alert-octagon" style="width:18px; height:18px;"></i>
+                </div>
+                <div>
+                  <h3 class="card-title" style="font-size:1.05rem;">🔄 Teach Once Again (Re-Teach Needed)</h3>
+                  <p class="card-subtitle">Critical failure (<50% accuracy). Re-derive step formulas in evening hostel prep.</p>
+                </div>
+              </div>
+            </div>
+            <div id="reteachConceptsContainer">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Question Breakdown Matrix Table -->
+        <div class="glass-card" style="margin-bottom: 1.5rem;">
+          <div class="card-header">
+            <div class="card-title-group">
+              <div class="card-icon"><i data-lucide="list-ordered" style="width:18px; height:18px;"></i></div>
+              <div>
+                <h3 class="card-title">Question-by-Question Classroom Diagnostics</h3>
+                <p class="card-subtitle">Attempt rate, error percentage, average time taken, and dominant mistake types</p>
+              </div>
+            </div>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="classQuestionBreakdownTable">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); text-align: left;">
+                  <th style="padding: 10px 8px;">Q#</th>
+                  <th style="padding: 10px 8px;">Topic & Subtopic</th>
+                  <th style="padding: 10px 8px;">Attempt Rate</th>
+                  <th style="padding: 10px 8px;">Accuracy</th>
+                  <th style="padding: 10px 8px;">Avg Time (Benchmark)</th>
+                  <th style="padding: 10px 8px;">Dominant Mistake</th>
+                  <th style="padding: 10px 8px;">Diagnostic Status</th>
+                </tr>
+              </thead>
+              <tbody id="classQuestionBreakdownTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 5. Student Performance Roster (Clickable Drill-Down) -->
+        <div class="glass-card">
+          <div class="card-header">
+            <div class="card-title-group">
+              <div class="card-icon"><i data-lucide="users" style="width:18px; height:18px;"></i></div>
+              <div>
+                <h3 class="card-title">Student Performance Roster (Click Student for Drill-Down)</h3>
+                <p class="card-subtitle">Click any student to view exact time per question, mistake classification, and smart card summary</p>
+              </div>
+            </div>
+          </div>
+
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="classStudentRosterTable">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); text-align: left;">
+                  <th style="padding: 10px 8px;">Roll #</th>
+                  <th style="padding: 10px 8px;">Student Name</th>
+                  <th style="padding: 10px 8px;">Score & %</th>
+                  <th style="padding: 10px 8px;">Time Spent</th>
+                  <th style="padding: 10px 8px;">Mistakes Count</th>
+                  <th style="padding: 10px 8px;">Primary Error Category</th>
+                  <th style="padding: 10px 8px; text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="classStudentRosterTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- INDIVIDUAL STUDENT TEST DRILL-DOWN MODAL -->
+      <div class="drilldown-modal-backdrop" id="modalStudentDrilldown" role="dialog" aria-modal="true">
+        <div class="drilldown-modal-content">
+          <!-- Modal Header -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.25rem;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <span class="pilot-tag" id="drilldownStudentRoll">Roll: --</span>
+                <span class="speed-badge optimal" id="drilldownStudentTargetExam">CBSE</span>
+              </div>
+              <h2 id="drilldownStudentName" style="font-family: var(--font-heading); font-size: 1.4rem; font-weight: 800; color: var(--text-primary);">
+                Student Name
+              </h2>
+              <p id="drilldownTestTitle" style="font-size: 0.85rem; color: var(--text-secondary);">
+                Test Title
+              </p>
+            </div>
+            <button class="btn-icon" id="btnCloseStudentDrilldown" title="Close Drilldown" style="background: rgba(255,255,255,0.06); border-radius: 50%;">
+              <i data-lucide="x" style="width:20px; height:20px;"></i>
+            </button>
+          </div>
+
+          <!-- Smart Card Short Summary Card -->
+          <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.1), rgba(15, 23, 42, 0.6)); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: var(--radius-md); padding: 1.15rem; margin-bottom: 1.5rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+              <span style="font-size: 0.75rem; text-transform: uppercase; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="credit-card" style="width:14px; height:14px;"></i> Smart Card Short Summary (Test Result)
+              </span>
+              <div style="display:flex; gap:6px;">
+                <span class="pilot-tag" id="drilldownScoreBadge" style="background: rgba(16, 185, 129, 0.2); color: #34d399;">--%</span>
+                <span class="pilot-tag" id="drilldownTimeBadge" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24;">--</span>
+              </div>
+            </div>
+            <p id="drilldownSummaryText" style="font-size: 0.92rem; color: var(--text-primary); line-height: 1.5; font-weight: 500; margin-bottom: 10px;">
+              Summary loading...
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px; font-size: 0.8rem;">
+              <div style="background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 6px;">
+                <strong style="color: #fbbf24;"><i data-lucide="user-check" style="width:12px; height:12px; vertical-align:middle;"></i> Teacher Directive:</strong>
+                <span id="drilldownTeacherAction" style="color: var(--text-secondary); display: block; margin-top: 2px;">--</span>
+              </div>
+              <div style="background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 6px;">
+                <strong style="color: #34d399;"><i data-lucide="message-circle" style="width:12px; height:12px; vertical-align:middle;"></i> Parent WhatsApp Snippet:</strong>
+                <span id="drilldownParentSnippet" style="color: var(--text-secondary); display: block; margin-top: 2px;">--</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question-by-Question Timing & Mistake Analysis -->
+          <div>
+            <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="help-circle" style="width:18px; height:18px; color: var(--accent-blue);"></i> Question-by-Question Timing & Mistake Diagnostics
+            </h3>
+            <div id="drilldownQuestionsList" style="display: flex; flex-direction: column; gap: 1rem;">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
         </div>
       </div>
     </section>
