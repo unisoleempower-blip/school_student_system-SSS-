@@ -80,6 +80,15 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
           if (tLower.includes('nernst') && qText.includes('nernst')) return true;
           if (tLower.includes('rotational') && qText.includes('rotational')) return true;
 
+          // Check subtopics list
+          if (t.subtopics && Array.isArray(t.subtopics)) {
+            const matchesSubtopic = t.subtopics.some(st => {
+              const stLower = st.toLowerCase();
+              return qText.includes(stLower) || stLower.includes(qTopic) || (qSubtopic && stLower.includes(qSubtopic));
+            });
+            if (matchesSubtopic) return true;
+          }
+
           return false;
         });
 
@@ -112,6 +121,7 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
       subjectName: taxonomy.subjectName,
       stream: taxonomy.stream,
       targetExams: taxonomy.targetExams,
+      units: taxonomy.units || [],
       totalChapters: enrichedChapters.length,
       chapters: enrichedChapters
     });

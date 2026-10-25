@@ -628,7 +628,11 @@ async function setupClass10PyqExplorer() {
       }
       if (targetExamsEl) {
         const exams = currentCurriculumTaxonomy.targetExams || ['NEET_UG', 'BOARDS'];
-        targetExamsEl.innerText = `Target Exams: ${exams.map(e => e.replace(/_/g, ' ')).join(', ')}`;
+        const units = currentCurriculumTaxonomy.units || [];
+        const unitsSummary = units.length > 0 
+          ? ` • Units: ${units.map(u => `Unit ${u.unitNumber} (${u.weightageMarks}M)`).join(', ')}`
+          : '';
+        targetExamsEl.innerText = `Target Exams: ${exams.map(e => e.replace(/_/g, ' ')).join(', ')}${unitsSummary}`;
       }
 
       renderCurriculumAccordion();
@@ -642,13 +646,14 @@ async function setupClass10PyqExplorer() {
     const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
     let chapters = currentCurriculumTaxonomy.chapters;
 
-    // Filter chapters and topics by search query
+    // Filter chapters and topics by search query (including subtopics)
     if (query) {
       chapters = chapters.map(ch => {
         const chNameMatches = ch.chapterName.toLowerCase().includes(query) || (ch.unit && ch.unit.toLowerCase().includes(query));
         const matchedTopics = (ch.topics || []).filter(t => 
           t.topicName.toLowerCase().includes(query) ||
           (t.ncertSection && t.ncertSection.toLowerCase().includes(query)) ||
+          (t.subtopics && Array.isArray(t.subtopics) && t.subtopics.some(st => st.toLowerCase().includes(query))) ||
           chNameMatches
         );
 
@@ -665,7 +670,7 @@ async function setupClass10PyqExplorer() {
         <div class="glass-card" style="text-align:center; padding: 3rem;">
           <i data-lucide="inbox" style="width:36px; height:36px; color:var(--text-muted); margin: 0 auto 10px; display:block;"></i>
           <h3 style="color:var(--text-primary); font-size:1.1rem; margin-bottom:4px;">No Chapters or Topics Match "${query}"</h3>
-          <p style="color:var(--text-secondary); font-size:0.85rem;">Try searching for terms like "Lac Operon", "Replication", "Nephron", "pBR322", or "Meiosis".</p>
+          <p style="color:var(--text-secondary); font-size:0.85rem;">Try searching for terms like "Chemical Reactions", "Refraction", "Ohm's Law", "Tyndall", "Nephron", or "Ozone".</p>
         </div>
       `;
       initLucideIcons();
@@ -690,8 +695,8 @@ async function setupClass10PyqExplorer() {
             <div>
               <div class="chapter-name">${ch.chapterName}</div>
               <div class="chapter-meta-badges">
-                ${ch.discipline ? `<span class="${ch.discipline.toLowerCase().includes('bot') ? 'badge-botany' : 'badge-zoology'}">${ch.discipline}</span>` : ''}
-                ${ch.unit ? `<span class="badge-unit"><i data-lucide="layers" style="width:10px; height:10px; display:inline-block; vertical-align:middle;"></i> Unit: ${ch.unit}</span>` : ''}
+                ${ch.discipline ? `<span class="${ch.discipline.toLowerCase().includes('bot') ? 'badge-botany' : (ch.discipline.toLowerCase().includes('chem') ? 'badge-grade' : 'badge-zoology')}">${ch.discipline}</span>` : ''}
+                ${ch.unit ? `<span class="badge-unit"><i data-lucide="layers" style="width:10px; height:10px; display:inline-block; vertical-align:middle;"></i> ${ch.unit}</span>` : ''}
                 <span class="badge-grade">Class ${ch.grade}</span>
               </div>
             </div>
@@ -716,12 +721,24 @@ async function setupClass10PyqExplorer() {
             ${topicsToRender.map((t, tIdx) => `
               <div class="topic-row ${t.highYield ? 'high-yield' : ''}" id="topic_row_${t.id}">
                 <div class="topic-left-details">
-                  <span class="ncert-sec-badge">NCERT §${t.ncertSection || `${ch.chapterNumber || chIdx + 1}.${tIdx + 1}`}</span>
-                  <span class="topic-name-text">${t.topicName}</span>
-                  ${t.highYield ? `
-                    <span class="high-yield-tag">
-                      <i data-lucide="flame" style="width:10px; height:10px;"></i> High Yield
-                    </span>
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; width:100%;">
+                    <span class="ncert-sec-badge">NCERT §${t.ncertSection || `${ch.chapterNumber || chIdx + 1}.${tIdx + 1}`}</span>
+                    <span class="topic-name-text">${t.topicName}</span>
+                    ${t.highYield ? `
+                      <span class="high-yield-tag">
+                        <i data-lucide="flame" style="width:10px; height:10px;"></i> High Yield
+                      </span>
+                    ` : ''}
+                  </div>
+                  ${t.subtopics && Array.isArray(t.subtopics) && t.subtopics.length > 0 ? `
+                    <div style="width: 100%; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 5px;">
+                      ${t.subtopics.map(st => `
+                        <span style="font-size: 0.72rem; color: var(--text-secondary); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); padding: 2px 7px; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;">
+                          <span style="width: 4px; height: 4px; border-radius: 50%; background: var(--accent-cyan);"></span>
+                          ${st}
+                        </span>
+                      `).join('')}
+                    </div>
                   ` : ''}
                 </div>
 
@@ -731,7 +748,7 @@ async function setupClass10PyqExplorer() {
                           data-subject="${currentCurriculumTaxonomy.subjectName}" 
                           data-chapter="${ch.chapterName}" 
                           data-topic="${t.topicName}"
-                          data-board="${currentCurriculumTaxonomy.stream === 'MEDICAL' ? 'NEET' : 'JEE_MAIN'}"
+                          data-board="${currentCurriculumTaxonomy.stream === 'MEDICAL' ? 'NEET' : (currentCurriculumTaxonomy.stream === 'FOUNDATION' ? 'CBSE' : 'JEE_MAIN')}"
                           title="Generate a brand new exam-quality question for this specific topic using AI">
                     <i data-lucide="sparkles" style="width:12px; height:12px;"></i> AI Question
                   </button>
