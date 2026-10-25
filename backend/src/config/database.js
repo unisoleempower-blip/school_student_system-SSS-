@@ -16,13 +16,31 @@ let isConnected = false;
 // Mock in-memory store for instant offline development & test suites
 const inMemoryStore = {
   users: [
-    { id: 'b0000000-0000-0000-0000-000000000001', full_name: 'Aryan Sharma', roll_number: '11-S-24', grade: '10', section: 'Science-A', board: 'CBSE', target_exam: 'JEE_ADVANCED', role: 'STUDENT' },
-    { id: 'b0000000-0000-0000-0000-000000000002', full_name: 'Ananya Thakur', roll_number: '11-S-25', grade: '10', section: 'Science-A', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT' },
-    { id: 'b0000000-0000-0000-0000-000000000003', full_name: 'Rohit Verma', roll_number: '11-S-26', grade: '10', section: 'Science-A', board: 'CBSE', target_exam: 'JEE_MAIN', role: 'STUDENT' },
-    { id: 'b0000000-0000-0000-0000-000000000004', full_name: 'Simran Kaur', roll_number: '11-S-27', grade: '10', section: 'Science-A', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT' },
-    { id: 'b0000000-0000-0000-0000-000000000005', full_name: 'Aditya Chauhan', roll_number: '11-S-28', grade: '10', section: 'Science-A', board: 'CBSE', target_exam: 'JEE_MAIN', role: 'STUDENT' },
-    { id: 'b0000000-0000-0000-0000-000000000006', full_name: 'Mehak Sharma', roll_number: '11-S-29', grade: '10', section: 'Science-A', board: 'CBSE', target_exam: 'NEET_UG', role: 'STUDENT' },
-    { id: 'a0000000-0000-0000-0000-000000000002', full_name: 'Er. Rajesh Kumar', role: 'TEACHER', email: 'rajesh.phy@himacademy.com' }
+    // Class 12th Non-Medical (Physics, Chemistry, Maths -> JEE / Boards)
+    { id: 'b0000000-0000-0000-0000-000000000001', full_name: 'Aryan Sharma', roll_number: '12-NM-01', grade: '12', section: '12-NonMed', board: 'CBSE', target_exam: 'JEE_ADVANCED', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000002', full_name: 'Rohit Negi', roll_number: '12-NM-02', grade: '12', section: '12-NonMed', board: 'HP_BOARD', target_exam: 'JEE_MAIN', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000003', full_name: 'Kavya Verma', roll_number: '12-NM-03', grade: '12', section: '12-NonMed', board: 'CBSE', target_exam: 'JEE_ADVANCED', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000004', full_name: 'Kunal Sharma', roll_number: '12-NM-04', grade: '12', section: '12-NonMed', board: 'CBSE', target_exam: 'JEE_MAIN', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000005', full_name: 'Divyansh Thakur', roll_number: '12-NM-05', grade: '12', section: '12-NonMed', board: 'HP_BOARD', target_exam: 'CBSE', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000006', full_name: 'Akshat Jaswal', roll_number: '12-NM-06', grade: '12', section: '12-NonMed', board: 'CBSE', target_exam: 'JEE_MAIN', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000007', full_name: 'Rahul Sen', roll_number: '12-NM-07', grade: '12', section: '12-NonMed', board: 'CBSE', target_exam: 'JEE_ADVANCED', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000008', full_name: 'Sahil Dhiman', roll_number: '12-NM-08', grade: '12', section: '12-NonMed', board: 'HP_BOARD', target_exam: 'HP_BOARD', role: 'STUDENT' },
+
+    // Class 12th Medical (Physics, Chemistry, Biology -> NEET / Boards)
+    { id: 'b0000000-0000-0000-0000-000000000011', full_name: 'Ananya Thakur', roll_number: '12-M-01', grade: '12', section: '12-Med', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000012', full_name: 'Simran Kaur', roll_number: '12-M-02', grade: '12', section: '12-Med', board: 'CBSE', target_exam: 'NEET_UG', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000013', full_name: 'Mehak Sharma', roll_number: '12-M-03', grade: '12', section: '12-Med', board: 'CBSE', target_exam: 'NEET_UG', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000014', full_name: 'Pallavi Katoch', roll_number: '12-M-04', grade: '12', section: '12-Med', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000015', full_name: 'Shreya Dogra', roll_number: '12-M-05', grade: '12', section: '12-Med', board: 'CBSE', target_exam: 'NEET_UG', role: 'STUDENT' },
+
+    // Class 10th (Secondary Foundation)
+    { id: 'b0000000-0000-0000-0000-000000000021', full_name: 'Rohit Verma', roll_number: '10-A-01', grade: '10', section: '10-Science-A', board: 'CBSE', target_exam: 'JEE_MAIN', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000022', full_name: 'Aditya Chauhan', roll_number: '10-A-02', grade: '10', section: '10-Science-A', board: 'CBSE', target_exam: 'JEE_MAIN', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000023', full_name: 'Tanvi Sood', roll_number: '10-A-03', grade: '10', section: '10-Science-A', board: 'CBSE', target_exam: 'CBSE', role: 'STUDENT' },
+    { id: 'b0000000-0000-0000-0000-000000000024', full_name: 'Nikhil Rana', roll_number: '10-A-04', grade: '10', section: '10-Science-A', board: 'HP_BOARD', target_exam: 'HP_BOARD', role: 'STUDENT' },
+
+    // Faculty
+    { id: 'a0000000-0000-0000-0000-000000000002', full_name: 'Er. Rajesh Kumar (HOD Physics)', role: 'TEACHER', email: 'rajesh.phy@himacademy.com' }
   ],
   // Subject-Wise Specialized Question Banks for:
   // - Class 10 Foundation (Maths, Science)

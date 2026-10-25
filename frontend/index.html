@@ -103,168 +103,151 @@
         </button>
       </div>
 
-      <!-- TAB: CREATE TEST & QUIZZES -->
+      <!-- TAB: CREATE TEST & QUIZZES (TEACHER SCOPED) -->
       <div class="teacher-tab-content" id="tabGenerator" style="display:none;">
-        <div class="grid-2col">
-          <!-- Generator Config Card -->
-          <div class="glass-card">
-            <div class="card-header">
-              <div class="card-title-group">
-                <div class="card-icon"><i data-lucide="file-plus" style="width:20px; height:20px;"></i></div>
-                <div>
-                  <h2 class="card-title">Create Test & Quizzes</h2>
-                  <p class="card-subtitle">Generate board & competitive test questions or assign full quizzes to your classroom</p>
+        
+        <!-- TEACHER CLASS CONTEXT & SUBJECT SELECTOR BAR -->
+        <div class="teacher-scope-card">
+          <div class="teacher-scope-bar">
+            <div class="scope-left">
+              <!-- Class Selector -->
+              <div class="scope-field-group">
+                <span class="scope-label"><i data-lucide="graduation-cap" style="width:13px; height:13px; vertical-align:middle;"></i> My Teaching Class</span>
+                <select class="form-select" id="selectTeacherClassScope" style="min-width: 250px; font-weight: 700; font-size: 0.9rem; padding: 7px 12px;">
+                  <option value="12-NonMed" selected>Class 12th (Non-Medical) &bull; JEE & Boards</option>
+                  <option value="12-Med">Class 12th (Medical) &bull; NEET & Boards</option>
+                  <option value="10-Science-A">Class 10th (Section A) &bull; Secondary</option>
+                </select>
+              </div>
+
+              <!-- Filtered Subjects for this Class -->
+              <div class="scope-field-group">
+                <span class="scope-label"><i data-lucide="book" style="width:13px; height:13px; vertical-align:middle;"></i> Select Subject</span>
+                <div class="subject-pills-container" id="containerSubjectPills">
+                  <!-- Injected dynamically: Physics, Chemistry, Mathematics -->
                 </div>
               </div>
             </div>
 
-            <form id="aiQuestionGenForm">
-              <!-- LLM Provider Selector -->
-              <div class="form-group" style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 1rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                  <label class="form-label" for="selectLlmProvider" style="margin-bottom:0; font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
-                    <i data-lucide="cpu" style="width:15px; height:15px; color:var(--accent-blue);"></i>
-                    AI Engine & Inference Provider
-                  </label>
-                  <span id="providerLiveBadge" style="font-size:0.72rem; padding:2px 8px; border-radius:12px; background:rgba(16,185,129,0.15); color:#10b981; font-weight:600;">Groq LPU (Sub-second) Active</span>
-                </div>
-                <select class="form-select" id="selectLlmProvider" style="background:var(--bg-card); font-size:0.85rem; width:100%;">
-                  <option value="auto" selected>✨ Auto-Select (Groq LPU Ultra-Fast &bull; Failover to Gemini / NCERT Bank)</option>
-                  <option value="groq">⚡ Groq Cloud LPU (openai/gpt-oss-120b &bull; Sub-second Reasoning)</option>
-                  <option value="gemini">♊ Google Gemini (gemini-3.8 / 2.5 Flash &bull; Deep Mathematical Analysis)</option>
-                  <option value="ncert_pyq">📚 HAPS Curated NCERT & Board PYQ Database (Deterministic Offline)</option>
-                </select>
+            <!-- Enrolled Students Counter & Drawer Trigger -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" class="class-roster-preview-pill" id="btnToggleClassRosterPreview" title="Click to view enrolled class students">
+                <i data-lucide="users" style="width:14px; height:14px;"></i>
+                <span id="labelEnrolledStudentsCount">8 Students in Class</span>
+                <i data-lucide="chevron-down" id="iconRosterDrawerChevron" style="width:13px; height:13px;"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Collapsible Enrolled Students Drawer -->
+          <div class="class-roster-drawer" id="drawerClassRosterPreview">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <strong style="font-size:0.8rem; color:var(--text-primary);"><i data-lucide="check-circle" style="width:12px;height:12px;color:#10b981;vertical-align:middle;"></i> Students enrolled in this class:</strong>
+              <span style="font-size:0.72rem; color:var(--text-muted);">Assigned tests will automatically dispatch to their portal</span>
+            </div>
+            <div class="students-chips-list" id="listClassEnrolledStudentChips">
+              <!-- Dynamically populated chips -->
+            </div>
+          </div>
+        </div>
+
+        <!-- CURRICULUM CHAPTERS & SUBTOPICS EXPLORER -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <h3 style="font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="git-branch" style="width:18px; height:18px; color: var(--accent-blue);"></i>
+              <span id="headingCurriculumSubjectTitle">Class 12 Physics &bull; Complete Chapter List</span>
+            </h3>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+              Click any chapter to view sub-topics. Generate a <strong>full chapter test</strong> or a <strong>sub-topic quiz / assignment</strong> with 1-click.
+            </p>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="searchChapterInput" placeholder="Filter chapters or topics..." style="background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.82rem; min-width: 220px;">
+          </div>
+        </div>
+
+        <!-- Chapters Accordion Container -->
+        <div id="testBuilderChaptersContainer" class="curriculum-accordion">
+          <!-- Dynamically populated via app.js -->
+        </div>
+
+        <!-- MODAL: GENERATE TEST / QUIZ / ASSIGNMENT -->
+        <div class="drilldown-modal-backdrop" id="modalGenerateCurriculumTest" role="dialog" aria-modal="true">
+          <div class="drilldown-modal-content" style="max-width: 640px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 0.85rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.25rem;">
+              <div>
+                <span class="pilot-tag" id="modalGenClassBadge" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-blue);">Class 12th (Non-Medical)</span>
+                <h2 id="modalGenChapterTitle" style="font-family: var(--font-heading); font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">
+                  Create Test / Assignment
+                </h2>
+                <p id="modalGenScopeSubtitle" style="font-size: 0.82rem; color: var(--text-secondary);">
+                  Scope: Full Chapter
+                </p>
+              </div>
+              <button class="btn-icon" id="btnCloseGenTestModal" title="Close" style="background: rgba(255,255,255,0.06); border-radius: 50%;">
+                <i data-lucide="x" style="width:20px; height:20px;"></i>
+              </button>
+            </div>
+
+            <!-- Form -->
+            <form id="formGenerateCurriculumTest" onsubmit="event.preventDefault(); submitGenerateCurriculumTest();">
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label class="form-label" for="inputGenTestTitle" style="font-weight: 600;">Test / Assignment Title</label>
+                <input type="text" class="form-select" id="inputGenTestTitle" required style="width: 100%; font-size: 0.9rem; padding: 8px 12px;" />
               </div>
 
-              <div class="grid-2col">
+              <div class="grid-2col" style="gap: 1rem; margin-bottom: 1rem;">
                 <div class="form-group">
-                  <label class="form-label" for="selectGrade">Target Class</label>
-                  <select class="form-select" id="selectGrade">
-                    <option value="10" selected>Class X (Boards - CBSE / HPBOSE)</option>
-                    <option value="11">Class XI Science</option>
-                    <option value="12">Class XII Science</option>
-                    <option value="9">Class IX (Foundation)</option>
-                    <option value="8">Class VIII</option>
-                    <option value="7">Class VII</option>
-                    <option value="6">Class VI</option>
+                  <label class="form-label" style="font-weight: 600;">Format / Mode</label>
+                  <select class="form-select" id="selectGenTestMode" style="width: 100%;">
+                    <option value="QUIZ" selected>⏱️ Speed Quiz (15–20 Mins)</option>
+                    <option value="ASSIGNMENT">📝 Homework Assignment (Practice Set)</option>
+                    <option value="TEST">🎯 Chapter Diagnostic Test (Full Marking)</option>
                   </select>
                 </div>
 
                 <div class="form-group">
-                  <label class="form-label" for="selectBoard">Target Exam / Board</label>
-                  <select class="form-select" id="selectBoard">
-                    <option value="CBSE" selected>CBSE Board (NCERT Aligned)</option>
-                    <option value="HP_BOARD">HP Board (HPBOSE)</option>
-                    <option value="JEE_MAIN">JEE Main (Speed & Traps)</option>
-                    <option value="JEE_ADVANCED">JEE Advanced (Multi-Concept)</option>
-                    <option value="NEET">NEET UG (NCERT Precision)</option>
-                    <option value="OLYMPIAD">Olympiad & Advanced</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="grid-2col">
-                <div class="form-group">
-                  <label class="form-label" for="selectSubject">Subject</label>
-                  <select class="form-select" id="selectSubject">
-                    <option value="Science" selected>Science</option>
-                    <option value="Mathematics">Mathematics</option>
-                    <option value="Physics">Physics</option>
-                    <option value="Chemistry">Chemistry</option>
-                    <option value="Biology">Biology</option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="selectTopic">Chapter / Topic</label>
-                  <select class="form-select" id="selectTopic">
-                    <option value="Light – Reflection and Refraction" selected>Ch 9: Light – Reflection & Refraction</option>
-                    <option value="Electricity">Ch 11: Electricity & Joule Heating</option>
-                    <option value="Chemical Reactions and Equations">Ch 1: Chemical Reactions & Equations</option>
-                    <option value="Metals and Non-Metals">Ch 3: Metals and Non-Metals (Thermit)</option>
-                    <option value="Life Processes">Ch 6: Life Processes & Nephron</option>
-                    <option value="Introduction to Trigonometry">Ch 8: Introduction to Trigonometry</option>
-                    <option value="Quadratic Equations">Ch 4: Quadratic Equations</option>
-                    <option value="Arithmetic Progressions">Ch 5: Arithmetic Progressions</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="form-group" id="ncertBlueprintGroup">
-                <label class="form-label" for="inputNcertBlueprint" style="display:flex; justify-content:space-between;">
-                  <span>NCERT Section Blueprint & Page Reference</span>
-                  <span style="font-size:0.72rem; color:var(--accent-blue);">Official Textbook Mapping</span>
-                </label>
-                <input type="text" class="form-select" id="inputNcertBlueprint" value="9.2 Spherical Mirrors and Mirror Formula (Pages 168–171)" style="font-size:0.85rem; width:100%;" />
-              </div>
-
-              <div class="grid-2col">
-                <div class="form-group">
-                  <label class="form-label" for="selectDifficulty">Difficulty & Bloom Level</label>
-                  <select class="form-select" id="selectDifficulty">
-                    <option value="MEDIUM" selected>Medium (Application / Board Standard)</option>
-                    <option value="HARD">Hard (Analyze / Distractor Heavy)</option>
-                    <option value="OLYMPIAD_LEVEL">Olympiad (Create / Non-Routine)</option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" for="selectQuestionType">Format</label>
-                  <select class="form-select" id="selectQuestionType">
-                    <option value="NUMERICAL" selected>Numerical with Steps</option>
-                    <option value="MCQ_SINGLE">Single Choice MCQ (With Traps)</option>
-                    <option value="SUBJECTIVE_DERIVATION">Derivation with Rubric</option>
+                  <label class="form-label" style="font-weight: 600;">Number of Questions</label>
+                  <select class="form-select" id="selectGenTestCount" style="width: 100%;">
+                    <option value="3">3 Questions (Quick Check)</option>
+                    <option value="5" selected>5 Questions (Standard)</option>
+                    <option value="10">10 Questions (Comprehensive)</option>
+                    <option value="15">15 Questions (Full Test)</option>
                   </select>
                 </div>
               </div>
 
-              <div style="margin-top: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <button type="button" class="btn-primary" id="btnGenerateQuestion">
-                  <i data-lucide="wand-2" style="width:16px; height:16px;"></i>
-                  Generate via LLM Engine
-                </button>
-                <button type="button" class="btn-secondary" id="btnAddToClassTest">
-                  <i data-lucide="plus-circle" style="width:16px; height:16px;"></i>
-                  Add to Active Test
+              <div class="grid-2col" style="gap: 1rem; margin-bottom: 1.25rem;">
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 600;">Difficulty / Target Exam</label>
+                  <select class="form-select" id="selectGenTestDifficulty" style="width: 100%;">
+                    <option value="MEDIUM" selected>Board Standard (CBSE & HP Board)</option>
+                    <option value="HARD">JEE Main (Speed & Trap Focus)</option>
+                    <option value="OLYMPIAD_LEVEL">JEE Advanced (Multi-Concept)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" style="font-weight: 600;">Assigned To</label>
+                  <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.85rem; color: #34d399; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                    <i data-lucide="check" style="width:14px; height:14px;"></i>
+                    <span id="labelGenTargetClass">All 8 Students in Class 12th Non-Med</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+                <button type="button" class="btn-secondary" id="btnCancelGenModal" style="padding: 8px 16px;">Cancel</button>
+                <button type="submit" class="btn-primary" id="btnSubmitGenTest" style="padding: 8px 20px;">
+                  <i data-lucide="zap" style="width:16px; height:16px;"></i> Create & Assign Now
                 </button>
               </div>
             </form>
           </div>
-
-          <!-- LaTeX Preview & Mathematical Typesetting Card -->
-          <div class="glass-card" id="latexPreviewCard">
-            <div class="card-header">
-              <div class="card-title-group">
-                <div class="card-icon" style="background:rgba(16, 185, 129, 0.12); color:#10b981;">
-                  <i data-lucide="file-code-2" style="width:20px; height:20px;"></i>
-                </div>
-                <div>
-                  <h2 class="card-title">Live KaTeX Mathematical Preview</h2>
-                  <p class="card-subtitle" id="previewMetaSubtitle">Rigorous LaTeX validation & distractor analysis</p>
-                </div>
-              </div>
-              <span class="pilot-tag" id="previewBadge">JEE Main &bull; Class 11</span>
-            </div>
-
-            <div class="latex-preview-box">
-              <div class="latex-question-text" id="renderQuestionText">
-                <!-- KaTeX content injected dynamically -->
-              </div>
-
-              <div class="latex-options-list" id="renderOptionsList">
-                <!-- Options rendered here -->
-              </div>
-
-              <div id="renderSolutionBox" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-subtle);">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
-                  <strong style="color:var(--accent-emerald); font-size:0.88rem;">Step-by-Step Mathematical Derivation:</strong>
-                  <span style="font-size:0.75rem; color:var(--text-muted);">Benchmark: 90s</span>
-                </div>
-                <div id="renderSolutionText" style="font-size: 0.95rem; color: var(--text-secondary);"></div>
-              </div>
-            </div>
-          </div>
         </div>
+
       </div>
 
       <!-- TAB 2: LIVE TELEMETRY & CONCEPT DIAGNOSTICS -->

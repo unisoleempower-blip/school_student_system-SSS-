@@ -62,6 +62,7 @@ function initApp() {
   setupRoleSwitching();
   setupTeacherSubTabs();
   setupThemeToggle();
+  setupTeacherTestBuilder();
   setupAiGenerator();
   setupTelemetryControls();
   renderTelemetryTable();
@@ -275,6 +276,12 @@ function setupTeacherSubTabs() {
         tab.style.display = isTarget ? 'block' : 'none';
         tab.classList.toggle('active', isTarget);
       });
+
+      if (targetTabId === 'tabGenerator') {
+        if (!teacherBuilderState.currentTaxonomy) {
+          setupTeacherTestBuilder();
+        }
+      }
 
       if (targetTabId === 'tabClass10Pyq' && !currentCurriculumTaxonomy) {
         setupClass10PyqExplorer();
@@ -3530,6 +3537,683 @@ function closeStudentDrilldown() {
 window.openStudentDrilldown = openStudentDrilldown;
 window.closeStudentDrilldown = closeStudentDrilldown;
 window.loadClassAnalytics = loadClassAnalytics;
+
+// -----------------------------------------------------------------------------
+// 12. TEACHER-SCOPED CURRICULUM TEST & QUIZ GENERATOR (FIRST-PRINCIPLES LOGICAL VIEW)
+// -----------------------------------------------------------------------------
+const teacherBuilderState = {
+  classes: [],
+  selectedClassId: '12-NonMed',
+  selectedSubjectKey: 'PHYSICS',
+  currentTaxonomy: null,
+  expandedChapters: new Set([1]),
+  activeModalScope: null
+};
+
+function getSubjectIcon(key) {
+  switch (key) {
+    case 'PHYSICS': return 'zap';
+    case 'CHEMISTRY': return 'flask-conical';
+    case 'MATHEMATICS': return 'calculator';
+    case 'BIOLOGY': return 'dna';
+    case 'CLASS10_SCIENCE':
+    case 'SCIENCE': return 'atom';
+    case 'CLASS10_MATHEMATICS': return 'calculator';
+    default: return 'book-open';
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function getFallbackClasses() {
+  return [
+    {
+      id: '12-NonMed',
+      key: '12-NonMed',
+      name: 'Class 12th (Non-Medical)',
+      grade: '12',
+      section: '12-NonMed',
+      stream: 'NON_MEDICAL',
+      badge: 'JEE & Boards',
+      defaultSubject: 'PHYSICS',
+      subjects: [
+        { key: 'PHYSICS', name: 'Physics', grade: '12' },
+        { key: 'CHEMISTRY', name: 'Chemistry', grade: '12' },
+        { key: 'MATHEMATICS', name: 'Mathematics', grade: '12' }
+      ],
+      students: [
+        { id: '12-NM-01', name: 'Aryan Sharma', roll: '12-NM-01' },
+        { id: '12-NM-02', name: 'Rohit Negi', roll: '12-NM-02' },
+        { id: '12-NM-03', name: 'Kavya Verma', roll: '12-NM-03' },
+        { id: '12-NM-04', name: 'Kunal Sharma', roll: '12-NM-04' },
+        { id: '12-NM-05', name: 'Divyansh Thakur', roll: '12-NM-05' },
+        { id: '12-NM-06', name: 'Akshat Jaswal', roll: '12-NM-06' },
+        { id: '12-NM-07', name: 'Rahul Sen', roll: '12-NM-07' },
+        { id: '12-NM-08', name: 'Sahil Dhiman', roll: '12-NM-08' }
+      ]
+    },
+    {
+      id: '12-Med',
+      key: '12-Med',
+      name: 'Class 12th (Medical)',
+      grade: '12',
+      section: '12-Med',
+      stream: 'MEDICAL',
+      badge: 'NEET & Boards',
+      defaultSubject: 'BIOLOGY',
+      subjects: [
+        { key: 'PHYSICS', name: 'Physics', grade: '12' },
+        { key: 'CHEMISTRY', name: 'Chemistry', grade: '12' },
+        { key: 'BIOLOGY', name: 'Biology', grade: '12' }
+      ],
+      students: [
+        { id: '12-M-01', name: 'Ananya Thakur', roll: '12-M-01' },
+        { id: '12-M-02', name: 'Simran Kaur', roll: '12-M-02' },
+        { id: '12-M-03', name: 'Mehak Sharma', roll: '12-M-03' },
+        { id: '12-M-04', name: 'Pallavi Katoch', roll: '12-M-04' },
+        { id: '12-M-05', name: 'Shreya Dogra', roll: '12-M-05' }
+      ]
+    },
+    {
+      id: '10-Science-A',
+      key: '10-Science-A',
+      name: 'Class 10th (Section A)',
+      grade: '10',
+      section: '10-Science-A',
+      stream: 'FOUNDATION',
+      badge: 'Secondary',
+      defaultSubject: 'CLASS10_SCIENCE',
+      subjects: [
+        { key: 'CLASS10_SCIENCE', name: 'Science', grade: '10' },
+        { key: 'CLASS10_MATHEMATICS', name: 'Mathematics', grade: '10' }
+      ],
+      students: [
+        { id: '10-A-01', name: 'Rohit Verma', roll: '10-A-01' },
+        { id: '10-A-02', name: 'Aditya Chauhan', roll: '10-A-02' },
+        { id: '10-A-03', name: 'Tanvi Sood', roll: '10-A-03' },
+        { id: '10-A-04', name: 'Nikhil Rana', roll: '10-A-04' }
+      ]
+    }
+  ];
+}
+
+async function setupTeacherTestBuilder() {
+  const classSelect = document.getElementById('selectTeacherClassScope');
+  const pillsContainer = document.getElementById('containerSubjectPills');
+  const rosterBtn = document.getElementById('btnToggleClassRosterPreview');
+  const rosterDrawer = document.getElementById('drawerClassRosterPreview');
+  const searchInput = document.getElementById('searchChapterInput');
+  const modal = document.getElementById('modalGenerateCurriculumTest');
+  const btnCloseModal = document.getElementById('btnCloseGenTestModal');
+  const btnCancelModal = document.getElementById('btnCancelGenModal');
+
+  if (!classSelect || !pillsContainer) return;
+
+  // 1. Fetch available classes & enrolled students
+  await loadTeacherClassesList();
+
+  // 2. Class change listener
+  classSelect.addEventListener('change', (e) => {
+    teacherBuilderState.selectedClassId = e.target.value;
+    updateTeacherClassScopeUI();
+  });
+
+  // 3. Roster drawer toggle
+  if (rosterBtn && rosterDrawer) {
+    rosterBtn.addEventListener('click', () => {
+      rosterDrawer.classList.toggle('open');
+      const icon = document.getElementById('iconRosterDrawerChevron');
+      if (icon) {
+        icon.style.transform = rosterDrawer.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+      }
+    });
+  }
+
+  // 4. Search/filter input
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      renderCurriculumChaptersAccordion(e.target.value.trim());
+    });
+  }
+
+  // 5. Modal close buttons
+  if (btnCloseModal) {
+    btnCloseModal.addEventListener('click', closeCurriculumTestModal);
+  }
+  if (btnCancelModal) {
+    btnCancelModal.addEventListener('click', closeCurriculumTestModal);
+  }
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeCurriculumTestModal();
+    });
+  }
+}
+
+async function loadTeacherClassesList() {
+  try {
+    const res = await fetch('http://localhost:5050/api/curriculum/classes');
+    if (res.ok) {
+      const data = await res.json();
+      teacherBuilderState.classes = (data.classes || []).map(c => ({
+        ...c,
+        id: c.key || c.id || c.section
+      }));
+    }
+  } catch (err) {
+    console.warn('Failed to fetch curriculum classes from backend, using default roster:', err);
+    teacherBuilderState.classes = getFallbackClasses();
+  }
+
+  if (!teacherBuilderState.classes || teacherBuilderState.classes.length === 0) {
+    teacherBuilderState.classes = getFallbackClasses();
+  }
+
+  // Populate #selectTeacherClassScope options
+  const classSelect = document.getElementById('selectTeacherClassScope');
+  if (classSelect && teacherBuilderState.classes.length > 0) {
+    classSelect.innerHTML = teacherBuilderState.classes.map(c => `
+      <option value="${c.id}" ${c.id === teacherBuilderState.selectedClassId ? 'selected' : ''}>
+        ${c.name} &bull; ${c.badge || (c.stream ? c.stream.replace('_', ' ') : 'General')}
+      </option>
+    `).join('');
+  }
+
+  updateTeacherClassScopeUI();
+}
+
+function updateTeacherClassScopeUI() {
+  const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId) 
+    || teacherBuilderState.classes[0];
+  if (!currentClass) return;
+
+  // 1. Update enrolled students count badge and roster chips
+  const countLabel = document.getElementById('labelEnrolledStudentsCount');
+  const chipsContainer = document.getElementById('listClassEnrolledStudentChips');
+  const targetClassLabel = document.getElementById('labelGenTargetClass');
+
+  const students = currentClass.students || [];
+  if (countLabel) {
+    countLabel.innerText = `${students.length} Students in Class`;
+  }
+  if (targetClassLabel) {
+    targetClassLabel.innerText = `All ${students.length} Students in ${currentClass.name}`;
+  }
+
+  if (chipsContainer) {
+    chipsContainer.innerHTML = students.map(s => `
+      <span class="student-chip">
+        <i data-lucide="user" style="width:11px; height:11px; opacity:0.7;"></i>
+        ${s.name} <span class="roll-badge">${s.roll || s.id}</span>
+      </span>
+    `).join('');
+  }
+
+  // 2. Render Subject Pills strictly scoped to this class
+  const pillsContainer = document.getElementById('containerSubjectPills');
+  if (pillsContainer) {
+    const subjects = currentClass.subjects || [];
+    
+    // Check if current selected subject is valid for this class; if not, switch to defaultSubject or first subject
+    const subjectExists = subjects.some(s => s.key === teacherBuilderState.selectedSubjectKey);
+    if (!subjectExists && subjects.length > 0) {
+      teacherBuilderState.selectedSubjectKey = currentClass.defaultSubject || subjects[0].key;
+    }
+
+    pillsContainer.innerHTML = subjects.map(s => {
+      const isActive = s.key === teacherBuilderState.selectedSubjectKey;
+      return `
+        <button type="button" 
+          class="subject-pill-btn ${isActive ? 'active' : ''}" 
+          data-subject-key="${s.key}"
+          data-grade="${s.grade || currentClass.grade}"
+          onclick="selectCurriculumSubject('${s.key}', '${s.grade || currentClass.grade}')">
+          <i data-lucide="${getSubjectIcon(s.key)}" style="width:14px; height:14px;"></i>
+          ${s.name}
+        </button>
+      `;
+    }).join('');
+  }
+
+  initLucideIcons();
+
+  // 3. Load curriculum taxonomy for the selected subject & grade
+  loadCurriculumForClassAndSubject(teacherBuilderState.selectedSubjectKey, currentClass.grade);
+}
+
+async function loadCurriculumForClassAndSubject(subjectKey, grade) {
+  const container = document.getElementById('testBuilderChaptersContainer');
+  const headingTitle = document.getElementById('headingCurriculumSubjectTitle');
+
+  const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId);
+  const currentSubj = currentClass?.subjects?.find(s => s.key === subjectKey);
+  const subjName = currentSubj ? currentSubj.name : subjectKey;
+
+  if (headingTitle) {
+    headingTitle.innerHTML = `Class ${grade || '12'} ${subjName} &bull; Complete Chapter List`;
+  }
+
+  if (container) {
+    container.innerHTML = `
+      <div style="text-align:center; padding: 2.5rem; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-subtle);">
+        <i data-lucide="loader-2" class="spin" style="width:26px; height:26px; margin: 0 auto 10px; display:block; color:var(--accent-blue);"></i>
+        Loading structured NCERT syllabus for ${subjName}...
+      </div>
+    `;
+    initLucideIcons();
+  }
+
+  try {
+    const url = `http://localhost:5050/api/curriculum/taxonomy/${subjectKey}?grade=${grade || '12'}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      teacherBuilderState.currentTaxonomy = await res.json();
+    } else {
+      throw new Error(`API status ${res.status}`);
+    }
+  } catch (err) {
+    console.warn('[CURRICULUM BUILDER] Using fallback taxonomy:', err);
+    teacherBuilderState.currentTaxonomy = getOfflineCurriculumFallback(subjectKey, grade);
+  }
+
+  // By default, open Chapter 1 so the teacher immediately sees the sub-topics
+  teacherBuilderState.expandedChapters = new Set([1]);
+  renderCurriculumChaptersAccordion();
+}
+
+function renderCurriculumChaptersAccordion(filterQuery = '') {
+  const container = document.getElementById('testBuilderChaptersContainer');
+  if (!container) return;
+
+  const taxonomy = teacherBuilderState.currentTaxonomy;
+  if (!taxonomy || !taxonomy.chapters || taxonomy.chapters.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding: 2.5rem; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-md);">
+        <i data-lucide="alert-circle" style="width:28px; height:28px; margin: 0 auto 10px; display:block; color: #f59e0b;"></i>
+        No syllabus chapters found for this selection.
+      </div>
+    `;
+    initLucideIcons();
+    return;
+  }
+
+  const query = (filterQuery || '').toLowerCase();
+
+  let visibleChapters = taxonomy.chapters;
+  if (query) {
+    visibleChapters = taxonomy.chapters.filter(ch => {
+      const chTitle = (ch.chapterName || ch.title || '').toLowerCase();
+      const unit = (ch.unit || '').toLowerCase();
+      const hasTopicMatch = (ch.topics || []).some(t => {
+        const tTitle = (t.topicName || t.title || '').toLowerCase();
+        const hasSubMatch = (t.subtopics || []).some(st => (typeof st === 'string' ? st : (st.title || '')).toLowerCase().includes(query));
+        return tTitle.includes(query) || hasSubMatch;
+      });
+      return chTitle.includes(query) || unit.includes(query) || hasTopicMatch;
+    });
+  }
+
+  if (visibleChapters.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding: 2rem; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-md);">
+        No chapters or sub-topics match "<strong>${filterQuery}</strong>". Try clearing your search.
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = visibleChapters.map(ch => {
+    const chNum = ch.chapterNumber;
+    const chTitle = ch.chapterName || ch.title || `Chapter ${chNum}`;
+    const isExpanded = teacherBuilderState.expandedChapters.has(chNum) || !!query;
+    const topics = ch.topics || [];
+    
+    // Count total sub-topics
+    let totalSubtopics = 0;
+    topics.forEach(t => {
+      totalSubtopics += (t.subtopics || []).length;
+    });
+
+    const examFocus = ch.boardExamFocus;
+
+    return `
+      <div class="chapter-accordion-card ${isExpanded ? 'expanded' : ''}" id="chapterCard_${chNum}">
+        <!-- CHAPTER HEADER -->
+        <div class="chapter-accordion-header" onclick="toggleChapterAccordion(${chNum}, event)">
+          <div class="chapter-info-col">
+            <div class="chapter-title-row">
+              <span class="chapter-badge">Ch ${chNum}</span>
+              <span class="chapter-name">${chTitle}</span>
+            </div>
+            <div class="chapter-meta-row">
+              ${ch.unit ? `<span><i data-lucide="folder" style="width:11px; height:11px; vertical-align:middle;"></i> ${ch.unit}</span>` : ''}
+              <span>&bull;</span>
+              <span>${topics.length} Main Topics</span>
+              <span>&bull;</span>
+              <span>${totalSubtopics} Sub-topics</span>
+              ${ch.discipline ? `<span class="stream-tag">${ch.discipline}</span>` : ''}
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons on Header -->
+          <div class="chapter-header-actions" onclick="event.stopPropagation();">
+            <button type="button" class="btn-gen-chapter-test" 
+              onclick="openGenTestForChapter(${chNum}, '${escapeHtml(chTitle)}', event)"
+              title="Generate a full test covering all ${totalSubtopics} sub-topics of this chapter">
+              <i data-lucide="zap" style="width:14px; height:14px;"></i>
+              Generate Chapter Test
+            </button>
+            <div class="accordion-chevron-circle" onclick="toggleChapterAccordion(${chNum}, event)">
+              <i data-lucide="chevron-down" style="width:16px; height:16px; transition: transform 0.2s ease;"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACCORDION BODY (SUB-TOPICS & TOPIC DETAILS) -->
+        <div class="chapter-accordion-body" style="display: ${isExpanded ? 'block' : 'none'};">
+          ${examFocus ? `
+            <div class="exam-focus-callout">
+              <div class="callout-header">
+                <i data-lucide="award" style="width:14px; height:14px; color:#f59e0b;"></i>
+                <strong>Board & Competitive Exam Focus</strong>
+              </div>
+              <div class="callout-body">
+                <div><strong>High-Yield:</strong> ${examFocus.highYield || 'Standard questions'}</div>
+                ${examFocus.standardTrap ? `<div style="margin-top:4px; color:#f87171;"><strong>Common Trap:</strong> ${examFocus.standardTrap}</div>` : ''}
+              </div>
+            </div>
+          ` : ''}
+
+          <div class="topics-accordion-list">
+            ${topics.map((t, tIdx) => {
+              const tTitle = t.topicName || t.title || `Topic ${tIdx + 1}`;
+              const subtopics = (t.subtopics || []).map(st => typeof st === 'string' ? st : (st.title || st.name || ''));
+              const escapedTopicTitle = escapeHtml(tTitle);
+              const escapedSubtopicsJson = escapeHtml(JSON.stringify(subtopics));
+
+              return `
+                <div class="topic-section-block">
+                  <div class="topic-section-header">
+                    <div class="topic-title-area">
+                      <span class="topic-tag">${t.ncertSection ? `Sec ${t.ncertSection}` : `Topic ${tIdx + 1}`}</span>
+                      <strong class="topic-title">${tTitle}</strong>
+                      ${t.highYield ? `<span class="badge-highyield"><i data-lucide="flame" style="width:11px; height:11px;"></i> High Yield</span>` : ''}
+                    </div>
+
+                    <div class="topic-actions">
+                      <button type="button" class="btn-subtopic-quiz"
+                        onclick="openGenTestForTopic(${chNum}, '${escapeHtml(chTitle)}', '${escapedTopicTitle}', ${escapedSubtopicsJson}, event)"
+                        title="Create a quiz or assignment strictly focused on this topic's sub-topics">
+                        <i data-lucide="pencil-line" style="width:13px; height:13px;"></i>
+                        Create Sub-Topic Quiz
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Subtopic Bullets List -->
+                  <div class="subtopics-list">
+                    ${subtopics.map(st => `
+                      <div class="subtopic-item-row">
+                        <div class="subtopic-bullet-col">
+                          <i data-lucide="circle-dot" style="width:11px; height:11px; color:var(--accent-blue);"></i>
+                          <span class="subtopic-text">${st}</span>
+                        </div>
+                        <button type="button" class="btn-micro-quiz" 
+                          onclick="openGenTestForSingleSubtopic(${chNum}, '${escapeHtml(chTitle)}', '${escapeHtml(st)}', event)"
+                          title="Generate a 3-question quick check on this exact concept">
+                          Quick Quiz
+                        </button>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  initLucideIcons();
+}
+
+function toggleChapterAccordion(chNum, event) {
+  if (event) event.stopPropagation();
+  if (teacherBuilderState.expandedChapters.has(chNum)) {
+    teacherBuilderState.expandedChapters.delete(chNum);
+  } else {
+    teacherBuilderState.expandedChapters.add(chNum);
+  }
+  const card = document.getElementById(`chapterCard_${chNum}`);
+  if (card) {
+    const isNowExpanded = teacherBuilderState.expandedChapters.has(chNum);
+    card.classList.toggle('expanded', isNowExpanded);
+    const body = card.querySelector('.chapter-accordion-body');
+    if (body) {
+      body.style.display = isNowExpanded ? 'block' : 'none';
+    }
+  }
+  initLucideIcons();
+}
+
+function selectCurriculumSubject(subjectKey, grade) {
+  teacherBuilderState.selectedSubjectKey = subjectKey;
+  
+  // Update pill active class
+  document.querySelectorAll('.subject-pill-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-subject-key') === subjectKey);
+  });
+
+  const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId);
+  loadCurriculumForClassAndSubject(subjectKey, grade || currentClass?.grade || '12');
+}
+
+function openGenTestForChapter(chNum, chTitle, event) {
+  if (event) event.stopPropagation();
+  const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId);
+  const chapter = teacherBuilderState.currentTaxonomy?.chapters?.find(c => c.chapterNumber === chNum);
+  
+  // Collect all subtopics for this chapter
+  const allSubtopics = [];
+  if (chapter && chapter.topics) {
+    chapter.topics.forEach(t => {
+      (t.subtopics || []).forEach(st => {
+        allSubtopics.push(typeof st === 'string' ? st : (st.title || ''));
+      });
+    });
+  }
+
+  teacherBuilderState.activeModalScope = {
+    classId: teacherBuilderState.selectedClassId,
+    subjectKey: teacherBuilderState.selectedSubjectKey,
+    chapterNumber: chNum,
+    chapterTitle: chTitle,
+    subtopics: allSubtopics,
+    isFullChapter: true
+  };
+
+  const currentSubj = currentClass?.subjects?.find(s => s.key === teacherBuilderState.selectedSubjectKey);
+  const subjName = currentSubj ? currentSubj.name : 'Physics';
+
+  // Fill modal fields
+  document.getElementById('modalGenClassBadge').innerText = currentClass ? currentClass.name : 'Class 12th';
+  document.getElementById('modalGenChapterTitle').innerText = `Ch ${chNum}: ${chTitle}`;
+  document.getElementById('modalGenScopeSubtitle').innerText = `Scope: Full Chapter Comprehensive (${allSubtopics.length} Sub-topics)`;
+  document.getElementById('inputGenTestTitle').value = `${subjName}: Ch ${chNum} ${chTitle} - Chapter Test`;
+  document.getElementById('selectGenTestMode').value = 'TEST';
+  document.getElementById('selectGenTestCount').value = '10';
+  document.getElementById('selectGenTestDifficulty').value = 'MEDIUM';
+  document.getElementById('labelGenTargetClass').innerText = `All ${currentClass?.students?.length || 8} Students in ${currentClass?.name || 'Class'}`;
+
+  const modal = document.getElementById('modalGenerateCurriculumTest');
+  if (modal) modal.classList.add('active');
+  initLucideIcons();
+}
+
+function openGenTestForTopic(chNum, chTitle, topicTitle, subtopics, event) {
+  if (event) event.stopPropagation();
+  const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId);
+  const currentSubj = currentClass?.subjects?.find(s => s.key === teacherBuilderState.selectedSubjectKey);
+  const subjName = currentSubj ? currentSubj.name : 'Physics';
+
+  teacherBuilderState.activeModalScope = {
+    classId: teacherBuilderState.selectedClassId,
+    subjectKey: teacherBuilderState.selectedSubjectKey,
+    chapterNumber: chNum,
+    chapterTitle: chTitle,
+    subtopics: subtopics || [topicTitle],
+    isFullChapter: false
+  };
+
+  document.getElementById('modalGenClassBadge').innerText = currentClass ? currentClass.name : 'Class 12th';
+  document.getElementById('modalGenChapterTitle').innerText = `${topicTitle}`;
+  document.getElementById('modalGenScopeSubtitle').innerText = `Scope: Sub-topics under ${chTitle} (${(subtopics || []).length} Sub-topics)`;
+  document.getElementById('inputGenTestTitle').value = `${subjName} Quiz: ${topicTitle}`;
+  document.getElementById('selectGenTestMode').value = 'QUIZ';
+  document.getElementById('selectGenTestCount').value = '5';
+  document.getElementById('selectGenTestDifficulty').value = 'MEDIUM';
+  document.getElementById('labelGenTargetClass').innerText = `All ${currentClass?.students?.length || 8} Students in ${currentClass?.name || 'Class'}`;
+
+  const modal = document.getElementById('modalGenerateCurriculumTest');
+  if (modal) modal.classList.add('active');
+  initLucideIcons();
+}
+
+function openGenTestForSingleSubtopic(chNum, chTitle, subtopic, event) {
+  if (event) event.stopPropagation();
+  const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId);
+  const currentSubj = currentClass?.subjects?.find(s => s.key === teacherBuilderState.selectedSubjectKey);
+  const subjName = currentSubj ? currentSubj.name : 'Physics';
+
+  teacherBuilderState.activeModalScope = {
+    classId: teacherBuilderState.selectedClassId,
+    subjectKey: teacherBuilderState.selectedSubjectKey,
+    chapterNumber: chNum,
+    chapterTitle: chTitle,
+    subtopics: [subtopic],
+    isFullChapter: false
+  };
+
+  document.getElementById('modalGenClassBadge').innerText = currentClass ? currentClass.name : 'Class 12th';
+  document.getElementById('modalGenChapterTitle').innerText = subtopic;
+  document.getElementById('modalGenScopeSubtitle').innerText = `Scope: Single Sub-topic Focus (${chTitle})`;
+  document.getElementById('inputGenTestTitle').value = `Quick Check: ${subtopic.split(':')[0] || subtopic}`;
+  document.getElementById('selectGenTestMode').value = 'QUIZ';
+  document.getElementById('selectGenTestCount').value = '3';
+  document.getElementById('selectGenTestDifficulty').value = 'MEDIUM';
+  document.getElementById('labelGenTargetClass').innerText = `All ${currentClass?.students?.length || 8} Students in ${currentClass?.name || 'Class'}`;
+
+  const modal = document.getElementById('modalGenerateCurriculumTest');
+  if (modal) modal.classList.add('active');
+  initLucideIcons();
+}
+
+function closeCurriculumTestModal() {
+  const modal = document.getElementById('modalGenerateCurriculumTest');
+  if (modal) modal.classList.remove('active');
+}
+
+async function submitGenerateCurriculumTest() {
+  const scope = teacherBuilderState.activeModalScope;
+  if (!scope) return;
+
+  const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId) || {};
+  const currentSubj = currentClass?.subjects?.find(s => s.key === teacherBuilderState.selectedSubjectKey);
+  const subjName = currentSubj ? currentSubj.name : 'Physics';
+
+  const btnSubmit = document.getElementById('btnSubmitGenTest');
+  const title = document.getElementById('inputGenTestTitle')?.value?.trim() || `${scope.chapterTitle} Test`;
+  const mode = document.getElementById('selectGenTestMode')?.value || 'QUIZ';
+  const questionCount = parseInt(document.getElementById('selectGenTestCount')?.value || '5', 10);
+  const difficulty = document.getElementById('selectGenTestDifficulty')?.value || 'MEDIUM';
+
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;"></i> Generating & Assigning to Class...`;
+    initLucideIcons();
+  }
+
+  try {
+    const payload = {
+      classKey: teacherBuilderState.selectedClassId,
+      grade: currentClass.grade || '12',
+      section: currentClass.section || currentClass.key || teacherBuilderState.selectedClassId,
+      subjectKey: teacherBuilderState.selectedSubjectKey,
+      subjectName: subjName,
+      chapterNumber: scope.chapterNumber,
+      chapterName: scope.chapterTitle,
+      subtopics: scope.isFullChapter ? [] : scope.subtopics,
+      mode,
+      questionCount,
+      difficulty,
+      title
+    };
+
+    const res = await fetch('http://localhost:5050/api/curriculum/generate-test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      closeCurriculumTestModal();
+
+      const modeLabel = mode === 'QUIZ' ? 'Speed Quiz' : (mode === 'ASSIGNMENT' ? 'Assignment' : 'Diagnostic Test');
+      const studentCount = data.assignedStudentsCount || 8;
+      
+      alert(`🎉 ${modeLabel} Successfully Created & Assigned!\n\n` +
+        `• Title: "${data.assessment?.title || title}"\n` +
+        `• Chapter: ${scope.chapterTitle}\n` +
+        `• Questions: ${data.assessment?.questions?.length || questionCount} Questions\n` +
+        `• Assigned to: ${studentCount} Students in ${currentClass.name || teacherBuilderState.selectedClassId}\n\n` +
+        `Initial student submissions and diagnostics are ready! Switching to Class Dashboard...`);
+
+      // Switch to Class Analytics Tab and load this test
+      if (data.assessment && data.assessment.id) {
+        await loadClassAnalytics(data.assessment.id);
+      } else {
+        await loadClassAnalytics();
+      }
+
+      // Switch to Class Dashboard tab
+      const classDashTabBtn = document.getElementById('tabBtnClassAnalytics');
+      if (classDashTabBtn) {
+        classDashTabBtn.click();
+      }
+    } else {
+      throw new Error(`Server returned ${res.status}`);
+    }
+  } catch (err) {
+    console.error('Error generating curriculum test:', err);
+    alert('There was an error generating the test. Please check backend connection.');
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = `<i data-lucide="zap" style="width:16px;height:16px;"></i> Create & Assign Now`;
+      initLucideIcons();
+    }
+  }
+}
+
+// Global exposure for inline onclick handlers
+window.toggleChapterAccordion = toggleChapterAccordion;
+window.selectCurriculumSubject = selectCurriculumSubject;
+window.openGenTestForChapter = openGenTestForChapter;
+window.openGenTestForTopic = openGenTestForTopic;
+window.openGenTestForSingleSubtopic = openGenTestForSingleSubtopic;
+window.closeCurriculumTestModal = closeCurriculumTestModal;
+window.submitGenerateCurriculumTest = submitGenerateCurriculumTest;
+window.setupTeacherTestBuilder = setupTeacherTestBuilder;
 
 
 
