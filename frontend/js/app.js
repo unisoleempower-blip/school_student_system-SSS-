@@ -75,7 +75,6 @@ function initApp() {
   initClassroomSeatmap();
   renderInitialQuestion();
   startStudentTimer();
-  setupClass10PyqExplorer();
   setupTestAssignmentBuilder();
   setupStudentAssignedTests();
   setupClassAnalytics();
@@ -291,10 +290,6 @@ function setupTeacherSubTabs() {
         if (!teacherBuilderState.currentTaxonomy) {
           setupTeacherTestBuilder();
         }
-      }
-
-      if (targetTabId === 'tabClass10Pyq' && !currentCurriculumTaxonomy) {
-        setupClass10PyqExplorer();
       }
 
       if (targetTabId === 'tabClassAnalytics') {
@@ -2165,9 +2160,39 @@ function setupNtaExamPaletteEngine() {
 
   // Action Buttons
   const btnSaveNext = document.getElementById('btnSaveAndNext');
+  const btnNext = document.getElementById('btnNextQuestion');
+  const btnNextTop = document.getElementById('btnNextQuestionTop');
+  const btnPrev = document.getElementById('btnPrevQuestion');
+  const btnPrevTop = document.getElementById('btnPrevQuestionTop');
   const btnReview = document.getElementById('btnMarkForReview');
   const btnClear = document.getElementById('btnClearResponse');
   const btnSubmitExam = document.getElementById('btnSubmitFullExam');
+
+  const handleNextQuestion = () => {
+    if (state.studentTimer.selectedOption) {
+      examState.answers[examState.currentQuestionIndex] = state.studentTimer.selectedOption;
+    }
+    const totalQ = (examState.questions && examState.questions.length > 0) ? examState.questions.length : 30;
+    if (examState.currentQuestionIndex < totalQ - 1) {
+      jumpToQuestion(examState.currentQuestionIndex + 1);
+    } else {
+      alert(`You are on the final question (Q${totalQ}). You can review your answers on the palette or click 'Submit Full Assessment'.`);
+    }
+  };
+
+  const handlePrevQuestion = () => {
+    if (state.studentTimer.selectedOption) {
+      examState.answers[examState.currentQuestionIndex] = state.studentTimer.selectedOption;
+    }
+    if (examState.currentQuestionIndex > 0) {
+      jumpToQuestion(examState.currentQuestionIndex - 1);
+    }
+  };
+
+  if (btnNext) btnNext.addEventListener('click', handleNextQuestion);
+  if (btnNextTop) btnNextTop.addEventListener('click', handleNextQuestion);
+  if (btnPrev) btnPrev.addEventListener('click', handlePrevQuestion);
+  if (btnPrevTop) btnPrevTop.addEventListener('click', handlePrevQuestion);
 
   if (btnSaveNext) {
     btnSaveNext.addEventListener('click', () => {
@@ -2273,6 +2298,11 @@ function advanceQuestion() {
 }
 
 function jumpToQuestion(index) {
+  // Preserve current selected option before navigating
+  if (state.studentTimer.selectedOption) {
+    examState.answers[examState.currentQuestionIndex] = state.studentTimer.selectedOption;
+  }
+
   examState.currentQuestionIndex = index;
   examState.visitedStatus[index] = true;
   state.studentTimer.selectedOption = examState.answers[index];
@@ -2292,80 +2322,136 @@ function renderActiveNtaQuestion() {
   if (!q) return;
 
   const totalQ = (examState.questions && examState.questions.length > 0) ? examState.questions.length : 30;
-  document.getElementById('currentQuestionNum').innerText = q.num;
-  document.getElementById('ntaQuestionTitle').innerHTML = `Question ${q.num} of ${totalQ} &bull; ${q.subject} (${q.topic})`;
+  const numDisplay = document.getElementById('currentQuestionNum');
+  if (numDisplay) numDisplay.innerText = q.num;
+
+  const titleEl = document.getElementById('ntaQuestionTitle');
+  if (titleEl) {
+    titleEl.innerHTML = `Question ${q.num} of ${totalQ} &bull; ${q.subject} (${q.topic})`;
+  }
 
   const qText = document.getElementById('studentRenderQuestion');
   const optList = document.getElementById('studentRenderOptions');
 
-  qText.innerHTML = renderLatexString(q.question_latex);
+  if (qText) qText.innerHTML = renderLatexString(q.question_latex);
 
-  optList.innerHTML = '';
-  q.options.forEach(opt => {
-    const isSelected = examState.answers[examState.currentQuestionIndex] === opt.key;
-    const item = document.createElement('div');
-    item.className = 'latex-option-item';
-    if (isSelected) {
-      item.style.borderColor = 'var(--accent-cyan)';
-      item.style.background = 'rgba(56, 189, 248, 0.12)';
-    }
+  if (optList) {
+    optList.innerHTML = '';
+    q.options.forEach(opt => {
+      const isSelected = examState.answers[examState.currentQuestionIndex] === opt.key;
+      const item = document.createElement('div');
+      item.className = 'latex-option-item';
+      if (isSelected) {
+        item.style.borderColor = 'var(--accent-cyan)';
+        item.style.background = 'rgba(56, 189, 248, 0.12)';
+      }
 
-    item.innerHTML = `
-      <div class="latex-option-key">${opt.key}</div>
-      <div style="flex:1;">
-        <div class="opt-formula">${renderLatexString(opt.latex)}</div>
-      </div>
-    `;
+      item.innerHTML = `
+        <div class="latex-option-key">${opt.key}</div>
+        <div style="flex:1;">
+          <div class="opt-formula">${renderLatexString(opt.latex)}</div>
+        </div>
+      `;
 
-    item.addEventListener('click', () => {
-      document.querySelectorAll('#studentRenderOptions .latex-option-item').forEach(el => {
-        el.style.borderColor = 'var(--border-subtle)';
-        el.style.background = 'rgba(255, 255, 255, 0.03)';
+      item.addEventListener('click', () => {
+        document.querySelectorAll('#studentRenderOptions .latex-option-item').forEach(el => {
+          el.style.borderColor = 'var(--border-subtle)';
+          el.style.background = 'rgba(255, 255, 255, 0.03)';
+        });
+        item.style.borderColor = 'var(--accent-cyan)';
+        item.style.background = 'rgba(56, 189, 248, 0.12)';
+        state.studentTimer.selectedOption = opt.key;
+        examState.answers[examState.currentQuestionIndex] = opt.key;
+        renderPaletteButtons();
+        updatePaletteCounts();
       });
-      item.style.borderColor = 'var(--accent-cyan)';
-      item.style.background = 'rgba(56, 189, 248, 0.12)';
-      state.studentTimer.selectedOption = opt.key;
-      examState.answers[examState.currentQuestionIndex] = opt.key;
-      renderPaletteButtons();
-      updatePaletteCounts();
-    });
 
-    optList.appendChild(item);
-    renderMathInElement(item);
-  });
+      optList.appendChild(item);
+      renderMathInElement(item);
+    });
+  }
 }
 
 function renderPaletteButtons() {
   const container = document.getElementById('ntaQuestionPalette');
-  if (!container) return;
-
+  const quickStrip = document.getElementById('quickQuestionStrip');
   const totalCount = examState.questions ? examState.questions.length : 30;
-  container.innerHTML = '';
-  for (let i = 0; i < totalCount; i++) {
-    const btn = document.createElement('div');
-    btn.className = 'palette-btn';
-    btn.innerText = i + 1;
 
-    const isCurrent = i === examState.currentQuestionIndex;
-    const isAnswered = examState.answers[i] !== null;
-    const isReviewed = examState.reviewStatus[i];
-    const isVisited = examState.visitedStatus[i];
+  // 1. Render sidebar palette grid
+  if (container) {
+    container.innerHTML = '';
+    for (let i = 0; i < totalCount; i++) {
+      const btn = document.createElement('div');
+      btn.className = 'palette-btn';
+      btn.innerText = i + 1;
 
-    if (isCurrent) btn.classList.add('active');
+      const isCurrent = i === examState.currentQuestionIndex;
+      const isAnswered = examState.answers[i] !== null;
+      const isReviewed = examState.reviewStatus[i];
+      const isVisited = examState.visitedStatus[i];
 
-    if (isAnswered) {
-      btn.classList.add('answered');
-    } else if (isReviewed) {
-      btn.classList.add('marked-review');
-    } else if (isVisited) {
-      btn.classList.add('not-answered');
-    } else {
-      btn.classList.add('not-visited');
+      if (isCurrent) btn.classList.add('active');
+
+      if (isAnswered) {
+        btn.classList.add('answered');
+      } else if (isReviewed) {
+        btn.classList.add('marked-review');
+      } else if (isVisited) {
+        btn.classList.add('not-answered');
+      } else {
+        btn.classList.add('not-visited');
+      }
+
+      btn.addEventListener('click', () => jumpToQuestion(i));
+      container.appendChild(btn);
     }
-
-    btn.addEventListener('click', () => jumpToQuestion(i));
-    container.appendChild(btn);
   }
+
+  // 2. Render top inline question strip [ 1 ] [ 2 ] [ 3 ] [ 4 ] ...
+  if (quickStrip) {
+    quickStrip.innerHTML = '';
+    for (let i = 0; i < totalCount; i++) {
+      const tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'btn-grid-tile';
+      tile.innerText = i + 1;
+      tile.title = `Jump directly to Question ${i + 1}`;
+
+      const isCurrent = i === examState.currentQuestionIndex;
+      const isAnswered = examState.answers[i] !== null;
+      const isReviewed = examState.reviewStatus[i];
+      const isVisited = examState.visitedStatus[i];
+
+      if (isCurrent) tile.classList.add('active');
+
+      if (isAnswered) {
+        tile.classList.add('answered');
+      } else if (isReviewed) {
+        tile.classList.add('marked-review');
+      } else if (isVisited) {
+        tile.classList.add('not-answered');
+      } else {
+        tile.classList.add('not-visited');
+      }
+
+      tile.addEventListener('click', () => jumpToQuestion(i));
+      quickStrip.appendChild(tile);
+    }
+  }
+
+  // 3. Update Previous & Next navigation buttons
+  const isFirst = examState.currentQuestionIndex === 0;
+  const isLast = examState.currentQuestionIndex >= totalCount - 1;
+
+  const btnPrev = document.getElementById('btnPrevQuestion');
+  const btnPrevTop = document.getElementById('btnPrevQuestionTop');
+  const btnNext = document.getElementById('btnNextQuestion');
+  const btnNextTop = document.getElementById('btnNextQuestionTop');
+
+  if (btnPrev) btnPrev.disabled = isFirst;
+  if (btnPrevTop) btnPrevTop.disabled = isFirst;
+  if (btnNext) btnNext.disabled = isLast;
+  if (btnNextTop) btnNextTop.disabled = isLast;
 }
 
 function updatePaletteCounts() {
@@ -2375,10 +2461,15 @@ function updatePaletteCounts() {
   const visited = examState.visitedStatus.filter((v, idx) => v && examState.answers[idx] === null && !examState.reviewStatus[idx]).length;
   const notVisited = totalCount - examState.visitedStatus.filter(v => v).length;
 
-  document.getElementById('countAnswered').innerText = answered;
-  document.getElementById('countNotAnswered').innerText = visited;
-  document.getElementById('countReview').innerText = review;
-  document.getElementById('countNotVisited').innerText = Math.max(0, notVisited);
+  const countAns = document.getElementById('countAnswered');
+  const countNotAns = document.getElementById('countNotAnswered');
+  const countRev = document.getElementById('countReview');
+  const countNotVis = document.getElementById('countNotVisited');
+
+  if (countAns) countAns.innerText = answered;
+  if (countNotAns) countNotAns.innerText = visited;
+  if (countRev) countRev.innerText = review;
+  if (countNotVis) countNotVis.innerText = Math.max(0, notVisited);
 }
 
 // -----------------------------------------------------------------------------
@@ -3772,9 +3863,46 @@ async function setupTeacherTestBuilder() {
   // 1. Fetch available classes & enrolled students
   await loadTeacherClassesList();
 
-  // 2. Class change listener
+  // 2. Target Exam Stream Card Click Handlers (JEE, NEET, BOARD, OLYMPIAD)
+  const streamCards = document.querySelectorAll('#teacherTargetStreams .target-stream-card');
+  streamCards.forEach(card => {
+    card.addEventListener('click', () => {
+      const stream = card.getAttribute('data-target-stream');
+      teacherBuilderState.targetStream = stream;
+
+      streamCards.forEach(c => {
+        c.classList.remove('active', 'active-jee', 'active-neet', 'active-board', 'active-olympiad');
+      });
+      card.classList.add('active', `active-${stream.toLowerCase()}`);
+
+      // Auto-align class & stream
+      if (stream === 'JEE') {
+        teacherBuilderState.selectedClassId = '12-NonMed';
+      } else if (stream === 'NEET') {
+        teacherBuilderState.selectedClassId = '12-Med';
+      } else if (stream === 'BOARD') {
+        teacherBuilderState.selectedClassId = '12-NonMed';
+      } else if (stream === 'OLYMPIAD') {
+        teacherBuilderState.selectedClassId = '10-Science-A';
+      }
+
+      if (classSelect) {
+        classSelect.value = teacherBuilderState.selectedClassId;
+      }
+      updateTeacherClassScopeUI();
+    });
+  });
+
+  // 3. Class change listener
   classSelect.addEventListener('change', (e) => {
     teacherBuilderState.selectedClassId = e.target.value;
+    const stream = e.target.value.includes('Med') && !e.target.value.includes('NonMed') ? 'NEET' : (e.target.value.includes('NonMed') ? 'JEE' : 'BOARD');
+    teacherBuilderState.targetStream = stream;
+    streamCards.forEach(c => {
+      const isMatch = c.getAttribute('data-target-stream') === stream;
+      c.classList.toggle('active', isMatch);
+      c.classList.toggle(`active-${stream.toLowerCase()}`, isMatch);
+    });
     updateTeacherClassScopeUI();
   });
 
