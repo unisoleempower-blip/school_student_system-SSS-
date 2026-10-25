@@ -77,6 +77,10 @@
           <i data-lucide="sparkles" style="width:16px; height:16px;"></i>
           AI LaTeX Question Studio
         </button>
+        <button class="sub-tab-btn" id="tabBtnClass10Pyq" data-tab="tabClass10Pyq">
+          <i data-lucide="book-open" style="width:16px; height:16px;"></i>
+          Class 10 NCERT & PYQ Explorer
+        </button>
         <button class="sub-tab-btn" id="tabBtnTelemetry" data-tab="tabTelemetry">
           <i data-lucide="activity" style="width:16px; height:16px;"></i>
           Live Telemetry & Diagnostics
@@ -101,19 +105,36 @@
                 <div class="card-icon"><i data-lucide="cpu" style="width:20px; height:20px;"></i></div>
                 <div>
                   <h2 class="card-title">Curriculum AI Question Engine</h2>
-                  <p class="card-subtitle">Generate vetted LaTeX questions for HP Board, CBSE, JEE & NEET</p>
+                  <p class="card-subtitle">Generate vetted LaTeX questions using Groq LPU, Gemini Flash & NCERT Bank</p>
                 </div>
               </div>
             </div>
 
             <form id="aiQuestionGenForm">
+              <!-- LLM Provider Selector -->
+              <div class="form-group" style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label class="form-label" for="selectLlmProvider" style="margin-bottom:0; font-weight:600; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+                    <i data-lucide="cpu" style="width:15px; height:15px; color:var(--accent-blue);"></i>
+                    AI Engine & Inference Provider
+                  </label>
+                  <span id="providerLiveBadge" style="font-size:0.72rem; padding:2px 8px; border-radius:12px; background:rgba(16,185,129,0.15); color:#10b981; font-weight:600;">Groq LPU (Sub-second) Active</span>
+                </div>
+                <select class="form-select" id="selectLlmProvider" style="background:var(--bg-card); font-size:0.85rem; width:100%;">
+                  <option value="auto" selected>✨ Auto-Select (Groq LPU Ultra-Fast &bull; Failover to Gemini / NCERT Bank)</option>
+                  <option value="groq">⚡ Groq Cloud LPU (openai/gpt-oss-120b &bull; Sub-second Reasoning)</option>
+                  <option value="gemini">♊ Google Gemini (gemini-3.8 / 2.5 Flash &bull; Deep Mathematical Analysis)</option>
+                  <option value="ncert_pyq">📚 HAPS Curated NCERT & Board PYQ Database (Deterministic Offline)</option>
+                </select>
+              </div>
+
               <div class="grid-2col">
                 <div class="form-group">
                   <label class="form-label" for="selectGrade">Target Class</label>
                   <select class="form-select" id="selectGrade">
-                    <option value="11" selected>Class XI Science</option>
+                    <option value="10" selected>Class X (Boards - CBSE / HPBOSE)</option>
+                    <option value="11">Class XI Science</option>
                     <option value="12">Class XII Science</option>
-                    <option value="10">Class X (Boards)</option>
                     <option value="9">Class IX (Foundation)</option>
                     <option value="8">Class VIII</option>
                     <option value="7">Class VII</option>
@@ -124,10 +145,10 @@
                 <div class="form-group">
                   <label class="form-label" for="selectBoard">Target Exam / Board</label>
                   <select class="form-select" id="selectBoard">
-                    <option value="JEE_MAIN" selected>JEE Main (Speed & Traps)</option>
-                    <option value="JEE_ADVANCED">JEE Advanced (Multi-Concept)</option>
-                    <option value="CBSE">CBSE Board (Derivations)</option>
+                    <option value="CBSE" selected>CBSE Board (NCERT Aligned)</option>
                     <option value="HP_BOARD">HP Board (HPBOSE)</option>
+                    <option value="JEE_MAIN">JEE Main (Speed & Traps)</option>
+                    <option value="JEE_ADVANCED">JEE Advanced (Multi-Concept)</option>
                     <option value="NEET">NEET UG (NCERT Precision)</option>
                     <option value="OLYMPIAD">Olympiad & Advanced</option>
                   </select>
@@ -138,9 +159,10 @@
                 <div class="form-group">
                   <label class="form-label" for="selectSubject">Subject</label>
                   <select class="form-select" id="selectSubject">
-                    <option value="Physics" selected>Physics</option>
-                    <option value="Chemistry">Chemistry</option>
+                    <option value="Science" selected>Science</option>
                     <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
                     <option value="Biology">Biology</option>
                   </select>
                 </div>
@@ -148,20 +170,31 @@
                 <div class="form-group">
                   <label class="form-label" for="selectTopic">Chapter / Topic</label>
                   <select class="form-select" id="selectTopic">
-                    <option value="Rotational Motion" selected>Rotational Motion & Dynamics</option>
-                    <option value="Work, Energy and Power">Work, Energy and Power</option>
-                    <option value="Oscillations & SHM">Oscillations & SHM</option>
-                    <option value="Chemical Thermodynamics">Chemical Thermodynamics</option>
-                    <option value="Calculus & Limits">Calculus & Limits</option>
+                    <option value="Light – Reflection and Refraction" selected>Ch 9: Light – Reflection & Refraction</option>
+                    <option value="Electricity">Ch 11: Electricity & Joule Heating</option>
+                    <option value="Chemical Reactions and Equations">Ch 1: Chemical Reactions & Equations</option>
+                    <option value="Metals and Non-Metals">Ch 3: Metals and Non-Metals (Thermit)</option>
+                    <option value="Life Processes">Ch 6: Life Processes & Nephron</option>
+                    <option value="Introduction to Trigonometry">Ch 8: Introduction to Trigonometry</option>
+                    <option value="Quadratic Equations">Ch 4: Quadratic Equations</option>
+                    <option value="Arithmetic Progressions">Ch 5: Arithmetic Progressions</option>
                   </select>
                 </div>
+              </div>
+
+              <div class="form-group" id="ncertBlueprintGroup">
+                <label class="form-label" for="inputNcertBlueprint" style="display:flex; justify-content:space-between;">
+                  <span>NCERT Section Blueprint & Page Reference</span>
+                  <span style="font-size:0.72rem; color:var(--accent-blue);">Official Textbook Mapping</span>
+                </label>
+                <input type="text" class="form-select" id="inputNcertBlueprint" value="9.2 Spherical Mirrors and Mirror Formula (Pages 168–171)" style="font-size:0.85rem; width:100%;" />
               </div>
 
               <div class="grid-2col">
                 <div class="form-group">
                   <label class="form-label" for="selectDifficulty">Difficulty & Bloom Level</label>
                   <select class="form-select" id="selectDifficulty">
-                    <option value="MEDIUM" selected>Medium (Application)</option>
+                    <option value="MEDIUM" selected>Medium (Application / Board Standard)</option>
                     <option value="HARD">Hard (Analyze / Distractor Heavy)</option>
                     <option value="OLYMPIAD_LEVEL">Olympiad (Create / Non-Routine)</option>
                   </select>
@@ -170,21 +203,21 @@
                 <div class="form-group">
                   <label class="form-label" for="selectQuestionType">Format</label>
                   <select class="form-select" id="selectQuestionType">
-                    <option value="MCQ_SINGLE" selected>Single Choice MCQ (With Traps)</option>
-                    <option value="NUMERICAL">Numerical Subjective</option>
+                    <option value="NUMERICAL" selected>Numerical with Steps</option>
+                    <option value="MCQ_SINGLE">Single Choice MCQ (With Traps)</option>
                     <option value="SUBJECTIVE_DERIVATION">Derivation with Rubric</option>
                   </select>
                 </div>
               </div>
 
-              <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+              <div style="margin-top: 1rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
                 <button type="button" class="btn-primary" id="btnGenerateQuestion">
                   <i data-lucide="wand-2" style="width:16px; height:16px;"></i>
-                  Generate AI LaTeX Question
+                  Generate via LLM Engine
                 </button>
                 <button type="button" class="btn-secondary" id="btnAddToClassTest">
                   <i data-lucide="plus-circle" style="width:16px; height:16px;"></i>
-                  Add to Class XI Test
+                  Add to Active Test
                 </button>
               </div>
             </form>
@@ -570,6 +603,91 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- TAB 5: CLASS 10 NCERT MAPPED PREVIOUS YEAR QUESTION (PYQ) BANK -->
+      <div class="teacher-tab-content" id="tabClass10Pyq" style="display:none;">
+        <!-- Header Banner -->
+        <div class="glass-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(30, 58, 138, 0.25), rgba(15, 23, 42, 0.5)); border: 1px solid rgba(59, 130, 246, 0.35);">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <span class="pilot-tag" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.4);">
+                  <i data-lucide="award" style="width:12px; height:12px; display:inline-block; vertical-align:middle;"></i>
+                  CBSE & HP Board 2020–2024
+                </span>
+                <span class="pilot-tag" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.4);">
+                  Official NCERT Mapping
+                </span>
+                <span class="pilot-tag" style="background: rgba(234, 179, 8, 0.15); color: #eab308; border-color: rgba(234, 179, 8, 0.3);">
+                  Step-by-Step Marking Scheme
+                </span>
+              </div>
+              <h2 style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+                Class 10 NCERT Curriculum & Board PYQ Explorer
+              </h2>
+              <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 820px;">
+                Explore verified Previous Year Questions mapped to exact NCERT textbook chapters, sections, and page references. Each question includes CBSE / HPBOSE marking schemes, distractor traps, and one-click AI variation generation powered by Groq LPU & Gemini Flash.
+              </p>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <div style="text-align: right; border-right: 1px solid var(--border-subtle); padding-right: 1.25rem;">
+                <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-blue);" id="pyqTotalCount">8</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Verified Questions</div>
+              </div>
+              <button class="btn-primary" id="btnRefreshPyqBank" style="font-size:0.85rem; padding: 8px 14px;">
+                <i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> Refresh Bank
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter & Search Controls -->
+          <div style="margin-top: 1.25rem; padding-top: 1.25rem; border-top: 1px solid var(--border-subtle); display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="pyqFilterSubject" style="font-size: 0.75rem;">Subject Filter</label>
+              <select class="form-select" id="pyqFilterSubject" style="font-size: 0.85rem;">
+                <option value="ALL" selected>All Subjects (Science & Math)</option>
+                <option value="Science">Science (Physics, Chemistry, Biology)</option>
+                <option value="Mathematics">Mathematics (Standard & Basic)</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="pyqFilterChapter" style="font-size: 0.75rem;">NCERT Chapter</label>
+              <select class="form-select" id="pyqFilterChapter" style="font-size: 0.85rem;">
+                <option value="ALL" selected>All NCERT Chapters</option>
+                <option value="Light">Ch 9: Light – Reflection & Refraction</option>
+                <option value="Electricity">Ch 11: Electricity & Joule Heating</option>
+                <option value="Chemical Reactions">Ch 1: Chemical Reactions & Equations</option>
+                <option value="Metals and Non-Metals">Ch 3: Metals & Non-Metals (Thermit)</option>
+                <option value="Life Processes">Ch 6: Life Processes (Nephron)</option>
+                <option value="Trigonometry">Ch 8: Introduction to Trigonometry</option>
+                <option value="Quadratic Equations">Ch 4: Quadratic Equations</option>
+                <option value="Arithmetic Progressions">Ch 5: Arithmetic Progressions</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="pyqFilterBoard" style="font-size: 0.75rem;">Curriculum Board</label>
+              <select class="form-select" id="pyqFilterBoard" style="font-size: 0.85rem;">
+                <option value="ALL" selected>All Boards (CBSE & HPBOSE)</option>
+                <option value="CBSE">CBSE Board Exam</option>
+                <option value="HPBOSE">HP Board (HPBOSE)</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+              <label class="form-label" for="pyqSearchInput" style="font-size: 0.75rem;">Search Concept / Formula / NCERT Page</label>
+              <input type="text" class="form-select" id="pyqSearchInput" placeholder="e.g. Mirror, Joule, Nephron, Trig..." style="font-size: 0.85rem;" />
+            </div>
+          </div>
+        </div>
+
+        <!-- PYQ Cards List Container -->
+        <div id="class10PyqContainer" style="display: flex; flex-direction: column; gap: 1.25rem;">
+          <!-- Dynamically populated via app.js -->
         </div>
       </div>
     </section>

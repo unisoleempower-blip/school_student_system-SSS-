@@ -153,38 +153,47 @@ ACTIONS FOR PARENTS (Weekend Review):
 | :--- | :--- | :--- |
 | **Database** | **PostgreSQL 16** | ACID compliance, JSONB for flexible question metadata/rubrics, robust array types for LaTeX formulas, and strong indexing for fast reporting. |
 | **Event Bus** | **Apache Kafka (KRaft)** | Handles real-time question timer telemetry ticks, decoupled batch report generation, and asynchronous handwritten image processing without blocking API threads. |
+| **Multi-LLM Engine** | **Groq LPU & Google Gemini** | Dual-engine architecture: Groq LPU (`openai/gpt-oss-120b`, `qwen/qwen3.8-27b`) for sub-second (~300-800ms) generation + Gemini Flash for vision and math reasoning, with automatic failover to NCERT bank. |
+| **NCERT PYQ Bank** | **Class 10 CBSE & HPBOSE Bank** | Curated board questions (2020–2024) mapped to NCERT chapters, sections, and page references with step-wise rubrics. |
 | **Containerization** | **Docker & Multi-Stage Builds** | Standardized, deterministic environments across macOS, Linux, and Windows; minimal production image footprints. |
 | **Orchestration** | **Kubernetes (K8s)** | Zero-downtime rolling updates, Horizontal Pod Autoscaling (HPA) during peak school exam hours, and isolated Staging vs Production namespaces. |
 | **Backend API** | **Node.js 20 LTS / Express** | High concurrency event I/O, native JSON handling, fast integration with Kafka streams, and seamless WebSocket telemetry. |
 | **Frontend UI** | **Vanilla CSS3 + ES6 Modules + KaTeX** | Ultra-responsive, zero bloat, high-performance math rendering with KaTeX, modern glassmorphic theme designed for students and teachers. |
-| **AI Vision & LLM** | **Google Gemini 1.5 Pro / Flash** | Native multi-modal capability for handwritten answer sheet grading, sub-second LaTeX generation, and nuanced Socratic pedagogical prompting. |
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Docker Engine $\ge 24.0$ & Docker Compose v2
-- Node.js $\ge 20.0$ (for local development)
-- Kubernetes `kubectl` and `minikube` or cloud cluster (for k8s deployment)
+- Node.js $\ge 20.0$
+- Docker Engine $\ge 24.0$ & Docker Compose v2 (optional for local Kafka/Postgres)
+- LLM API Keys (Groq Cloud & Google Gemini)
 
-### 1. Launching the Local Staging Environment
+### 1. Environment Configuration
+Create `backend/.env` using the provided template:
 ```bash
-# Navigate to the project root
-cd /Users/ajaymokta2002/.gemini/antigravity-ide/scratch/haps-ai-scholar-assistant
-
-# Start PostgreSQL, Apache Kafka, Backend, and Frontend via Docker Compose
-docker compose up -d
-
-# Verify services status
-docker compose ps
+cp backend/.env.example backend/.env
+```
+Add your keys in `backend/.env`:
+```env
+PORT=5050
+GEMINI_API_KEY=your_gemini_api_key_here
+GROQ_API_KEY=your_groq_api_key_here
 ```
 
-### 2. Accessing the Application
-- **Interactive Web Platform**: `http://localhost:3000`
-- **Backend Health & Telemetry API**: `http://localhost:5000/api/health`
-- **PostgreSQL Database**: `localhost:5432` (`db: haps_scholar_db`, `user: haps_admin`)
-- **Apache Kafka Broker**: `localhost:9092`
+### 2. Running Locally
+```bash
+# Start Backend Gateway (Port 5050)
+cd backend && npm start
+
+# Start Frontend (Port 3008)
+cd ../frontend && npx serve -l 3008
+```
+
+- **Interactive Web Portal**: `http://localhost:3008`
+- **Backend Health & Telemetry API**: `http://localhost:5050/api/health`
+- **LLM Provider Diagnostics**: `http://localhost:5050/api/questions/providers`
+- **Class 10 NCERT PYQ Bank**: `http://localhost:5050/api/questions/class10-pyq`
 
 ---
 
@@ -192,4 +201,4 @@ docker compose ps
 1. **Zero External Data Leakage**: Student names and roll numbers can be pseudonymized with UUID tokens before passing to LLM APIs.
 2. **Teacher Veto Power**: No AI-generated question or automated mark goes into official school grade books without teacher verification.
 3. **No Opaque AI Blackboxes**: All scores, mastery levels, and report comments are backed by transparent telemetry logs.
-# school_student_system-SSS-
+

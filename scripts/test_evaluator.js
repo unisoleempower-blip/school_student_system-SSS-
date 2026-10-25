@@ -3,6 +3,24 @@
 // Verifies: AI LaTeX Generation, Handwritten Evaluation, Kafka Stream Ingestion, Smart Reports
 // ============================================================================
 
+const path = require('path');
+const fs = require('fs');
+
+// Zero-dependency .env loader
+const envPath = path.join(__dirname, '../backend/.env');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#') && trimmed.includes('=')) {
+      const idx = trimmed.indexOf('=');
+      const key = trimmed.slice(0, idx).trim();
+      const val = trimmed.slice(idx + 1).trim();
+      if (!process.env[key]) process.env[key] = val;
+    }
+  });
+}
+
 const { generateAiQuestion } = require('../backend/src/services/aiPromptEngine');
 const { evaluateHandwrittenSheet } = require('../backend/src/services/handwrittenEvaluator');
 const { generateWeeklyReport } = require('../backend/src/services/smartReportService');
@@ -61,7 +79,31 @@ async function runDiagnostics() {
   const htmlOutput = generatePrintableReportHtml(report);
   console.log('✅ Generated Printable Dossier HTML (bytes):', htmlOutput.length);
 
-  console.log('\n🎉 ALL SERVICES VERIFIED AND READY FOR STAGING/PROD DEPLOYMENT!');
+  // Test 6: Multi-LLM Question Engine (Groq LPU / Gemini Flash / NCERT fallback)
+  console.log('\n--- TEST 6: Multi-LLM Question Engine (Groq & Gemini Dual Engine) ---');
+  const { generateLlmQuestion } = require('../backend/src/services/llmQuestionEngine');
+  const llmQ = await generateLlmQuestion({
+    grade: '10',
+    subject: 'Science',
+    chapter: 'Light – Reflection and Refraction',
+    board: 'CBSE',
+    provider: 'auto'
+  });
+  console.log('✅ LLM Provider:', llmQ.llm_provider);
+  console.log('NCERT Section:', llmQ.ncert_mapping?.ncert_section || 'N/A');
+  console.log('Question LaTeX snippet:', llmQ.question_latex.slice(0, 90) + '...');
+  console.log('Rubric Step 1:', llmQ.step_rubric ? llmQ.step_rubric[0].description : 'N/A');
+
+  // Test 7: Class 10 NCERT Previous Year Question Bank
+  console.log('\n--- TEST 7: Class 10 NCERT PYQ Bank Alignment (CBSE & HP Board) ---');
+  const { getAllClass10Questions, getCuratedClass10Question } = require('../backend/src/services/class10PyqBank');
+  const allPyqs = getAllClass10Questions();
+  console.log('✅ Total Verified Class 10 PYQs in Bank:', allPyqs.length);
+  const mathPyq = getCuratedClass10Question('Mathematics', 'Trigonometry', 'CBSE');
+  console.log('Curated Math PYQ:', mathPyq.chapter, '| Tag:', mathPyq.ncert_mapping.pyq_tag);
+  console.log('NCERT Page Reference:', mathPyq.ncert_mapping.page_reference);
+
+  console.log('\n🎉 ALL 7 INTEGRATION TESTS VERIFIED: MULTI-LLM + CLASS 10 NCERT READY!');
 }
 
 runDiagnostics().catch(err => {

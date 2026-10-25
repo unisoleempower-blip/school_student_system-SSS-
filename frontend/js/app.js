@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderInitialQuestion();
   renderTelemetryTable();
   startStudentTimer();
+  setupClass10PyqExplorer();
 });
 
 function initLucideIcons() {
@@ -170,72 +171,176 @@ function setupThemeToggle() {
 // -----------------------------------------------------------------------------
 // 2. AI LATEX QUESTION STUDIO
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// 2. AI LATEX QUESTION STUDIO & MULTI-LLM INFERENCE
+// -----------------------------------------------------------------------------
 function setupAiGenerator() {
   const btnGenerate = document.getElementById('btnGenerateQuestion');
   const btnAddToTest = document.getElementById('btnAddToClassTest');
+  const selectGrade = document.getElementById('selectGrade');
+  const selectSubject = document.getElementById('selectSubject');
+  const selectTopic = document.getElementById('selectTopic');
+  const inputNcert = document.getElementById('inputNcertBlueprint');
+
+  // Dynamic NCERT topic updating on grade/subject change
+  const updateTopicsForGrade = () => {
+    const grade = selectGrade ? selectGrade.value : '10';
+    const subj = selectSubject ? selectSubject.value : 'Science';
+
+    if (grade === '10') {
+      if (subj === 'Mathematics') {
+        selectTopic.innerHTML = `
+          <option value="Introduction to Trigonometry" selected>Ch 8: Introduction to Trigonometry (Identities)</option>
+          <option value="Quadratic Equations">Ch 4: Quadratic Equations (Roots & Discriminant)</option>
+          <option value="Arithmetic Progressions">Ch 5: Arithmetic Progressions (Sum of n terms)</option>
+          <option value="Real Numbers">Ch 1: Real Numbers (Fundamental Theorem)</option>
+          <option value="Triangles">Ch 6: Triangles (BPT & Similarity)</option>
+        `;
+        if (inputNcert) inputNcert.value = '8.4 Trigonometric Identities (NCERT Pages 190–193)';
+      } else {
+        selectTopic.innerHTML = `
+          <option value="Light – Reflection and Refraction" selected>Ch 9: Light – Reflection & Refraction (Mirrors & Lenses)</option>
+          <option value="Electricity">Ch 11: Electricity (Joule Heating & Circuits)</option>
+          <option value="Chemical Reactions and Equations">Ch 1: Chemical Reactions & Decomposition</option>
+          <option value="Metals and Non-Metals">Ch 3: Metals & Non-Metals (Thermit Reaction)</option>
+          <option value="Life Processes">Ch 6: Life Processes (Nephron Ultrafiltration)</option>
+        `;
+        if (inputNcert) inputNcert.value = '9.2 Spherical Mirrors and Mirror Formula (NCERT Pages 168–171)';
+      }
+    } else {
+      selectTopic.innerHTML = `
+        <option value="Rotational Motion" selected>Rotational Motion & Dynamics</option>
+        <option value="Work, Energy and Power">Work, Energy and Power</option>
+        <option value="Oscillations & SHM">Oscillations & SHM</option>
+        <option value="Chemical Thermodynamics">Chemical Thermodynamics</option>
+        <option value="Calculus & Limits">Calculus & Limits</option>
+      `;
+      if (inputNcert) inputNcert.value = 'Class 11 Physics NCERT Ch 7 Rigid Body Dynamics';
+    }
+  };
+
+  if (selectGrade) selectGrade.addEventListener('change', updateTopicsForGrade);
+  if (selectSubject) selectSubject.addEventListener('change', updateTopicsForGrade);
+
+  // Check LLM Provider status from backend
+  checkProviderStatus();
 
   btnGenerate.addEventListener('click', async () => {
-    btnGenerate.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;"></i> Generating LaTeX...`;
+    btnGenerate.disabled = true;
+    btnGenerate.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;"></i> Generating via LLM...`;
     initLucideIcons();
 
     const grade = document.getElementById('selectGrade').value;
     const board = document.getElementById('selectBoard').value;
     const subject = document.getElementById('selectSubject').value;
-    const topic = document.getElementById('selectTopic').value;
+    const chapter = document.getElementById('selectTopic').value;
     const difficulty = document.getElementById('selectDifficulty').value;
     const questionType = document.getElementById('selectQuestionType').value;
+    const provider = document.getElementById('selectLlmProvider') ? document.getElementById('selectLlmProvider').value : 'auto';
+    const ncertSection = document.getElementById('inputNcertBlueprint') ? document.getElementById('inputNcertBlueprint').value : '';
 
     try {
-      // Fetch from backend API or use intelligent generator
-      const res = await fetch('http://localhost:5050/api/questions/generate-ai', {
+      // Call Multi-LLM API endpoint
+      const res = await fetch('http://localhost:5050/api/questions/generate-llm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ grade, board, subject, topic, difficulty, questionType })
+        body: JSON.stringify({
+          grade,
+          board,
+          subject,
+          chapter,
+          ncertSection,
+          difficulty,
+          questionType,
+          provider
+        })
       });
-      
+
       if (res.ok) {
         const data = await res.json();
         state.currentQuestion = data.question;
       } else {
-        throw new Error('Fallback to local AI engine');
+        throw new Error('Fallback to local engine');
       }
     } catch (e) {
-      // Local high-fidelity generation fallback
-      state.currentQuestion = generateLocalAiQuestion(subject, topic, board);
+      console.warn('Backend LLM error, generating curated fallback question:', e);
+      state.currentQuestion = generateLocalAiQuestion(subject, chapter, board);
+    } finally {
+      btnGenerate.disabled = false;
+      btnGenerate.innerHTML = `<i data-lucide="wand-2" style="width:16px; height:16px;"></i> Generate via LLM Engine`;
+      initLucideIcons();
+      renderCurrentQuestionInPreview();
     }
-
-    renderCurrentQuestionInPreview();
-    btnGenerate.innerHTML = `<i data-lucide="wand-2" style="width:16px; height:16px;"></i> Generate AI LaTeX Question`;
-    initLucideIcons();
   });
 
   btnAddToTest.addEventListener('click', () => {
-    alert(`✅ Question added to Class XI Science Weekly Test #04.\nBenchmark Time: ${state.currentQuestion.benchmark_time_seconds || 90}s\nCurriculum: ${state.currentQuestion.curriculum_board}`);
+    const q = state.currentQuestion || {};
+    alert(`✅ Question added to Active Classroom Test Session!\nTarget: Class ${q.grade || '10'} ${q.subject || 'Science'}\nEngine: ${q.llm_provider || 'AI Engine'}\nBenchmark Time: ${q.benchmark_time_seconds || 120}s`);
   });
+}
+
+async function checkProviderStatus() {
+  const badge = document.getElementById('providerLiveBadge');
+  if (!badge) return;
+
+  try {
+    const res = await fetch('http://localhost:5050/api/questions/providers');
+    if (res.ok) {
+      const data = await res.json();
+      const p = data.providers;
+      if (p.groq?.configured && p.gemini?.configured) {
+        badge.innerHTML = `⚡ Groq LPU + ♊ Gemini Active`;
+        badge.style.background = 'rgba(16,185,129,0.15)';
+        badge.style.color = '#10b981';
+      } else if (p.groq?.configured) {
+        badge.innerHTML = `⚡ Groq LPU (${p.speed || '350ms'})`;
+      } else if (p.gemini?.configured) {
+        badge.innerHTML = `♊ Google Gemini (${p.gemini.model})`;
+      } else {
+        badge.innerHTML = `📚 NCERT Offline PYQ Bank`;
+      }
+    }
+  } catch (e) {
+    // Keep default badge
+  }
 }
 
 function generateLocalAiQuestion(subject, topic, board) {
   return {
-    id: `ai_local_${Date.now()}`,
+    id: `ncert_local_${Date.now()}`,
     topic,
-    subtopic: 'Rigid Dynamics & Energy',
+    chapter: topic,
     curriculum_board: board,
-    grade: '11',
-    question_latex: 'Two identical thin uniform rods of length $L$ and mass $M$ are welded together at their ends at a right angle ($90^\\circ$) to form an L-shaped rigid body. Find the moment of inertia $I$ of this structure about an axis perpendicular to its plane and passing through the corner vertex.',
+    grade: '10',
+    subject: subject || 'Science',
+    llm_provider: 'HAPS Curated NCERT & Board PYQ Bank (Offline/Deterministic)',
+    question_latex: 'An object of height $h = 4\\,\\text{cm}$ is placed at a distance of $u = -25\\,\\text{cm}$ in front of a concave mirror of focal length $f = -15\\,\\text{cm}$. At what distance $v$ from the mirror should a screen be placed in order to obtain a sharp real image? Find the height $h\'$ of the image formed.',
     options_latex: [
-      { key: 'A', latex: '$I = \\frac{1}{3} M L^2$', is_correct: false, distractor_trap: 'Calculated moment of inertia for only one rod' },
-      { key: 'B', latex: '$I = \\frac{2}{3} M L^2$', is_correct: true, distractor_trap: null },
-      { key: 'C', latex: '$I = \\frac{1}{12} M L^2$', is_correct: false, distractor_trap: 'Used formula for center of mass axis instead of vertex' },
-      { key: 'D', latex: '$I = \\frac{5}{6} M L^2$', is_correct: false, distractor_trap: 'Incorrect application of parallel axis theorem' }
+      { key: 'A', latex: '$v = -37.5\\,\\text{cm}$, $h\' = -6\\,\\text{cm}$ (Real and Inverted)', is_correct: true, distractor_trap: null },
+      { key: 'B', latex: '$v = +37.5\\,\\text{cm}$, $h\' = +6\\,\\text{cm}$ (Virtual and Erect)', is_correct: false, distractor_trap: 'Ignored Cartesian sign conventions for concave mirror ($f < 0, u < 0$)' },
+      { key: 'C', latex: '$v = -9.37\\,\\text{cm}$, $h\' = -1.5\\,\\text{cm}$', is_correct: false, distractor_trap: 'Used lens formula instead of mirror formula' },
+      { key: 'D', latex: '$v = -25.0\\,\\text{cm}$, $h\' = -4\\,\\text{cm}$', is_correct: false, distractor_trap: 'Assumed object at center of curvature' }
     ],
-    correct_answer: 'B',
-    solution_latex: 'For a uniform rod of mass $M$ and length $L$ rotated about its end: $I_1 = \\frac{1}{3} M L^2$. By scalar additivity: $$I_{\\text{total}} = I_1 + I_2 = \\frac{1}{3} M L^2 + \\frac{1}{3} M L^2 = \\frac{2}{3} M L^2$$',
+    correct_answer_latex: 'v = -37.5\\,\\text{cm},\\; h\' = -6\\,\\text{cm}',
+    solution_latex: '1. **Mirror Formula**: $$\\frac{1}{v} + \\frac{1}{u} = \\frac{1}{f} \\implies \\frac{1}{v} = \\frac{1}{-15} - \\frac{1}{-25} = -\\frac{2}{75} \\implies v = -37.5\\,\\text{cm}$$\n2. **Magnification**: $$m = -\\frac{v}{u} = \\frac{h\'}{h} \\implies h\' = -\\left(\\frac{-37.5}{-25}\\right) \\times 4 = -6\\,\\text{cm}$$\nNegative sign confirms **Real and Inverted** image.',
     socratic_hints: [
-      "What is the moment of inertia of one rod about an axis through its end?",
-      "Does the orientation of the rod in the plane affect its inertia for a perpendicular axis?",
-      "Use the scalar additivity property of moments of inertia."
+      "What is the Cartesian sign convention for the focal length $f$ of a concave mirror?",
+      "State the mirror formula linking $u$, $v$, and $f$.",
+      "Calculate linear magnification $m = -v/u = h'/h$."
     ],
-    benchmark_time_seconds: 90
+    step_rubric: [
+      { step: 1, description: "Correct statement of mirror formula with signs: $u=-25\\text{cm}, f=-15\\text{cm}$", marks: 1.0 },
+      { step: 2, description: "Calculation of image distance $v = -37.5\\text{cm}$ with negative sign", marks: 1.0 },
+      { step: 3, description: "Magnification and height calculation: $h' = -6\\text{cm}$, stating Real & Inverted", marks: 1.0 }
+    ],
+    ncert_mapping: {
+      chapter_name: "Light – Reflection and Refraction",
+      ncert_section: "9.2.2 Mirror Formula and Magnification",
+      page_reference: "NCERT Class 10 Science, Pages 168–171",
+      pyq_similarity: "CBSE Board Exam 2023 & HPBOSE 2022",
+      marks: 3
+    },
+    benchmark_time_seconds: 120
   };
 }
 
@@ -244,13 +349,21 @@ function renderInitialQuestion() {
 }
 
 function renderCurrentQuestionInPreview() {
-  const q = state.currentQuestion;
+  const q = state.currentQuestion || generateLocalAiQuestion('Science', 'Light – Reflection and Refraction', 'CBSE');
   const qTextEl = document.getElementById('renderQuestionText');
   const optListEl = document.getElementById('renderOptionsList');
   const solTextEl = document.getElementById('renderSolutionText');
   const badgeEl = document.getElementById('previewBadge');
+  const subtitleEl = document.getElementById('previewMetaSubtitle');
 
-  if (badgeEl) badgeEl.innerText = `${q.curriculum_board} • Class ${q.grade || '11'}`;
+  if (badgeEl) {
+    badgeEl.innerText = `${q.curriculum_board || 'CBSE'} • Class ${q.grade || '10'}`;
+  }
+
+  if (subtitleEl && q.llm_provider) {
+    const timeInfo = q.inference_time_ms ? ` (${q.inference_time_ms}ms)` : '';
+    subtitleEl.innerHTML = `<span style="color:var(--accent-blue);font-weight:600;">${q.llm_provider}${timeInfo}</span>`;
+  }
 
   // Set question text
   qTextEl.innerHTML = q.question_latex;
@@ -266,7 +379,7 @@ function renderCurrentQuestionInPreview() {
         <div class="latex-option-key">${opt.key}</div>
         <div style="flex:1;">
           <div class="opt-formula">${opt.latex}</div>
-          ${opt.distractor_trap ? `<span class="distractor-badge">Trap: ${opt.distractor_trap}</span>` : '<span style="color:#10b981;font-size:0.72rem;font-weight:700;">Correct Answer</span>'}
+          ${opt.distractor_trap ? `<span class="distractor-badge">Trap: ${opt.distractor_trap}</span>` : '<span style="color:#10b981;font-size:0.72rem;font-weight:700;">✓ Correct Answer</span>'}
         </div>
       `;
       optListEl.appendChild(optItem);
@@ -274,9 +387,316 @@ function renderCurrentQuestionInPreview() {
     });
   }
 
-  // Set solution
-  solTextEl.innerHTML = q.solution_latex;
+  // Set solution and rubrics
+  let solutionHtml = q.solution_latex || '';
+
+  // Append NCERT Mapping metadata pill if available
+  if (q.ncert_mapping) {
+    const m = q.ncert_mapping;
+    solutionHtml += `
+      <div style="margin-top: 1rem; padding: 10px 12px; background: rgba(59, 130, 246, 0.08); border-left: 3px solid var(--accent-blue); border-radius: 4px; font-size: 0.8rem;">
+        <strong style="color: var(--accent-blue);">📘 NCERT Curriculum Blueprint:</strong> ${m.ncert_section || m.chapter_name || ''}<br/>
+        <span style="color: var(--text-muted);">Reference: ${m.page_reference || ''} &bull; PYQ Alignment: ${m.pyq_similarity || m.pyq_tag || 'Board Exam'} &bull; Marks: ${m.marks || 3}M</span>
+      </div>
+    `;
+  }
+
+  // Append Step Rubrics if present
+  if (q.step_rubric && q.step_rubric.length > 0) {
+    solutionHtml += `
+      <div style="margin-top: 1rem; border-top: 1px dashed var(--border-subtle); padding-top: 8px;">
+        <strong style="color: #eab308; font-size: 0.82rem;">CBSE / HPBOSE Step-by-Step Marking Scheme:</strong>
+        <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+          ${q.step_rubric.map(r => `
+            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 4px;">
+              <span><strong>Step ${r.step}:</strong> ${r.description}</span>
+              <span style="color: var(--accent-emerald); font-weight: 700;">+${r.marks}M</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  solTextEl.innerHTML = solutionHtml;
   renderMathInElement(solTextEl);
+}
+
+// -----------------------------------------------------------------------------
+// 2B. CLASS 10 NCERT & PYQ EXPLORER
+// -----------------------------------------------------------------------------
+let allClass10Pyqs = [];
+
+async function setupClass10PyqExplorer() {
+  const container = document.getElementById('class10PyqContainer');
+  const totalCountEl = document.getElementById('pyqTotalCount');
+  const btnRefresh = document.getElementById('btnRefreshPyqBank');
+  const filterSubject = document.getElementById('pyqFilterSubject');
+  const filterChapter = document.getElementById('pyqFilterChapter');
+  const filterBoard = document.getElementById('pyqFilterBoard');
+  const searchInput = document.getElementById('pyqSearchInput');
+
+  if (!container) return;
+
+  const loadPyqs = async () => {
+    container.innerHTML = `
+      <div style="text-align:center; padding: 2.5rem; color: var(--text-muted);">
+        <i data-lucide="loader-2" class="spin" style="width:24px; height:24px; margin: 0 auto 8px; display:block;"></i>
+        Loading verified NCERT Class 10 Board Questions...
+      </div>
+    `;
+    initLucideIcons();
+
+    try {
+      const res = await fetch('http://localhost:5050/api/questions/class10-pyq');
+      if (res.ok) {
+        const data = await res.json();
+        allClass10Pyqs = data.questions || [];
+      } else {
+        throw new Error('Fallback to bundled PYQs');
+      }
+    } catch (e) {
+      console.warn('Backend PYQ fetch error, loading default PYQ set:', e);
+      allClass10Pyqs = getBundledClass10Pyqs();
+    }
+
+    if (totalCountEl) totalCountEl.innerText = allClass10Pyqs.length;
+    filterAndRenderPyqs();
+  };
+
+  const filterAndRenderPyqs = () => {
+    let filtered = [...allClass10Pyqs];
+    const subj = filterSubject ? filterSubject.value : 'ALL';
+    const chap = filterChapter ? filterChapter.value : 'ALL';
+    const board = filterBoard ? filterBoard.value : 'ALL';
+    const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+    if (subj !== 'ALL') {
+      filtered = filtered.filter(q => q.subject.toLowerCase() === subj.toLowerCase());
+    }
+    if (chap !== 'ALL') {
+      filtered = filtered.filter(q => q.chapter.toLowerCase().includes(chap.toLowerCase()));
+    }
+    if (board !== 'ALL') {
+      filtered = filtered.filter(q => q.ncert_mapping && q.ncert_mapping.pyq_tag.toLowerCase().includes(board.toLowerCase()));
+    }
+    if (query) {
+      filtered = filtered.filter(q => 
+        q.chapter.toLowerCase().includes(query) ||
+        q.question_latex.toLowerCase().includes(query) ||
+        (q.ncert_mapping && q.ncert_mapping.ncert_section.toLowerCase().includes(query)) ||
+        (q.ncert_mapping && q.ncert_mapping.page_reference.toLowerCase().includes(query))
+      );
+    }
+
+    renderPyqCards(filtered);
+  };
+
+  if (filterSubject) filterSubject.addEventListener('change', filterAndRenderPyqs);
+  if (filterChapter) filterChapter.addEventListener('change', filterAndRenderPyqs);
+  if (filterBoard) filterBoard.addEventListener('change', filterAndRenderPyqs);
+  if (searchInput) searchInput.addEventListener('input', filterAndRenderPyqs);
+  if (btnRefresh) btnRefresh.addEventListener('click', loadPyqs);
+
+  await loadPyqs();
+}
+
+function renderPyqCards(pyqs) {
+  const container = document.getElementById('class10PyqContainer');
+  if (!container) return;
+
+  if (pyqs.length === 0) {
+    container.innerHTML = `
+      <div class="glass-card" style="text-align:center; padding: 3rem;">
+        <i data-lucide="inbox" style="width:36px; height:36px; color:var(--text-muted); margin: 0 auto 10px; display:block;"></i>
+        <h3 style="color:var(--text-primary); font-size:1.1rem; margin-bottom:4px;">No Questions Match This Filter</h3>
+        <p style="color:var(--text-secondary); font-size:0.85rem;">Try adjusting the subject, chapter, or search keywords.</p>
+      </div>
+    `;
+    initLucideIcons();
+    return;
+  }
+
+  container.innerHTML = '';
+
+  pyqs.forEach((q, index) => {
+    const card = document.createElement('div');
+    card.className = 'glass-card';
+    card.style.position = 'relative';
+    card.style.padding = '1.25rem 1.5rem';
+    card.style.border = '1px solid var(--border-subtle)';
+
+    const mapping = q.ncert_mapping || {};
+    const marks = mapping.marks || 3;
+
+    card.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; margin-bottom: 0.75rem;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span class="pilot-tag" style="background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); border-color: rgba(59, 130, 246, 0.3); font-weight:700;">
+            Q${index + 1} &bull; Class 10 ${q.subject}
+          </span>
+          <span class="pilot-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border-color: rgba(16, 185, 129, 0.3);">
+            ${mapping.pyq_tag || 'Board Exam'}
+          </span>
+          <span class="pilot-tag" style="background: rgba(234, 179, 8, 0.12); color: #eab308; border-color: rgba(234, 179, 8, 0.3);">
+            ${marks} Marks &bull; ${q.difficulty}
+          </span>
+        </div>
+
+        <div style="font-size: 0.75rem; color: var(--text-muted); display:flex; align-items:center; gap:6px;">
+          <i data-lucide="book" style="width:13px; height:13px; color:var(--accent-blue);"></i>
+          <span>${mapping.page_reference || 'NCERT Class 10'}</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 0.5rem; font-size: 0.82rem; color: var(--accent-cyan); font-weight: 600;">
+        Chapter: ${q.chapter} &bull; Section: ${mapping.ncert_section || 'Standard'}
+      </div>
+
+      <div class="pyq-latex-body" style="font-size: 1rem; color: var(--text-primary); margin-bottom: 1rem; line-height: 1.6; padding: 10px 14px; background: rgba(0,0,0,0.18); border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+        ${q.question_latex}
+      </div>
+
+      <!-- Multiple Choice Options (if present) -->
+      ${q.options_latex && q.options_latex.length > 0 ? `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 8px; margin-bottom: 1rem;">
+          ${q.options_latex.map(opt => `
+            <div style="display:flex; align-items:center; gap:10px; padding: 8px 12px; background: ${opt.is_correct ? 'rgba(16, 185, 129, 0.12)' : 'rgba(255,255,255,0.03)'}; border: 1px solid ${opt.is_correct ? 'rgba(16, 185, 129, 0.4)' : 'var(--border-subtle)'}; border-radius: 6px;">
+              <span style="font-weight:700; font-size:0.85rem; color:${opt.is_correct ? '#10b981' : 'var(--text-muted)'}; min-width:18px;">${opt.key}</span>
+              <div style="font-size:0.88rem; flex:1;" class="pyq-math-inline">${opt.latex}</div>
+              ${opt.is_correct ? '<span style="color:#10b981; font-size:0.72rem; font-weight:700;">✓ Correct</span>' : (opt.distractor_trap ? `<span style="color:#ef4444; font-size:0.68rem; max-width:140px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${opt.distractor_trap}">Trap</span>` : '')}
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      <!-- Expandable Rubric & Solution Accordion -->
+      <details style="margin-bottom: 1rem; background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 8px 12px;">
+        <summary style="cursor: pointer; font-weight: 600; font-size: 0.85rem; color: var(--accent-emerald); display: flex; align-items: center; justify-content: space-between;">
+          <span>View CBSE / HPBOSE Step-by-Step Marking Rubric (${marks} Marks)</span>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">Click to expand</span>
+        </summary>
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border-subtle);">
+          <div style="margin-bottom: 8px; font-size: 0.85rem; color: var(--text-secondary);" class="pyq-math-inline">
+            <strong>Full Solution:</strong><br/>
+            ${q.solution_latex}
+          </div>
+
+          ${q.step_rubric && q.step_rubric.length > 0 ? `
+            <div style="margin-top: 8px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 4px;">
+              <strong style="color: #eab308; font-size: 0.78rem;">Marking Scheme Breakdown:</strong>
+              <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                ${q.step_rubric.map(r => `
+                  <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-secondary);">
+                    <span><strong>Step ${r.step}:</strong> ${r.description}</span>
+                    <span style="color:#10b981; font-weight:700;">+${r.marks}M</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      </details>
+
+      <!-- Action Footer -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; border-top: 1px solid var(--border-subtle); padding-top: 0.75rem;">
+        <div style="font-size: 0.75rem; color: var(--text-muted);">
+          Benchmark: ${q.benchmark_time_seconds || 120}s &bull; Bloom Level: ${q.bloom_level || 'APPLICATION'}
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-secondary btn-generate-variant" data-id="${q.id}" data-subject="${q.subject}" data-chapter="${q.chapter}" data-board="${mapping.pyq_tag?.includes('HPBOSE') ? 'HP_BOARD' : 'CBSE'}" style="font-size:0.78rem; padding:5px 10px;">
+            <i data-lucide="sparkles" style="width:13px; height:13px;"></i> Generate AI Variant
+          </button>
+          <button class="btn-primary btn-add-pyq-test" data-id="${q.id}" style="font-size:0.78rem; padding:5px 12px;">
+            <i data-lucide="plus-circle" style="width:13px; height:13px;"></i> Add to Class Test
+          </button>
+        </div>
+      </div>
+    `;
+
+    container.appendChild(card);
+    renderMathInElement(card);
+  });
+
+  // Attach button handlers
+  container.querySelectorAll('.btn-add-pyq-test').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const qid = e.currentTarget.getAttribute('data-id');
+      const qObj = pyqs.find(q => q.id === qid);
+      if (qObj) {
+        state.currentQuestion = qObj;
+        alert(`✅ Question "${qObj.chapter}" added to Active Classroom Assessment Test!\nBenchmark: ${qObj.benchmark_time_seconds}s\nAligned: ${qObj.ncert_mapping?.pyq_tag}`);
+      }
+    });
+  });
+
+  container.querySelectorAll('.btn-generate-variant').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const subj = e.currentTarget.getAttribute('data-subject');
+      const chap = e.currentTarget.getAttribute('data-chapter');
+      const board = e.currentTarget.getAttribute('data-board');
+
+      // Switch to Generator Studio Tab
+      const tabGenBtn = document.getElementById('tabBtnGenerator');
+      if (tabGenBtn) tabGenBtn.click();
+
+      // Pre-fill fields
+      const selGrade = document.getElementById('selectGrade');
+      const selBoard = document.getElementById('selectBoard');
+      const selSubj = document.getElementById('selectSubject');
+      const selTopic = document.getElementById('selectTopic');
+
+      if (selGrade) selGrade.value = '10';
+      if (selBoard) selBoard.value = board || 'CBSE';
+      if (selSubj) selSubj.value = subj || 'Science';
+      if (selTopic) selTopic.value = chap;
+
+      // Trigger generate
+      const btnGen = document.getElementById('btnGenerateQuestion');
+      if (btnGen) btnGen.click();
+    });
+  });
+
+  initLucideIcons();
+}
+
+function getBundledClass10Pyqs() {
+  return [
+    {
+      id: "pyq_10_sci_light_01",
+      grade: "10",
+      subject: "Science",
+      chapter: "Light – Reflection and Refraction",
+      ncert_mapping: {
+        chapter_number: 9,
+        chapter_name: "Light – Reflection and Refraction",
+        ncert_section: "9.2.2 Mirror Formula and Magnification",
+        page_reference: "NCERT Class 10 Science, Pages 168–171",
+        pyq_tag: "CBSE Board Exam 2023 (Set 31/1/1) & HPBOSE 2022",
+        marks: 3
+      },
+      difficulty: "MEDIUM",
+      question_type: "NUMERICAL",
+      bloom_level: "APPLICATION",
+      question_latex: "An object of height $h = 4\\,\\text{cm}$ is placed at a distance of $u = -25\\,\\text{cm}$ in front of a concave mirror of focal length $f = -15\\,\\text{cm}$. At what distance $v$ from the mirror should a screen be placed in order to obtain a sharp real image? Find the nature and height $h'$ of the image formed.",
+      options_latex: [
+        { key: "A", latex: "$v = -37.5\\,\\text{cm}$, $h' = -6\\,\\text{cm}$ (Real and Inverted)", is_correct: true, distractor_trap: null },
+        { key: "B", latex: "$v = +37.5\\,\\text{cm}$, $h' = +6\\,\\text{cm}$ (Virtual and Erect)", is_correct: false, distractor_trap: "Ignored Cartesian sign conventions" },
+        { key: "C", latex: "$v = -9.37\\,\\text{cm}$, $h' = -1.5\\,\\text{cm}$", is_correct: false, distractor_trap: "Used lens formula instead of mirror formula" },
+        { key: "D", latex: "$v = -25.0\\,\\text{cm}$, $h' = -4\\,\\text{cm}$", is_correct: false, distractor_trap: "Assumed object at center of curvature" }
+      ],
+      correct_answer_latex: "v = -37.5\\,\\text{cm},\\; h' = -6\\,\\text{cm}",
+      solution_latex: "1. **Mirror Formula**: $$\\frac{1}{v} + \\frac{1}{u} = \\frac{1}{f} \\implies \\frac{1}{v} = \\frac{1}{-15} - \\frac{1}{-25} = -\\frac{2}{75} \\implies v = -37.5\\,\\text{cm}$$\n2. **Magnification**: $$m = -\\frac{v}{u} = \\frac{h'}{h} \\implies h' = -\\left(\\frac{-37.5}{-25}\\right) \\times 4 = -6\\,\\text{cm}$$",
+      socratic_hints: ["Apply mirror formula with $f=-15\\text{cm}, u=-25\\text{cm}$.", "Calculate magnification $m = -v/u$."],
+      step_rubric: [
+        { step: 1, description: "Mirror formula statement with correct signs", marks: 1.0 },
+        { step: 2, description: "Calculation of $v = -37.5\\text{cm}$", marks: 1.0 },
+        { step: 3, description: "Height $h' = -6\\text{cm}$ and stating Real & Inverted", marks: 1.0 }
+      ],
+      benchmark_time_seconds: 150
+    }
+  ];
 }
 
 // -----------------------------------------------------------------------------
