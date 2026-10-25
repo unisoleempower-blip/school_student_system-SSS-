@@ -1031,42 +1031,651 @@ const CURRICULUM_TAXONOMY = {
   // ==========================================================================
   // 6. CLASS 10 MATHEMATICS - Foundation
   // ==========================================================================
+  // ==========================================================================
+  // 6. CLASS 10 MATHEMATICS - Complete 14 Chapters
+  // As per Latest Rationalised NCERT Textbook & CBSE / HPBOSE Curriculum
+  // ==========================================================================
   'CLASS10_MATHEMATICS': {
     subjectName: 'Class 10 Mathematics',
     stream: 'FOUNDATION',
     grades: ['10'],
     targetExams: ['CBSE_CLASS_10', 'HP_BOARD_CLASS_10'],
+    units: [
+      { unitNumber: 'I', unitName: 'Number Systems', weightageMarks: 6, chapters: [1] },
+      { unitNumber: 'II', unitName: 'Algebra', weightageMarks: 20, chapters: [2, 3, 4, 5] },
+      { unitNumber: 'III', unitName: 'Coordinate Geometry', weightageMarks: 6, chapters: [7] },
+      { unitNumber: 'IV', unitName: 'Geometry', weightageMarks: 15, chapters: [6, 10] },
+      { unitNumber: 'V', unitName: 'Trigonometry', weightageMarks: 12, chapters: [8, 9] },
+      { unitNumber: 'VI', unitName: 'Mensuration', weightageMarks: 10, chapters: [11, 12] },
+      { unitNumber: 'VII', unitName: 'Statistics & Probability', weightageMarks: 11, chapters: [13, 14] }
+    ],
     chapters: [
+      // --- UNIT I: NUMBER SYSTEMS (6 MARKS) ---
       {
         id: 'c10_math_ch01',
         grade: '10',
+        discipline: 'NUMBER SYSTEMS',
+        unit: 'Number Systems (Unit I - 6M)',
         chapterNumber: 1,
         chapterName: 'Real Numbers',
         topics: [
-          { id: 'c10_math_ch01_t1', topicName: 'Fundamental Theorem of Arithmetic (HCF & LCM)', ncertSection: '1.2', highYield: true },
-          { id: 'c10_math_ch01_t2', topicName: 'Revisiting Irrational Numbers (Proofs of sqrt(2), sqrt(3), sqrt(5))', ncertSection: '1.3', highYield: true }
+          {
+            id: 'c10_math_ch01_t1',
+            topicName: 'Introduction',
+            ncertSection: '1.1',
+            highYield: false,
+            subtopics: [
+              'Review of natural numbers, whole numbers, integers, rational numbers',
+              'Introduction to real numbers'
+            ]
+          },
+          {
+            id: 'c10_math_ch01_t2',
+            topicName: 'The Fundamental Theorem of Arithmetic',
+            ncertSection: '1.2',
+            highYield: true,
+            subtopics: [
+              'Statement of the Fundamental Theorem of Arithmetic',
+              'Unique prime factorisation of natural numbers',
+              'Applications: Finding HCF using prime factorisation',
+              'Applications: Finding LCM using prime factorisation',
+              'Relation: HCF × LCM = Product of two numbers'
+            ]
+          },
+          {
+            id: 'c10_math_ch01_t3',
+            topicName: 'Revisiting Irrational Numbers',
+            ncertSection: '1.3',
+            highYield: true,
+            subtopics: [
+              'Definition of irrational numbers',
+              'Proofs of irrationality of √2, √3, √5',
+              'Applications of irrational numbers'
+            ]
+          }
+        ]
+      },
+
+      // --- UNIT II: ALGEBRA (20 MARKS) ---
+      {
+        id: 'c10_math_ch02',
+        grade: '10',
+        discipline: 'ALGEBRA',
+        unit: 'Algebra (Unit II - 20M)',
+        chapterNumber: 2,
+        chapterName: 'Polynomials',
+        topics: [
+          {
+            id: 'c10_math_ch02_t1',
+            topicName: 'Introduction',
+            ncertSection: '2.1',
+            highYield: false,
+            subtopics: [
+              'Definition of a polynomial',
+              'Degree of a polynomial',
+              'Types: linear, quadratic, cubic polynomials'
+            ]
+          },
+          {
+            id: 'c10_math_ch02_t2',
+            topicName: 'Geometrical Meaning of the Zeroes of a Polynomial',
+            ncertSection: '2.2',
+            highYield: true,
+            subtopics: [
+              'Zeroes of a polynomial (roots)',
+              'Graphical representation: intersection with x-axis',
+              'Number of zeroes of a polynomial'
+            ]
+          },
+          {
+            id: 'c10_math_ch02_t3',
+            topicName: 'Relationship between Zeroes and Coefficients of a Polynomial',
+            ncertSection: '2.3',
+            highYield: true,
+            subtopics: [
+              'For a quadratic polynomial ax² + bx + c: Sum of zeroes = –b/a',
+              'For a quadratic polynomial ax² + bx + c: Product of zeroes = c/a',
+              'Finding a quadratic polynomial given its zeroes',
+              'Verification of the relationship'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'c10_math_ch03',
+        grade: '10',
+        discipline: 'ALGEBRA',
+        unit: 'Algebra (Unit II - 20M)',
+        chapterNumber: 3,
+        chapterName: 'Pair of Linear Equations in Two Variables',
+        topics: [
+          {
+            id: 'c10_math_ch03_t1',
+            topicName: 'Introduction',
+            ncertSection: '3.1',
+            highYield: false,
+            subtopics: [
+              'General form: a₁x + b₁y + c₁ = 0 and a₂x + b₂y + c₂ = 0',
+              'Solution of a pair of linear equations'
+            ]
+          },
+          {
+            id: 'c10_math_ch03_t2',
+            topicName: 'Graphical Method of Solution',
+            ncertSection: '3.2',
+            highYield: true,
+            subtopics: [
+              'Plotting the two lines on the Cartesian plane',
+              'Unique solution (intersecting lines: a1/a2 != b1/b2)',
+              'No solution (parallel lines: a1/a2 = b1/b2 != c1/c2)',
+              'Infinitely many solutions (coincident lines: a1/a2 = b1/b2 = c1/c2)',
+              'Consistency / inconsistency of the system'
+            ]
+          },
+          {
+            id: 'c10_math_ch03_t3',
+            topicName: 'Algebraic Methods of Solving a Pair of Linear Equations',
+            ncertSection: '3.3',
+            highYield: true,
+            subtopics: [
+              '3.3.1 Substitution Method (Steps of substitution, solving for one variable)',
+              '3.3.2 Elimination Method (Making coefficients equal, adding/subtracting equations)'
+            ]
+          },
+          {
+            id: 'c10_math_ch03_t4',
+            topicName: 'Situational / Word Problems',
+            ncertSection: '3.4',
+            highYield: true,
+            subtopics: [
+              'Forming equations from real-life situations (ages, digits, speed-distance)',
+              'Solving and interpreting the solution'
+            ]
+          }
         ]
       },
       {
         id: 'c10_math_ch04',
         grade: '10',
+        discipline: 'ALGEBRA',
+        unit: 'Algebra (Unit II - 20M)',
         chapterNumber: 4,
         chapterName: 'Quadratic Equations',
         topics: [
-          { id: 'c10_math_ch04_t1', topicName: 'Standard Form of Quadratic Equations', ncertSection: '4.1', highYield: false },
-          { id: 'c10_math_ch04_t2', topicName: 'Solution of Quadratic Equations by Factorisation', ncertSection: '4.2', highYield: true },
-          { id: 'c10_math_ch04_t3', topicName: 'Nature of Roots & Discriminant (D = b^2 - 4ac)', ncertSection: '4.4', highYield: true }
+          {
+            id: 'c10_math_ch04_t1',
+            topicName: 'Introduction',
+            ncertSection: '4.1',
+            highYield: false,
+            subtopics: [
+              'Standard form: ax² + bx + c = 0 (a ≠ 0)',
+              'Quadratic equation vs quadratic polynomial'
+            ]
+          },
+          {
+            id: 'c10_math_ch04_t2',
+            topicName: 'Quadratic Equations',
+            ncertSection: '4.2',
+            highYield: true,
+            subtopics: [
+              'Identifying quadratic equations',
+              'Roots of a quadratic equation'
+            ]
+          },
+          {
+            id: 'c10_math_ch04_t3',
+            topicName: 'Solution of a Quadratic Equation by Factorisation',
+            ncertSection: '4.3',
+            highYield: true,
+            subtopics: [
+              'Factorisation method (splitting the middle term)',
+              'Solving by equating each linear factor to zero'
+            ]
+          },
+          {
+            id: 'c10_math_ch04_t4',
+            topicName: 'Nature of Roots',
+            ncertSection: '4.4',
+            highYield: true,
+            subtopics: [
+              'Quadratic formula: x = (-b ± √(b² - 4ac)) / (2a)',
+              'Discriminant (D = b² – 4ac)',
+              'D > 0 → two distinct real roots',
+              'D = 0 → two equal real roots',
+              'D < 0 → no real roots',
+              'Situational problems leading to quadratic equations'
+            ]
+          }
         ]
       },
       {
+        id: 'c10_math_ch05',
+        grade: '10',
+        discipline: 'ALGEBRA',
+        unit: 'Algebra (Unit II - 20M)',
+        chapterNumber: 5,
+        chapterName: 'Arithmetic Progressions',
+        topics: [
+          {
+            id: 'c10_math_ch05_t1',
+            topicName: 'Introduction',
+            ncertSection: '5.1',
+            highYield: false,
+            subtopics: [
+              'Motivation for studying sequences',
+              'Examples of arithmetic progressions in daily life'
+            ]
+          },
+          {
+            id: 'c10_math_ch05_t2',
+            topicName: 'Arithmetic Progressions',
+            ncertSection: '5.2',
+            highYield: true,
+            subtopics: [
+              'Definition of an Arithmetic Progression (AP)',
+              'Common difference (d)',
+              'General form of an AP: a, a+d, a+2d...'
+            ]
+          },
+          {
+            id: 'c10_math_ch05_t3',
+            topicName: 'nth Term of an AP',
+            ncertSection: '5.3',
+            highYield: true,
+            subtopics: [
+              'Formula: an = a + (n – 1)d',
+              'Finding any term of an AP',
+              'Finding the number of terms'
+            ]
+          },
+          {
+            id: 'c10_math_ch05_t4',
+            topicName: 'Sum of First n Terms of an AP',
+            ncertSection: '5.4',
+            highYield: true,
+            subtopics: [
+              'Formula: Sn = n/2 [2a + (n – 1)d]',
+              'Alternative form: Sn = n/2 (a + l)',
+              'Applications in solving daily-life problems'
+            ]
+          }
+        ]
+      },
+
+      // --- UNIT IV: GEOMETRY (15 MARKS) ---
+      {
+        id: 'c10_math_ch06',
+        grade: '10',
+        discipline: 'GEOMETRY',
+        unit: 'Geometry (Unit IV - 15M)',
+        chapterNumber: 6,
+        chapterName: 'Triangles',
+        topics: [
+          {
+            id: 'c10_math_ch06_t1',
+            topicName: 'Introduction',
+            ncertSection: '6.1',
+            highYield: false,
+            subtopics: [
+              'Review of congruence of triangles',
+              'Introduction to similar figures'
+            ]
+          },
+          {
+            id: 'c10_math_ch06_t2',
+            topicName: 'Similar Figures',
+            ncertSection: '6.2',
+            highYield: false,
+            subtopics: [
+              'Definition of similar figures',
+              'Difference between congruence and similarity'
+            ]
+          },
+          {
+            id: 'c10_math_ch06_t3',
+            topicName: 'Similarity of Triangles',
+            ncertSection: '6.3',
+            highYield: true,
+            subtopics: [
+              'Definition of similar triangles',
+              'Basic Proportionality Theorem (Thales’ Theorem) – Statement and Proof',
+              'Converse of Basic Proportionality Theorem (Statement only)'
+            ]
+          },
+          {
+            id: 'c10_math_ch06_t4',
+            topicName: 'Criteria for Similarity of Triangles',
+            ncertSection: '6.4',
+            highYield: true,
+            subtopics: [
+              'AA (Angle-Angle) similarity criterion',
+              'SSS (Side-Side-Side) similarity criterion',
+              'SAS (Side-Angle-Side) similarity criterion',
+              'Applications of similarity criteria'
+            ]
+          }
+        ]
+      },
+
+      // --- UNIT III: COORDINATE GEOMETRY (6 MARKS) ---
+      {
+        id: 'c10_math_ch07',
+        grade: '10',
+        discipline: 'COORDINATE GEOMETRY',
+        unit: 'Coordinate Geometry (Unit III - 6M)',
+        chapterNumber: 7,
+        chapterName: 'Coordinate Geometry',
+        topics: [
+          {
+            id: 'c10_math_ch07_t1',
+            topicName: 'Introduction',
+            ncertSection: '7.1',
+            highYield: false,
+            subtopics: [
+              'Review of Cartesian plane and coordinates',
+              'Plotting points'
+            ]
+          },
+          {
+            id: 'c10_math_ch07_t2',
+            topicName: 'Distance Formula',
+            ncertSection: '7.2',
+            highYield: true,
+            subtopics: [
+              'Derivation of distance formula',
+              'Distance between two points: d = √((x₂ - x₁)² + (y₂ - y₁)²)',
+              'Applications: verifying collinearity, finding length of sides of polygons'
+            ]
+          },
+          {
+            id: 'c10_math_ch07_t3',
+            topicName: 'Section Formula',
+            ncertSection: '7.3',
+            highYield: true,
+            subtopics: [
+              'Section formula for internal division: ((m₁x₂ + m₂x₁)/(m₁ + m₂), (m₁y₂ + m₂y₁)/(m₁ + m₂))',
+              'Coordinates of a point dividing a line segment in the ratio m : n',
+              'Mid-point formula (special case: ((x₁+x₂)/2, (y₁+y₂)/2))',
+              'Applications (centroid, ratio finding, collinearity)'
+            ]
+          }
+        ]
+      },
+
+      // --- UNIT V: TRIGONOMETRY (12 MARKS) ---
+      {
         id: 'c10_math_ch08',
         grade: '10',
+        discipline: 'TRIGONOMETRY',
+        unit: 'Trigonometry (Unit V - 12M)',
         chapterNumber: 8,
         chapterName: 'Introduction to Trigonometry',
         topics: [
-          { id: 'c10_math_ch08_t1', topicName: 'Trigonometric Ratios of Acute Angles', ncertSection: '8.2', highYield: true },
-          { id: 'c10_math_ch08_t2', topicName: 'Trigonometric Ratios of Specific Angles (0, 30, 45, 60, 90)', ncertSection: '8.3', highYield: true },
-          { id: 'c10_math_ch08_t3', topicName: 'Trigonometric Identities (sin^2 + cos^2 = 1, 1 + tan^2 = sec^2)', ncertSection: '8.4', highYield: true }
+          {
+            id: 'c10_math_ch08_t1',
+            topicName: 'Introduction',
+            ncertSection: '8.1',
+            highYield: true,
+            subtopics: [
+              'Trigonometric ratios of an acute angle in a right-angled triangle',
+              'Definition of sin θ, cos θ, tan θ, cosec θ, sec θ, cot θ',
+              'Proof that the ratios are well-defined',
+              'Trigonometric ratios of 0° and 90° (motivation)'
+            ]
+          },
+          {
+            id: 'c10_math_ch08_t2',
+            topicName: 'Trigonometric Ratios of Some Specific Angles',
+            ncertSection: '8.2',
+            highYield: true,
+            subtopics: [
+              'Values of trigonometric ratios for 30°, 45°, 60°',
+              'Standard angles table (0°, 30°, 45°, 60°, 90°)'
+            ]
+          },
+          {
+            id: 'c10_math_ch08_t3',
+            topicName: 'Trigonometric Ratios of Complementary Angles',
+            ncertSection: '8.3',
+            highYield: true,
+            subtopics: [
+              'sin (90° – A) = cos A',
+              'cos (90° – A) = sin A',
+              'tan (90° – A) = cot A',
+              'cosec (90° – A) = sec A',
+              'sec (90° – A) = cosec A',
+              'cot (90° – A) = tan A'
+            ]
+          },
+          {
+            id: 'c10_math_ch08_t4',
+            topicName: 'Trigonometric Identities',
+            ncertSection: '8.4',
+            highYield: true,
+            subtopics: [
+              'Proof of sin²A + cos²A = 1',
+              'Derived identity: 1 + tan²A = sec²A',
+              'Derived identity: 1 + cot²A = cosec²A',
+              'Applications of identities in trigonometric proofs'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'c10_math_ch09',
+        grade: '10',
+        discipline: 'TRIGONOMETRY',
+        unit: 'Trigonometry (Unit V - 12M)',
+        chapterNumber: 9,
+        chapterName: 'Some Applications of Trigonometry',
+        topics: [
+          {
+            id: 'c10_math_ch09_t1',
+            topicName: 'Heights and Distances',
+            ncertSection: '9.1',
+            highYield: true,
+            subtopics: [
+              'Angle of elevation',
+              'Angle of depression',
+              'Simple problems involving heights and distances',
+              'Problems restricted to angles 30°, 45°, 60°',
+              'Problems involving not more than two right triangles'
+            ]
+          }
+        ]
+      },
+
+      // --- UNIT IV: GEOMETRY (CIRCLES - 15M CONT.) ---
+      {
+        id: 'c10_math_ch10',
+        grade: '10',
+        discipline: 'GEOMETRY',
+        unit: 'Geometry (Unit IV - 15M)',
+        chapterNumber: 10,
+        chapterName: 'Circles',
+        topics: [
+          {
+            id: 'c10_math_ch10_t1',
+            topicName: 'Introduction',
+            ncertSection: '10.1',
+            highYield: false,
+            subtopics: [
+              'Review of circle and related terms',
+              'Tangent to a circle'
+            ]
+          },
+          {
+            id: 'c10_math_ch10_t2',
+            topicName: 'Tangent to a Circle',
+            ncertSection: '10.2',
+            highYield: true,
+            subtopics: [
+              'Definition of a tangent',
+              'Theorem: The tangent at any point of a circle is perpendicular to the radius through the point of contact (Proof)',
+              'Number of tangents from a point on the circle'
+            ]
+          },
+          {
+            id: 'c10_math_ch10_t3',
+            topicName: 'Number of Tangents from a Point on a Circle',
+            ncertSection: '10.3',
+            highYield: true,
+            subtopics: [
+              'Theorem: The lengths of tangents drawn from an external point to a circle are equal (Proof)',
+              'Applications of the tangent theorems'
+            ]
+          }
+        ]
+      },
+
+      // --- UNIT VI: MENSURATION (10 MARKS) ---
+      {
+        id: 'c10_math_ch11',
+        grade: '10',
+        discipline: 'MENSURATION',
+        unit: 'Mensuration (Unit VI - 10M)',
+        chapterNumber: 11,
+        chapterName: 'Areas Related to Circles',
+        topics: [
+          {
+            id: 'c10_math_ch11_t1',
+            topicName: 'Perimeter and Area of a Circle – A Review',
+            ncertSection: '11.1',
+            highYield: false,
+            subtopics: [
+              'Circumference and area formulae (2πr, πr²)'
+            ]
+          },
+          {
+            id: 'c10_math_ch11_t2',
+            topicName: 'Areas of Sector and Segment of a Circle',
+            ncertSection: '11.2',
+            highYield: true,
+            subtopics: [
+              'Area of a sector: (θ/360) × πr²',
+              'Area of a segment: Area of sector - Area of triangle',
+              'Problems restricted to central angles 60°, 90°, 120°',
+              'Problems on areas and perimeter of plane figures involving sectors and segments'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'c10_math_ch12',
+        grade: '10',
+        discipline: 'MENSURATION',
+        unit: 'Mensuration (Unit VI - 10M)',
+        chapterNumber: 12,
+        chapterName: 'Surface Areas and Volumes',
+        topics: [
+          {
+            id: 'c10_math_ch12_t1',
+            topicName: 'Introduction',
+            ncertSection: '12.1',
+            highYield: false,
+            subtopics: [
+              'Surface areas and volumes of basic solids (review)'
+            ]
+          },
+          {
+            id: 'c10_math_ch12_t2',
+            topicName: 'Surface Area of a Combination of Solids',
+            ncertSection: '12.2',
+            highYield: true,
+            subtopics: [
+              'Combination of any two of: cube, cuboid, sphere, hemisphere, right circular cylinder, right circular cone',
+              'Finding total surface area of combined solids'
+            ]
+          },
+          {
+            id: 'c10_math_ch12_t3',
+            topicName: 'Volume of a Combination of Solids',
+            ncertSection: '12.3',
+            highYield: true,
+            subtopics: [
+              'Volume of combination of two solids',
+              'Conversion of one solid into another',
+              'Application problems'
+            ]
+          }
+        ]
+      },
+
+      // --- UNIT VII: STATISTICS & PROBABILITY (11 MARKS) ---
+      {
+        id: 'c10_math_ch13',
+        grade: '10',
+        discipline: 'STATISTICS',
+        unit: 'Statistics & Probability (Unit VII - 11M)',
+        chapterNumber: 13,
+        chapterName: 'Statistics',
+        topics: [
+          {
+            id: 'c10_math_ch13_t1',
+            topicName: 'Introduction',
+            ncertSection: '13.1',
+            highYield: false,
+            subtopics: [
+              'Review of mean, median, mode of ungrouped data'
+            ]
+          },
+          {
+            id: 'c10_math_ch13_t2',
+            topicName: 'Mean of Grouped Data',
+            ncertSection: '13.2',
+            highYield: true,
+            subtopics: [
+              'Direct method: x̄ = Σ(fi·xi) / Σfi',
+              'Assumed mean method: x̄ = a + Σ(fi·di) / Σfi',
+              'Step-deviation method: x̄ = a + (Σ(fi·ui) / Σfi) × h'
+            ]
+          },
+          {
+            id: 'c10_math_ch13_t3',
+            topicName: 'Mode of Grouped Data',
+            ncertSection: '13.3',
+            highYield: true,
+            subtopics: [
+              'Formula for mode: l + ((f₁ - f₀) / (2f₁ - f₀ - f₂)) × h',
+              'Modal class identification'
+            ]
+          },
+          {
+            id: 'c10_math_ch13_t4',
+            topicName: 'Median of Grouped Data',
+            ncertSection: '13.4',
+            highYield: true,
+            subtopics: [
+              'Cumulative frequency (less than type)',
+              'Formula for median: l + (((n/2) - cf) / f) × h',
+              'Median class identification',
+              'Empirical relationship: 3 Median = Mode + 2 Mean',
+              'Note: Bimodal situations to be avoided'
+            ]
+          }
+        ]
+      },
+      {
+        id: 'c10_math_ch14',
+        grade: '10',
+        discipline: 'PROBABILITY',
+        unit: 'Statistics & Probability (Unit VII - 11M)',
+        chapterNumber: 14,
+        chapterName: 'Probability',
+        topics: [
+          {
+            id: 'c10_math_ch14_t1',
+            topicName: 'Probability – A Theoretical Approach',
+            ncertSection: '14.1',
+            highYield: true,
+            subtopics: [
+              'Classical definition of probability',
+              'Probability of an event P(E) = Number of favourable outcomes / Total number of outcomes',
+              'Simple problems on finding the probability of an event',
+              'Experiments with equally likely outcomes (coins, dice, pack of 52 cards)',
+              'Connection with probability concepts from Class 9'
+            ]
+          }
         ]
       }
     ]
