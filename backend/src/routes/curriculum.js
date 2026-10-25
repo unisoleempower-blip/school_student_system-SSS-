@@ -122,6 +122,7 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
       stream: taxonomy.stream,
       targetExams: taxonomy.targetExams,
       units: taxonomy.units || [],
+      boardHighYieldSummary: taxonomy.boardHighYieldSummary || null,
       totalChapters: enrichedChapters.length,
       chapters: enrichedChapters
     });

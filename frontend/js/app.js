@@ -679,6 +679,73 @@ async function setupClass10PyqExplorer() {
 
     accordionContainer.innerHTML = '';
 
+    // Render Board High-Yield Blueprint Summary Card if available for the subject
+    if (currentCurriculumTaxonomy.boardHighYieldSummary && !query) {
+      const bys = currentCurriculumTaxonomy.boardHighYieldSummary;
+      const summaryCard = document.createElement('div');
+      summaryCard.className = 'curriculum-blueprint-card';
+      summaryCard.style.cssText = 'background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(99, 102, 241, 0.08)); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;';
+      summaryCard.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; display:inline-flex; align-items:center; gap:4px;">
+              <i data-lucide="award" style="width:13px; height:13px;"></i> Board High-Yield Blueprint
+            </span>
+            <span style="font-weight:600; color:var(--text-primary); font-size:0.95rem;">${bys.examBoard || 'CBSE Class 12 Board Exam Priority Matrix'}</span>
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-muted); background: rgba(255,255,255,0.05); padding: 3px 8px; border-radius: 4px;">80 Marks Theory Breakdown</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px;">
+          <!-- 5-Mark Guarantees -->
+          <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 12px;">
+            <div style="display:flex; align-items:center; gap:6px; font-weight:600; color: #f87171; font-size: 0.85rem; margin-bottom: 8px;">
+              <i data-lucide="zap" style="width:14px; height:14px;"></i> Guaranteed 5-Mark Questions (20M Total)
+            </div>
+            <ul style="margin:0; padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5;">
+              ${(bys.fiveMarkGuarantees || []).map(item => `
+                <li style="margin-bottom: 6px;">
+                  <strong style="color:var(--text-primary);">${item.topic}</strong>: ${item.detail} 
+                  <span style="display:block; font-size:0.7rem; color:var(--accent-blue);">${item.chapter}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+
+          <!-- 4-Mark Case Studies -->
+          <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 8px; padding: 12px;">
+            <div style="display:flex; align-items:center; gap:6px; font-weight:600; color: #c084fc; font-size: 0.85rem; margin-bottom: 8px;">
+              <i data-lucide="file-text" style="width:14px; height:14px;"></i> Case Study Archetypes (12M Total)
+            </div>
+            <ul style="margin:0; padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5;">
+              ${(bys.caseStudyFourMark || []).map(item => `
+                <li style="margin-bottom: 6px;">
+                  <strong style="color:var(--text-primary);">${item.topic}</strong>: ${item.detail}
+                  <span style="display:block; font-size:0.7rem; color:var(--accent-purple);">${item.chapter}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+
+          <!-- 3-Mark Heavyweights -->
+          <div style="background: rgba(0,0,0,0.25); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 12px;">
+            <div style="display:flex; align-items:center; gap:6px; font-weight:600; color: #60a5fa; font-size: 0.85rem; margin-bottom: 8px;">
+              <i data-lucide="check-circle-2" style="width:14px; height:14px;"></i> 3-Mark Heavyweights
+            </div>
+            <ul style="margin:0; padding-left: 18px; font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5;">
+              ${(bys.threeMarkHeavyweights || []).map(item => `
+                <li style="margin-bottom: 6px;">
+                  <strong style="color:var(--text-primary);">${item.topic}</strong>: ${item.detail}
+                  <span style="display:block; font-size:0.7rem; color:var(--accent-cyan);">${item.chapter}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        </div>
+      `;
+      accordionContainer.appendChild(summaryCard);
+    }
+
     chapters.forEach((ch, chIdx) => {
       const card = document.createElement('div');
       card.className = `curriculum-chapter-card ${query ? 'expanded' : (chIdx === 0 ? 'expanded' : '')}`;
@@ -717,6 +784,25 @@ async function setupClass10PyqExplorer() {
 
         <!-- Chapter Body: Subtopics List -->
         <div class="chapter-body">
+          ${ch.boardExamFocus ? `
+            <div class="chapter-board-focus" style="margin-bottom: 14px; background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); border-radius: 8px; padding: 10px 14px;">
+              <div style="display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 700; color: #fbbf24; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;">
+                <i data-lucide="compass" style="width: 12px; height: 12px;"></i> Board Exam Priorities & Pitfalls
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; font-size: 0.78rem;">
+                <div style="color: var(--text-secondary);">
+                  <strong style="color: #34d399;">High-Yield Focus:</strong> ${ch.boardExamFocus.highYield}
+                </div>
+                <div style="color: var(--text-secondary);">
+                  <strong style="color: #f87171;">Common Board Trap:</strong> ${ch.boardExamFocus.standardTrap}
+                </div>
+                <div style="color: var(--text-secondary);">
+                  <strong style="color: #60a5fa;">Exam Format:</strong> ${ch.boardExamFocus.questionType}
+                </div>
+              </div>
+            </div>
+          ` : ''}
+
           <div class="topic-list-container">
             ${topicsToRender.map((t, tIdx) => `
               <div class="topic-row ${t.highYield ? 'high-yield' : ''}" id="topic_row_${t.id}">
