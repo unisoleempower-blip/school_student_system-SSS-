@@ -307,11 +307,18 @@ function sanitizeQuestionPayload(data) {
   if (Array.isArray(q.options_latex)) {
     q.options_latex = q.options_latex.map(opt => ({
       ...opt,
-      latex: sanitizeLatexString(opt.latex)
+      latex: sanitizeLatexString(opt.latex),
+      distractor_trap: opt.distractor_trap ? sanitizeLatexString(opt.distractor_trap) : opt.distractor_trap
     }));
   }
   if (Array.isArray(q.socratic_hints)) {
     q.socratic_hints = q.socratic_hints.map(h => sanitizeLatexString(h));
+  }
+  if (Array.isArray(q.step_rubric)) {
+    q.step_rubric = q.step_rubric.map(r => ({
+      ...r,
+      description: sanitizeLatexString(r.description)
+    }));
   }
   return q;
 }

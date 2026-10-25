@@ -507,7 +507,7 @@ function renderCurrentQuestionInPreview() {
         <div class="latex-option-key">${opt.key}</div>
         <div style="flex:1;">
           <div class="opt-formula">${renderLatexString(opt.latex)}</div>
-          ${opt.distractor_trap ? `<span class="distractor-badge">Trap: ${opt.distractor_trap}</span>` : '<span style="color:#10b981;font-size:0.72rem;font-weight:700;">✓ Correct Answer</span>'}
+          ${opt.distractor_trap ? `<span class="distractor-badge">Trap: ${renderLatexString(opt.distractor_trap)}</span>` : '<span style="color:#10b981;font-size:0.72rem;font-weight:700;">✓ Correct Answer</span>'}
         </div>
       `;
       optListEl.appendChild(optItem);
@@ -535,9 +535,9 @@ function renderCurrentQuestionInPreview() {
         <strong style="color: #eab308; font-size: 0.82rem;">CBSE / HPBOSE Step-by-Step Marking Scheme:</strong>
         <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
           ${q.step_rubric.map(r => `
-            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 4px;">
-              <span><strong>Step ${r.step}:</strong> ${r.description}</span>
-              <span style="color: var(--accent-emerald); font-weight: 700;">+${r.marks}M</span>
+            <div style="display: flex; justify-content: space-between; font-size: 0.78rem; padding: 4px 8px; background: rgba(255,255,255,0.03); border-radius: 4px; align-items: center;">
+              <span><strong>Step ${r.step}:</strong> ${renderLatexString(r.description)}</span>
+              <span style="color: var(--accent-emerald); font-weight: 700; white-space: nowrap; margin-left: 8px;">+${r.marks}M</span>
             </div>
           `).join('')}
         </div>
@@ -713,9 +713,9 @@ function renderPyqCards(pyqs) {
               <strong style="color: #eab308; font-size: 0.78rem;">Marking Scheme Breakdown:</strong>
               <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
                 ${q.step_rubric.map(r => `
-                  <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-secondary);">
-                    <span><strong>Step ${r.step}:</strong> ${r.description}</span>
-                    <span style="color:#10b981; font-weight:700;">+${r.marks}M</span>
+                  <div style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-secondary); align-items:center;">
+                    <span><strong>Step ${r.step}:</strong> ${renderLatexString(r.description)}</span>
+                    <span style="color:#10b981; font-weight:700; white-space:nowrap; margin-left:8px;">+${r.marks}M</span>
                   </div>
                 `).join('')}
               </div>
