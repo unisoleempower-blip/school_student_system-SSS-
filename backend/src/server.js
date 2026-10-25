@@ -132,6 +132,10 @@ async function bootstrap() {
   });
 }
 
-bootstrap();
+if (require.main === module) {
+  bootstrap();
+} else {
+  initDatabase();
+}
 
 module.exports = { app, server };
