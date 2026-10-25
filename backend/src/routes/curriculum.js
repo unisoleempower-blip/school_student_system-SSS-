@@ -323,7 +323,8 @@ router.post('/generate-test', async (req, res) => {
       mode = 'QUIZ',
       questionCount = 5,
       difficulty = 'MEDIUM',
-      title = null
+      title = null,
+      autoAttempt = false
     } = req.body;
 
     const count = Math.min(25, Math.max(1, Number(questionCount) || 5));
@@ -337,6 +338,7 @@ router.post('/generate-test', async (req, res) => {
     let matchingQuestions = allQuestions.filter(q => {
       const qChap = (q.chapter || q.chapter_name || '').toLowerCase().trim();
       const targetChap = (chapterName || '').toLowerCase().trim();
+      if (!qChap || !targetChap) return false;
       const chapMatch = qChap === targetChap || qChap.includes(targetChap) || targetChap.includes(qChap);
       if (!chapMatch) return false;
 
@@ -424,37 +426,54 @@ router.post('/generate-test', async (req, res) => {
     if (!inMemoryStore.assessments) inMemoryStore.assessments = [];
     inMemoryStore.assessments.unshift(newAssessment);
 
-    // Auto-enroll and seed realistic classroom submissions for instant analytics
     const classStudents = (inMemoryStore.users || []).filter(u => u.role === 'STUDENT' && u.grade === String(grade) && u.section === section);
     if (!inMemoryStore.submissions) inMemoryStore.submissions = [];
 
-    classStudents.slice(0, 6).forEach((stu, idx) => {
-      const correctCount = Math.max(1, count - (idx % 3));
-      const score = correctCount * 4;
-      const subRecord = {
-        id: `sub_${newAssessment.id}_${stu.id.slice(0, 8)}`,
-        submissionId: `sub_${newAssessment.id}_${stu.id.slice(0, 8)}`,
-        assessmentId: newAssessment.id,
-        assessmentTitle: finalTitle,
-        studentId: stu.id,
-        studentName: stu.full_name,
-        rollNumber: stu.roll_number,
-        totalScore: score,
-        score: score,
-        totalMarks: totalMarks,
-        percentage: Math.round((score / totalMarks) * 100),
-        totalTimeSpentSeconds: Math.round(durationMinutes * 60 * (0.6 + (idx * 0.08))),
-        submittedAt: new Date(Date.now() - idx * 600000).toISOString(),
-        answers: selectedQuestions.map((q, qIdx) => ({
-          questionIndex: qIdx + 1,
-          questionId: q.id,
-          selectedOption: qIdx < correctCount ? (q.correct_answer_latex || q.correct_answer || 'A') : 'C',
-          isCorrect: qIdx < correctCount,
-          timeSpentSeconds: 65 + (idx * 12) + (qIdx * 10)
-        }))
-      };
-      inMemoryStore.submissions.unshift(subRecord);
-    });
+    // Only seed submissions if autoAttempt is true
+    if (autoAttempt) {
+      classStudents.slice(0, 6).forEach((stu, idx) => {
+        const correctCount = Math.max(1, count - (idx % 3));
+        const score = correctCount * 4;
+        const subRecord = {
+          id: `sub_${newAssessment.id}_${stu.id.slice(0, 8)}`,
+          submissionId: `sub_${newAssessment.id}_${stu.id.slice(0, 8)}`,
+          assessmentId: newAssessment.id,
+          assessmentTitle: finalTitle,
+          studentId: stu.id,
+          studentName: stu.full_name,
+          rollNumber: stu.roll_number,
+          totalScore: score,
+          score: score,
+          totalMarks: totalMarks,
+          percentage: Math.round((score / totalMarks) * 100),
+          totalTimeSpentSeconds: Math.round(durationMinutes * 60 * (0.6 + (idx * 0.08))),
+          submittedAt: new Date(Date.now() - idx * 600000).toISOString(),
+          answers: selectedQuestions.map((q, qIdx) => ({
+            questionIndex: qIdx + 1,
+            questionId: q.id,
+            selectedOption: qIdx < correctCount ? (q.correct_answer_latex || q.correct_answer || 'A') : 'C',
+            isCorrect: qIdx < correctCount,
+            timeSpentSeconds: 65 + (idx * 12) + (qIdx * 10)
+          })),
+          questionBreakdown: selectedQuestions.map((q, qIdx) => ({
+            questionIndex: qIdx + 1,
+            questionId: q.id,
+            subtopic: q.subtopic || q.topic || 'General',
+            selectedOption: qIdx < correctCount ? (q.correct_answer_latex || q.correct_answer || 'A') : 'C',
+            correctAnswer: (q.correct_answer_latex || q.correct_answer || 'A'),
+            isCorrect: qIdx < correctCount,
+            timeSpentSeconds: 65 + (idx * 12) + (qIdx * 10),
+            benchmarkSeconds: q.benchmark_time_seconds || 90,
+            mistakeClassification: {
+              type: qIdx < correctCount ? 'NONE' : (qIdx % 2 === 0 ? 'CONCEPTUAL' : 'CALCULATION'),
+              label: qIdx < correctCount ? 'Mastered' : (qIdx % 2 === 0 ? 'Conceptual Misconception' : 'Calculation Slip'),
+              explanation: qIdx < correctCount ? 'Correct solution.' : 'Minor arithmetic error or misconception.'
+            }
+          }))
+        };
+        inMemoryStore.submissions.unshift(subRecord);
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -462,7 +481,133 @@ router.post('/generate-test', async (req, res) => {
       assessment: newAssessment,
       enrolledStudentsCount: classStudents.length,
       assignedStudentsCount: classStudents.length,
-      assignedStudents: classStudents.map(s => ({ id: s.id, name: s.full_name, roll: s.roll_number }))
+      assignedStudents: classStudents.map(s => ({ id: s.id, name: s.full_name, roll: s.roll_number })),
+      status: autoAttempt ? 'EVALUATED' : 'READY_FOR_ATTEMPT'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 7. POST /api/curriculum/simulate-attempts - Attempt & evaluate test for class students, generating progress dashboard
+router.post('/simulate-attempts', (req, res) => {
+  try {
+    const { assessmentId } = req.body;
+    if (!assessmentId) {
+      return res.status(400).json({ success: false, error: 'assessmentId is required' });
+    }
+
+    const assessment = (inMemoryStore.assessments || []).find(a => a.id === assessmentId);
+    if (!assessment) {
+      return res.status(404).json({ success: false, error: `Assessment "${assessmentId}" not found.` });
+    }
+
+    const grade = String(assessment.grade || '12');
+    const section = assessment.section || '12-NonMed';
+    let classStudents = (inMemoryStore.users || []).filter(u => u.role === 'STUDENT' && u.grade === grade && u.section === section);
+
+    if (classStudents.length === 0) {
+      classStudents = [
+        { id: 'b0000000-0000-0000-0000-000000000001', full_name: 'Aryan Sharma', roll_number: '12-NM-01' },
+        { id: 'b0000000-0000-0000-0000-000000000002', full_name: 'Rohit Negi', roll_number: '12-NM-02' },
+        { id: 'b0000000-0000-0000-0000-000000000003', full_name: 'Kavya Verma', roll_number: '12-NM-03' },
+        { id: 'b0000000-0000-0000-0000-000000000004', full_name: 'Kunal Sharma', roll_number: '12-NM-04' },
+        { id: 'b0000000-0000-0000-0000-000000000005', full_name: 'Divyansh Thakur', roll_number: '12-NM-05' },
+        { id: 'b0000000-0000-0000-0000-000000000006', full_name: 'Akshat Jaswal', roll_number: '12-NM-06' },
+        { id: 'b0000000-0000-0000-0000-000000000007', full_name: 'Rahul Sen', roll_number: '12-NM-07' },
+        { id: 'b0000000-0000-0000-0000-000000000008', full_name: 'Sahil Dhiman', roll_number: '12-NM-08' }
+      ];
+    }
+
+    if (!inMemoryStore.submissions) inMemoryStore.submissions = [];
+    inMemoryStore.submissions = inMemoryStore.submissions.filter(s => s.assessmentId !== assessment.id);
+
+    const qCount = assessment.questions.length;
+    const totalMarks = assessment.totalMarks || (qCount * 4);
+
+    classStudents.forEach((stu, idx) => {
+      let correctRatio = 0.8;
+      if (idx === 0 || idx === 2) correctRatio = 1.0;
+      else if (idx === 1) correctRatio = 0.6;
+      else if (idx === 3) correctRatio = 0.4;
+      else if (idx === 4) correctRatio = 0.75;
+      else if (idx === 5) correctRatio = 0.5;
+      else correctRatio = 0.65;
+
+      const correctCount = Math.max(1, Math.round(qCount * correctRatio));
+      const score = Math.min(totalMarks, Math.max(0, correctCount * 4 - (qCount - correctCount)));
+      const pct = Math.round((score / totalMarks) * 100);
+
+      const qBreakdown = assessment.questions.map((q, qIdx) => {
+        const isCorrect = qIdx < correctCount;
+        const correctOpt = (q.correct_answer_latex || q.correct_answer || 'B').trim();
+        const wrongOpts = (q.options_latex || []).map(o => o.key).filter(k => k !== correctOpt);
+        const selectedOpt = isCorrect ? correctOpt : (wrongOpts[idx % Math.max(1, wrongOpts.length)] || 'C');
+
+        const benchmark = q.benchmark_time_seconds || 90;
+        const timeSpent = Math.round(benchmark * (0.65 + (idx * 0.1) + (qIdx * 0.08)));
+
+        let mistakeType = 'NONE';
+        let mistakeExplanation = 'Accurate conceptual reasoning & calculation.';
+        if (!isCorrect) {
+          if (qIdx % 3 === 0) {
+            mistakeType = 'CONCEPTUAL';
+            mistakeExplanation = 'Misapplied core theorem or misinterpreted physical boundary conditions.';
+          } else if (qIdx % 3 === 1) {
+            mistakeType = 'FORMULA_BASED';
+            mistakeExplanation = 'Formula confusion: wrong proportionality factor or power of distance.';
+          } else {
+            mistakeType = 'CALCULATION';
+            mistakeExplanation = 'Sign convention slip or arithmetic error in powers of ten.';
+          }
+        }
+
+        return {
+          questionIndex: qIdx + 1,
+          questionId: q.id,
+          subtopic: q.subtopic || q.topic || 'General',
+          selectedOption: selectedOpt,
+          correctAnswer: correctOpt,
+          isCorrect,
+          timeSpentSeconds: timeSpent,
+          benchmarkSeconds: benchmark,
+          mistakeClassification: {
+            type: mistakeType,
+            label: isCorrect ? 'Mastered' : (mistakeType === 'CONCEPTUAL' ? 'Conceptual Misconception' : (mistakeType === 'FORMULA_BASED' ? 'Formula Confusion' : 'Calculation Slip')),
+            explanation: mistakeExplanation
+          }
+        };
+      });
+
+      const totalTime = qBreakdown.reduce((sum, item) => sum + item.timeSpentSeconds, 0);
+
+      const subRecord = {
+        submissionId: `sub_${assessment.id}_${stu.id || idx}_${Date.now()}`,
+        assessmentId: assessment.id,
+        assessmentTitle: assessment.title,
+        studentId: stu.id,
+        studentName: stu.full_name || stu.name,
+        rollNumber: stu.roll_number || stu.roll || `12-NM-0${idx + 1}`,
+        grade: assessment.grade,
+        section: assessment.section,
+        totalScore: score,
+        score: score,
+        totalMarks: totalMarks,
+        percentage: pct,
+        totalTimeSpentSeconds: totalTime,
+        submittedAt: new Date(Date.now() - (idx * 180000)).toISOString(),
+        smartCardSummary: `Scored ${pct}% on ${assessment.title}. Solved ${correctCount}/${qCount} correctly with avg pacing of ${Math.round(totalTime / qCount)}s/Q.`,
+        questionBreakdown: qBreakdown
+      };
+
+      inMemoryStore.submissions.unshift(subRecord);
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully evaluated ${classStudents.length} student attempts for ${assessment.title}. Progress dashboard is now ready!`,
+      assessmentId: assessment.id,
+      submissionsCount: classStudents.length
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

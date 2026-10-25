@@ -104,8 +104,11 @@ function decodeHtmlEntities(str) {
 
 function cleanFormula(tex) {
   let clean = decodeHtmlEntities(tex.trim());
+  // Replace double backslashes if present e.g. \\frac -> \frac
+  clean = clean.replace(/\\\\([a-zA-Z]+)/g, '\\$1');
   // Fix unescaped text{...} e.g. text{cm} -> \text{cm}
   clean = clean.replace(/(?<!\\)text\s*\{/g, '\\text{');
+  clean = clean.replace(/(?<!\\)mathrm\s*\{/g, '\\mathrm{');
   clean = clean.replace(/(?<!\\)rm\s*\{/g, '\\mathrm{');
   // Fix unescaped % inside math formulas
   clean = clean.replace(/(?<!\\)%/g, '\\%');
@@ -123,7 +126,14 @@ function cleanFormula(tex) {
 function renderLatexString(rawText) {
   if (!rawText || typeof rawText !== 'string') return '';
 
-  let content = rawText;
+  let content = rawText.trim();
+
+  // If string contains LaTeX commands but is not wrapped in delimiters, auto-wrap
+  if (!content.includes('$') && !content.includes('\\(') && !content.includes('\\[') && !content.includes('\\begin{')) {
+    if (/\\[a-zA-Z]+/.test(content)) {
+      content = `$${content}$`;
+    }
+  }
 
   // 1. Normalize linebreaks from LaTeX notation: \newline, .\newline, or stray leading 'newline'
   content = content.replace(/\.?\\newline/gi, '<br/>');
@@ -2252,12 +2262,13 @@ function advanceQuestion() {
     }, 1200);
   }
 
-  if (examState.currentQuestionIndex < 29) {
+  const totalQ = (examState.questions && examState.questions.length > 0) ? examState.questions.length : 30;
+  if (examState.currentQuestionIndex < totalQ - 1) {
     jumpToQuestion(examState.currentQuestionIndex + 1);
   } else {
     renderPaletteButtons();
     updatePaletteCounts();
-    alert("You have reached the final question (Q30). You can review responses on the palette or click 'Submit Full Assessment'.");
+    alert(`You have reached the final question (Q${totalQ}). You can review responses on the palette or click 'Submit Full Assessment'.`);
   }
 }
 
@@ -2280,8 +2291,9 @@ function renderActiveNtaQuestion() {
   const q = examState.questions[examState.currentQuestionIndex];
   if (!q) return;
 
+  const totalQ = (examState.questions && examState.questions.length > 0) ? examState.questions.length : 30;
   document.getElementById('currentQuestionNum').innerText = q.num;
-  document.getElementById('ntaQuestionTitle').innerHTML = `Question ${q.num} of 30 &bull; ${q.subject} (${q.topic})`;
+  document.getElementById('ntaQuestionTitle').innerHTML = `Question ${q.num} of ${totalQ} &bull; ${q.subject} (${q.topic})`;
 
   const qText = document.getElementById('studentRenderQuestion');
   const optList = document.getElementById('studentRenderOptions');
@@ -2571,6 +2583,22 @@ async function setupStudentAssignedTests() {
       if (btnRoleTeacher) btnRoleTeacher.click();
       const tabSmartReports = document.getElementById('tabBtnSmartReports');
       if (tabSmartReports) tabSmartReports.click();
+    });
+  }
+
+  const btnGoDashboard = document.getElementById('btnGoToClassDashboard');
+  if (btnGoDashboard) {
+    btnGoDashboard.addEventListener('click', async () => {
+      if (modalDiag) modalDiag.classList.remove('active');
+      // Switch to Teacher role & Class Analytics tab
+      const btnRoleTeacher = document.getElementById('btnRoleTeacher');
+      if (btnRoleTeacher) btnRoleTeacher.click();
+      const tabAnalytics = document.getElementById('tabBtnClassAnalytics');
+      if (tabAnalytics) tabAnalytics.click();
+      const asgnId = state.activeAssessment?.id;
+      if (asgnId) {
+        await loadClassAnalytics(asgnId);
+      }
     });
   }
 }
@@ -3079,9 +3107,93 @@ function renderClassAnalyticsCharts(data) {
 }
 
 function renderClassAnalytics(data) {
-  if (!data || !data.classSummary) return;
+  const noticeContainer = document.getElementById('containerClassAnalyticsNotice');
+
+  if (!data) return;
+
+  // Handle case where assessment is created but has 0 submissions yet
+  if (data.hasSubmissions === false || !data.classSummary) {
+    const asgn = data.assessment || {};
+    if (noticeContainer) {
+      noticeContainer.innerHTML = `
+        <div class="pending-attempt-banner">
+          <div class="pending-attempt-info">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+              <span class="pilot-tag" style="background:rgba(59, 130, 246, 0.2); color:var(--accent-blue);">
+                <i data-lucide="clock" style="width:12px;height:12px;display:inline-block;vertical-align:middle;"></i> Ready for Class Attempts
+              </span>
+              <span class="pilot-tag" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">
+                ${asgn.section || 'Class 12th Non-Med'} &bull; ${asgn.totalQuestions || 5} Questions
+              </span>
+            </div>
+            <h3 style="font-size:1.15rem; font-weight:800; color:var(--text-primary); margin:0 0 4px;">
+              ${asgn.title || 'Curriculum Diagnostic Assessment'}
+            </h3>
+            <p style="font-size:0.82rem; color:var(--text-secondary); margin:0;">
+              Questions are prepared in clean LaTeX formatting. Progress analytics and question accuracy charts will be generated after attempting.
+            </p>
+          </div>
+          <div class="pending-attempt-actions">
+            <button type="button" class="btn-attempt-live" onclick="attemptActiveTestInStudentPortal('${asgn.id}')">
+              <i data-lucide="play" style="width:15px;height:15px;"></i> Attempt Test as Student
+            </button>
+            <button type="button" class="btn-simulate-eval" onclick="simulateClassAttemptsAndGenerateDashboard('${asgn.id}')">
+              <i data-lucide="zap" style="width:15px;height:15px;"></i> Submit Class Attempts & Generate Dashboard
+            </button>
+          </div>
+        </div>
+      `;
+      initLucideIcons();
+    }
+
+    // Set placeholder KPIs
+    const kpiAvgScore = document.getElementById('kpiAvgScore');
+    const kpiAvgSub = document.getElementById('kpiAvgSub');
+    const kpiHighestScore = document.getElementById('kpiHighestScore');
+    const kpiHighestStudent = document.getElementById('kpiHighestStudent');
+    const kpiLowestScore = document.getElementById('kpiLowestScore');
+    const kpiLowestStudent = document.getElementById('kpiLowestStudent');
+    const kpiAvgVelocity = document.getElementById('kpiAvgVelocity');
+    const kpiAvgVelocitySub = document.getElementById('kpiAvgVelocitySub');
+
+    if (kpiAvgScore) kpiAvgScore.innerHTML = `-- <span style="font-size:0.9rem; color:var(--text-muted); font-weight:500;">/ ${asgn.totalMarks || 20}</span>`;
+    if (kpiAvgSub) kpiAvgSub.innerText = `0 / 8 Students Attempted (Pending)`;
+    if (kpiHighestScore) kpiHighestScore.innerHTML = `--`;
+    if (kpiHighestStudent) kpiHighestStudent.innerText = `Awaiting test attempts`;
+    if (kpiLowestScore) kpiLowestScore.innerHTML = `--`;
+    if (kpiLowestStudent) kpiLowestStudent.innerText = `Awaiting test attempts`;
+    if (kpiAvgVelocity) kpiAvgVelocity.innerText = `--`;
+    if (kpiAvgVelocitySub) kpiAvgVelocitySub.innerText = `Pacing benchmark: 90s/Q`;
+
+    // Clear charts
+    destroyChart('questionPerf');
+    destroyChart('scoreDist');
+    destroyChart('questionTime');
+    destroyChart('mistakeDist');
+
+    return;
+  }
+
+  // When submissions exist: show success badge if previously pending
+  if (noticeContainer) {
+    noticeContainer.innerHTML = `
+      <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 8px 14px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; flex-wrap: wrap; gap: 8px;">
+        <span style="color: #34d399; font-weight: 600;">
+          <i data-lucide="check-circle" style="width:14px; height:14px; vertical-align:middle; display:inline-block;"></i>
+          Test Attempted &bull; Live Progress Dashboard Generated for <strong>${data.assessment?.title}</strong>
+        </span>
+        <button type="button" class="btn-micro-quiz" onclick="attemptActiveTestInStudentPortal('${data.assessment?.id}')" style="background:rgba(255,255,255,0.06); color:var(--text-primary); border-color:var(--border-subtle);">
+          <i data-lucide="rotate-ccw" style="width:11px;height:11px;"></i> Re-take in Student Portal
+        </button>
+      </div>
+    `;
+    initLucideIcons();
+  }
 
   const { classSummary, assessment, questionAnalytics, highlights, pedagogicalActionPlan, studentRoster } = data;
+
+  // Render Visual Charts
+  renderClassAnalyticsCharts(data);
 
   // 1. KPI Cards
   const kpiAvgScore = document.getElementById('kpiAvgScore');
@@ -4155,7 +4267,8 @@ async function submitGenerateCurriculumTest() {
       mode,
       questionCount,
       difficulty,
-      title
+      title,
+      autoAttempt: false
     };
 
     const res = await fetch('http://localhost:5050/api/curriculum/generate-test', {
@@ -4168,27 +4281,30 @@ async function submitGenerateCurriculumTest() {
       const data = await res.json();
       closeCurriculumTestModal();
 
-      const modeLabel = mode === 'QUIZ' ? 'Speed Quiz' : (mode === 'ASSIGNMENT' ? 'Assignment' : 'Diagnostic Test');
-      const studentCount = data.assignedStudentsCount || 8;
-      
-      alert(`🎉 ${modeLabel} Successfully Created & Assigned!\n\n` +
+      const modeLabel = mode === 'QUIZ' ? 'Speed Quiz' : (mode === 'ASSIGNMENT' ? 'Homework Assignment' : 'Diagnostic Test');
+      const studentCount = data.assignedStudentsCount || currentClass?.students?.length || 8;
+      const asgnId = data.assessment?.id;
+
+      // Ask teacher if they want to attempt now as student, or view in dashboard
+      const wantAttempt = confirm(
+        `🎉 ${modeLabel} Successfully Created & Assigned!\n\n` +
         `• Title: "${data.assessment?.title || title}"\n` +
         `• Chapter: ${scope.chapterTitle}\n` +
-        `• Questions: ${data.assessment?.questions?.length || questionCount} Questions\n` +
+        `• Questions: ${data.assessment?.questions?.length || questionCount} Questions (Formatted in Clean LaTeX)\n` +
         `• Assigned to: ${studentCount} Students in ${currentClass.name || teacherBuilderState.selectedClassId}\n\n` +
-        `Initial student submissions and diagnostics are ready! Switching to Class Dashboard...`);
+        `Would you like to Attempt this test right now in the Student Portal?\n\n` +
+        `[OK] -> Take / Attempt Test in Student Portal\n` +
+        `[Cancel] -> View in Class Dashboard`
+      );
 
-      // Switch to Class Analytics Tab and load this test
-      if (data.assessment && data.assessment.id) {
-        await loadClassAnalytics(data.assessment.id);
+      if (wantAttempt) {
+        attemptActiveTestInStudentPortal(asgnId);
       } else {
-        await loadClassAnalytics();
-      }
-
-      // Switch to Class Dashboard tab
-      const classDashTabBtn = document.getElementById('tabBtnClassAnalytics');
-      if (classDashTabBtn) {
-        classDashTabBtn.click();
+        await loadClassAnalytics(asgnId);
+        const classDashTabBtn = document.getElementById('tabBtnClassAnalytics');
+        if (classDashTabBtn) {
+          classDashTabBtn.click();
+        }
       }
     } else {
       throw new Error(`Server returned ${res.status}`);
@@ -4205,6 +4321,72 @@ async function submitGenerateCurriculumTest() {
   }
 }
 
+async function attemptActiveTestInStudentPortal(assessmentId) {
+  await loadStudentAssignedTests();
+
+  let targetTest = state.publishedAssessments.find(a => a.id === assessmentId);
+  if (!targetTest && assessmentId) {
+    try {
+      const res = await fetch(`http://localhost:5050/api/assessments/${assessmentId}`);
+      if (res.ok) {
+        const d = await res.json();
+        targetTest = d.assessment;
+      }
+    } catch (e) {}
+  }
+
+  // Switch to Student Role
+  const btnRoleStudent = document.getElementById('btnRoleStudent');
+  if (btnRoleStudent) btnRoleStudent.click();
+
+  if (targetTest) {
+    startAssignedTest(targetTest);
+  }
+
+  const selectStudent = document.getElementById('selectStudentAssignedTest');
+  if (selectStudent && assessmentId) {
+    selectStudent.value = assessmentId;
+  }
+}
+
+async function simulateClassAttemptsAndGenerateDashboard(assessmentId) {
+  if (!assessmentId) return;
+
+  const noticeContainer = document.getElementById('containerClassAnalyticsNotice');
+  if (noticeContainer) {
+    noticeContainer.innerHTML = `
+      <div class="pending-attempt-banner" style="background: rgba(16, 185, 129, 0.12); border-color: #10b981;">
+        <i data-lucide="loader-2" class="spin" style="width:22px; height:22px; color:#10b981;"></i>
+        <div style="flex:1;">
+          <strong style="color:#34d399;">Evaluating Class Student Submissions...</strong>
+          <p style="font-size:0.8rem; color:var(--text-secondary); margin:2px 0 0;">
+            Grading answers, benchmarking timing, and generating question diagnostic progress charts...
+          </p>
+        </div>
+      </div>
+    `;
+    initLucideIcons();
+  }
+
+  try {
+    const res = await fetch('http://localhost:5050/api/curriculum/simulate-attempts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ assessmentId })
+    });
+
+    if (res.ok) {
+      await loadClassAnalytics(assessmentId);
+    } else {
+      throw new Error(`API returned ${res.status}`);
+    }
+  } catch (err) {
+    console.error('Error simulating attempts:', err);
+    alert('Could not simulate student attempts. Please check backend connection.');
+    await loadClassAnalytics(assessmentId);
+  }
+}
+
 // Global exposure for inline onclick handlers
 window.toggleChapterAccordion = toggleChapterAccordion;
 window.selectCurriculumSubject = selectCurriculumSubject;
@@ -4214,6 +4396,8 @@ window.openGenTestForSingleSubtopic = openGenTestForSingleSubtopic;
 window.closeCurriculumTestModal = closeCurriculumTestModal;
 window.submitGenerateCurriculumTest = submitGenerateCurriculumTest;
 window.setupTeacherTestBuilder = setupTeacherTestBuilder;
+window.attemptActiveTestInStudentPortal = attemptActiveTestInStudentPortal;
+window.simulateClassAttemptsAndGenerateDashboard = simulateClassAttemptsAndGenerateDashboard;
 
 
 

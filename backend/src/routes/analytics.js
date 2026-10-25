@@ -241,6 +241,7 @@ router.get('/class-dashboard', (req, res) => {
 
     res.json({
       success: true,
+      hasSubmissions: true,
       assessment: {
         id: assessment.id,
         title: assessment.title,

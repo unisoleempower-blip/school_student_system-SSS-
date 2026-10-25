@@ -749,6 +749,9 @@
           </div>
         </div>
 
+        <!-- Pending / Active Test Notification Banner -->
+        <div id="containerClassAnalyticsNotice"></div>
+
         <!-- 1. Class Performance Overview (KPI Cards) -->
         <div class="analytics-kpi-grid" id="analyticsKpiGrid">
           <div class="analytics-kpi-card">
@@ -1548,11 +1551,16 @@
         </div>
       </div>
 
-      <div style="padding: 12px 18px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle);">
+      <div style="padding: 12px 18px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 8px;">
         <span style="font-size: 0.75rem; color: var(--text-muted);">Real-time stream recorded to Kafka Bus</span>
-        <button class="btn-primary" id="btnGoToSmartReport" style="font-size: 0.85rem; padding: 8px 16px; background: linear-gradient(135deg, #3b82f6, #06b6d4);">
-          <i data-lucide="clipboard-check" style="width: 15px; height: 15px;"></i> View Updated Smart Report Card
-        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-primary" id="btnGoToSmartReport" style="font-size: 0.82rem; padding: 7px 14px; background: linear-gradient(135deg, #3b82f6, #06b6d4);">
+            <i data-lucide="clipboard-check" style="width: 14px; height: 14px;"></i> Smart Report
+          </button>
+          <button class="btn-primary" id="btnGoToClassDashboard" style="font-size: 0.82rem; padding: 7px 14px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 700;">
+            <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i> View Class Progress Dashboard
+          </button>
+        </div>
       </div>
     </div>
   </div>

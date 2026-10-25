@@ -152,10 +152,20 @@ router.post('/:id/submit', async (req, res) => {
     const questionBreakdown = [];
     let totalTimeSpent = 0;
 
+    let normalizedAnswers = [];
+    if (Array.isArray(answers)) {
+      normalizedAnswers = answers;
+    } else if (answers && typeof answers === 'object') {
+      normalizedAnswers = Object.entries(answers).map(([k, v]) => {
+        if (typeof v === 'object' && v !== null) return { questionIndex: Number(k), ...v };
+        return { questionIndex: Number(k), selectedOption: String(v) };
+      });
+    }
+
     // Evaluate each question
     for (let i = 0; i < assessment.questions.length; i++) {
       const q = assessment.questions[i];
-      const studentAns = answers.find(a => a.questionId === q.id) || answers[i] || {};
+      const studentAns = normalizedAnswers.find(a => a.questionId === q.id || a.questionIndex === (i + 1)) || normalizedAnswers[i] || {};
       const selected = studentAns.selectedOption || null;
       const timeSpent = Number(studentAns.timeSpentSeconds) || 45;
       const hesitation = Number(studentAns.hesitationSeconds) || 8;
@@ -231,15 +241,16 @@ router.post('/:id/submit', async (req, res) => {
 
     // Save to inMemoryStore.submissions for real-time teacher classroom analytics
     if (!inMemoryStore.submissions) inMemoryStore.submissions = [];
+    const studentUser = (inMemoryStore.users || []).find(u => u.id === studentId);
     const submissionRecord = {
       submissionId: `sub_${id}_${studentId}_${Date.now()}`,
       assessmentId: id,
       assessmentTitle: assessment.title,
       studentId,
-      studentName,
-      rollNumber: student?.roll_number || '11-S-24',
-      grade: assessment.grade || '10',
-      section: assessment.section || 'Science-A',
+      studentName: studentName || studentUser?.full_name || 'Aryan Sharma',
+      rollNumber: studentUser?.roll_number || '12-NM-01',
+      grade: assessment.grade || '12',
+      section: assessment.section || '12-NonMed',
       totalScore,
       totalMarks,
       percentage,
