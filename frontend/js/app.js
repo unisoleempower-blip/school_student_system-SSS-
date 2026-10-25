@@ -94,22 +94,40 @@ function decodeHtmlEntities(str) {
     .replace(/&#39;/g, "'");
 }
 
+function cleanFormula(tex) {
+  let clean = decodeHtmlEntities(tex.trim());
+  // Fix unescaped text{...} e.g. text{cm} -> \text{cm}
+  clean = clean.replace(/(?<!\\)text\s*\{/g, '\\text{');
+  clean = clean.replace(/(?<!\\)rm\s*\{/g, '\\mathrm{');
+  // Fix unescaped % inside math formulas
+  clean = clean.replace(/(?<!\\)%/g, '\\%');
+  return clean;
+}
+
 /**
  * Universal robust LaTeX renderer using KaTeX
  * Handles:
  * 1. LaTeX environments: \begin{equation}...\end{equation}, \begin{align}...\end{align}
- * 2. Display math: $$...$$, \[...\] (including trailing LLM backslashes e.g. \] \ )
+ * 2. Display math: $$...$$, \[...\], [ math \], and multi-step derivations
  * 3. Inline math: \(...\), $...$
- * 4. Automatic entity decoding and newline derivation formatting
+ * 4. Automatic entity decoding, text{...} repair, and newline derivation formatting
  */
 function renderLatexString(rawText) {
   if (!rawText || typeof rawText !== 'string') return '';
 
   let content = rawText;
 
-  // 1. Render LaTeX environments: \begin{...}...\end{...}
+  // 1. Normalize linebreaks from LaTeX notation: \newline, .\newline, or stray leading 'newline'
+  content = content.replace(/\.?\\newline/gi, '<br/>');
+  content = content.replace(/(^|<br\/>|\n|[.;:])\s*newline\b\s*/gi, '$1<br/>');
+
+  // 2. Normalize display brackets with LaTeX commands inside: e.g. '[ math \]' or '[ \frac{...} ]' -> '\[ math \]'
+  content = content.replace(/(^|\s)\[\s*([^\[\]]*?\\[a-zA-Z]+[^\[\]]*?)\s*\\?\]/g, '$1\\[$2\\]');
+  content = content.replace(/(^|\s)\[\s*([^\[\]]+?)\s*\\\]/g, '$1\\[$2\\]');
+
+  // 3. Render LaTeX environments: \begin{...}...\end{...}
   content = content.replace(/\\begin\{(equation|align|aligned|gather|matrix|pmatrix|bmatrix)\}([\s\S]*?)\\end\{\1\}/g, (match) => {
-    const cleanTex = decodeHtmlEntities(match.trim());
+    const cleanTex = cleanFormula(match);
     if (window.katex) {
       try {
         return window.katex.renderToString(cleanTex, { displayMode: true, throwOnError: false });
@@ -118,9 +136,9 @@ function renderLatexString(rawText) {
     return `<div class="katex-display-fallback">${cleanTex}</div>`;
   });
 
-  // 2. Render Display Math: $$...$$
+  // 4. Render Display Math: $$...$$
   content = content.replace(/\$\$([\s\S]*?)\$\$/g, (match, tex) => {
-    const cleanTex = decodeHtmlEntities(tex.trim());
+    const cleanTex = cleanFormula(tex);
     if (window.katex) {
       try {
         return window.katex.renderToString(cleanTex, { displayMode: true, throwOnError: false });
@@ -129,9 +147,9 @@ function renderLatexString(rawText) {
     return `<div class="katex-display-fallback">${cleanTex}</div>`;
   });
 
-  // 3. Render Display Math: \[...\] (and consume optional trailing \ from LLM generation)
+  // 5. Render Display Math: \[...\] (and consume optional trailing \ from LLM generation)
   content = content.replace(/\\\[([\s\S]*?)\\\](?:\\)?/g, (match, tex) => {
-    const cleanTex = decodeHtmlEntities(tex.trim());
+    const cleanTex = cleanFormula(tex);
     if (window.katex) {
       try {
         return window.katex.renderToString(cleanTex, { displayMode: true, throwOnError: false });
@@ -140,9 +158,9 @@ function renderLatexString(rawText) {
     return `<div class="katex-display-fallback">${cleanTex}</div>`;
   });
 
-  // 4. Render Inline Math: \(...\)
+  // 6. Render Inline Math: \(...\)
   content = content.replace(/\\\(([\s\S]*?)\\\)/g, (match, tex) => {
-    const cleanTex = decodeHtmlEntities(tex.trim());
+    const cleanTex = cleanFormula(tex);
     if (window.katex) {
       try {
         return window.katex.renderToString(cleanTex, { displayMode: false, throwOnError: false });
@@ -151,9 +169,9 @@ function renderLatexString(rawText) {
     return `<span class="katex-inline-fallback">${cleanTex}</span>`;
   });
 
-  // 5. Render Inline Math: $...$
+  // 7. Render Inline Math: $...$
   content = content.replace(/(^|[^\$])\$([^\$\n]+?)\$(?!\$)/g, (match, prefix, tex) => {
-    const cleanTex = decodeHtmlEntities(tex.trim());
+    const cleanTex = cleanFormula(tex);
     let rendered = `<span class="katex-inline-fallback">${cleanTex}</span>`;
     if (window.katex) {
       try {
@@ -163,7 +181,7 @@ function renderLatexString(rawText) {
     return `${prefix}${rendered}`;
   });
 
-  // 6. Post-processing text outside rendered math:
+  // 8. Post-processing text outside rendered math:
   content = content.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   content = content.replace(/\\(\s*[\r\n]+)/g, '$1');
   content = content.replace(/([:;,])\s*\\\s*/g, '$1 ');
@@ -193,6 +211,7 @@ function renderMathInElement(element) {
         }
       }, 100);
     }
+    return;
   }
 
   element.innerHTML = renderLatexString(element.innerHTML);
