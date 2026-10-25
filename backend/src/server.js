@@ -110,7 +110,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, error: 'Internal Server Error', details: err.message });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050;
 
 async function bootstrap() {
   console.log('------------------------------------------------------------');

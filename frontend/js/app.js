@@ -187,7 +187,7 @@ function setupAiGenerator() {
 
     try {
       // Fetch from backend API or use intelligent generator
-      const res = await fetch('http://localhost:5000/api/questions/generate-ai', {
+      const res = await fetch('http://localhost:5050/api/questions/generate-ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ grade, board, subject, topic, difficulty, questionType })
@@ -408,7 +408,7 @@ function setupStudentMode() {
 
     // Post telemetry to backend and broadcast via WebSocket
     try {
-      fetch('http://localhost:5000/api/telemetry/record', {
+      fetch('http://localhost:5050/api/telemetry/record', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -576,7 +576,7 @@ function setupHandwrittenUploadAndVisionAi() {
     initLucideIcons();
 
     try {
-      const res = await fetch('http://localhost:5000/api/upload/handwritten-sheet', {
+      const res = await fetch('http://localhost:5050/api/upload/handwritten-sheet', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -644,7 +644,7 @@ let wsClient = null;
 
 function setupWebSocketClient() {
   try {
-    wsClient = new WebSocket('ws://localhost:5000');
+    wsClient = new WebSocket('ws://localhost:5050');
 
     wsClient.onopen = () => {
       console.log('[WEBSOCKET CLIENT] Connected to HAPS telemetry server.');
@@ -756,7 +756,7 @@ function setupWhatsAppNotificationModal() {
       initLucideIcons();
 
       try {
-        await fetch('http://localhost:5000/api/notifications/whatsapp-dispatch', {
+        await fetch('http://localhost:5050/api/notifications/whatsapp-dispatch', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
