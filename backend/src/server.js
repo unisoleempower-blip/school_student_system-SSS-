@@ -1,0 +1,113 @@
+// ============================================================================
+// HAPS-AI SCHOLAR ASSISTANT: PRIMARY API GATEWAY & WEBSOCKET SERVER
+// Him Academy Public School (HAPS), Hamirpur
+// ============================================================================
+
+require('dotenv').config();
+const http = require('http');
+const express = require('express');
+const cors = require('cors');
+const { WebSocketServer } = require('ws');
+
+const { initDatabase } = require('./config/database');
+const { initKafkaProducer } = require('./kafka/producer');
+const { initKafkaConsumer, setBroadcastCallback } = require('./kafka/consumer');
+
+const questionsRouter = require('./routes/questions');
+const telemetryRouter = require('./routes/telemetry');
+const analyticsRouter = require('./routes/analytics');
+const handwrittenRouter = require('./routes/handwritten');
+const reportsRouter = require('./routes/reports');
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
+
+// Middleware
+app.use(cors());
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
+
+// WebSocket Client Hub for Real-time Classroom Telemetry
+const wsClients = new Set();
+
+wss.on('connection', (ws) => {
+  wsClients.add(ws);
+  console.log(`[WEBSOCKET] Client connected. Total active streams: ${wsClients.size}`);
+
+  ws.send(JSON.stringify({
+    type: 'CONNECTION_ESTABLISHED',
+    message: 'Connected to HAPS-AI Real-Time Telemetry Stream Bus',
+    timestamp: new Date().toISOString()
+  }));
+
+  ws.on('close', () => {
+    wsClients.delete(ws);
+    console.log(`[WEBSOCKET] Client disconnected. Remaining: ${wsClients.size}`);
+  });
+});
+
+// Broadcast helper for Kafka consumer events
+function broadcastToClients(data) {
+  const messageStr = JSON.stringify(data);
+  for (const client of wsClients) {
+    if (client.readyState === 1) { // OPEN
+      client.send(messageStr);
+    }
+  }
+}
+
+setBroadcastCallback(broadcastToClients);
+
+// Health Check Endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'HEALTHY',
+    service: 'HAPS-AI Scholar Assistant API Gateway',
+    school: 'Him Academy Public School, Hamirpur',
+    curriculumSupport: ['HP_BOARD', 'CBSE', 'JEE_MAIN', 'JEE_ADVANCED', 'NEET', 'OLYMPIAD'],
+    timestamp: new Date().toISOString(),
+    uptimeSeconds: Math.round(process.uptime()),
+    activeWebSockets: wsClients.size
+  });
+});
+
+// Mount Routes
+app.use('/api/questions', questionsRouter);
+app.use('/api/telemetry', telemetryRouter);
+app.use('/api/analytics', analyticsRouter);
+app.use('/api/handwritten', handwrittenRouter);
+app.use('/api/reports', reportsRouter);
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({ success: false, error: 'Endpoint not found on HAPS-AI Gateway' });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('[UNCAUGHT SERVER ERROR]', err.stack);
+  res.status(500).json({ success: false, error: 'Internal Server Error', details: err.message });
+});
+
+const PORT = process.env.PORT || 5000;
+
+async function bootstrap() {
+  console.log('------------------------------------------------------------');
+  console.log('🚀 BOOTSTRAPPING HAPS-AI SCHOLAR ASSISTANT (STAGING/PROD)');
+  console.log('------------------------------------------------------------');
+
+  initDatabase();
+  await initKafkaProducer();
+  await initKafkaConsumer();
+
+  server.listen(PORT, () => {
+    console.log(`[SERVER] HAPS-AI Gateway listening on port ${PORT}`);
+    console.log(`[SERVER] Health endpoint: http://localhost:${PORT}/api/health`);
+    console.log(`[SERVER] WebSocket server live at ws://localhost:${PORT}`);
+  });
+}
+
+bootstrap();
+
+module.exports = { app, server };

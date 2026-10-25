@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="HAPS-AI Scholar Assistant: AI Academic Diagnosis, Sub-Second Telemetry & Assessment Platform for Him Academy Public School (HP Board, CBSE, JEE, NEET, Olympiads).">
+  <meta name="theme-color" content="#0a0f1d">
+  <title>HAPS-AI Scholar Assistant | Academic Diagnosis & Telemetry Platform</title>
+
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- KaTeX for pristine LaTeX mathematical rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.css" integrity="sha384-wcIxkf4k558AjM3Yz3BBFQUbk/zgIYC2R0QpeeEl+kDmsCEhQxJwGKVDR9Ne3UxR" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.10/dist/katex.min.js" integrity="sha384-hIoBPJpTUs74ddyc4bFZSM1TVlQDA60VBbJS0oA934VSz824E13de9990mDfU71u" crossorigin="anonymous"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- ========================================================================
+       TOP NAVIGATION BAR
+       ======================================================================== -->
+  <header class="top-navbar" id="mainHeader">
+    <div class="brand-section">
+      <div class="brand-logo-badge" id="schoolLogo">HAPS</div>
+      <div class="brand-info">
+        <h1>HAPS-AI Scholar Assistant</h1>
+        <p>Him Academy Public School &bull; Hamirpur (HP)</p>
+      </div>
+      <span class="pilot-tag" id="pilotBadge">14-Day Pilot Active</span>
+    </div>
+
+    <!-- Role Switcher: Teacher vs Student vs Leadership -->
+    <nav class="role-switcher-container" aria-label="Portal Role Navigation" id="roleSwitcherNav">
+      <button class="role-btn active" id="btnRoleTeacher" data-role="teacher">
+        <i data-lucide="graduation-cap" style="width:16px; height:16px;"></i>
+        Teacher Co-Pilot
+      </button>
+      <button class="role-btn" id="btnRoleStudent" data-role="student">
+        <i data-lucide="user-check" style="width:16px; height:16px;"></i>
+        Student Adaptive
+      </button>
+      <button class="role-btn" id="btnRoleDirector" data-role="director">
+        <i data-lucide="bar-chart-3" style="width:16px; height:16px;"></i>
+        Pilot Intelligence
+      </button>
+    </nav>
+
+    <div class="nav-controls">
+      <div class="telemetry-ticker" id="kafkaStatusTicker">
+        <span style="color:#10b981;">●</span> Kafka: Streaming Live
+      </div>
+      <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Light/Dark Theme">
+        <i data-lucide="sun" id="themeIcon" style="width:18px; height:18px;"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN APPLICATION CONTAINER
+       ======================================================================== -->
+  <main class="main-wrapper">
+
+    <!-- ======================================================================
+         1. TEACHER CO-PILOT VIEW
+         ====================================================================== -->
+    <section class="view-section active" id="teacherView">
+      <div class="sub-tabs-bar" id="teacherSubTabs">
+        <button class="sub-tab-btn active" id="tabBtnGenerator" data-tab="tabGenerator">
+          <i data-lucide="sparkles" style="width:16px; height:16px;"></i>
+          AI LaTeX Question Studio
+        </button>
+        <button class="sub-tab-btn" id="tabBtnTelemetry" data-tab="tabTelemetry">
+          <i data-lucide="activity" style="width:16px; height:16px;"></i>
+          Live Telemetry & Diagnostics
+        </button>
+        <button class="sub-tab-btn" id="tabBtnHandwritten" data-tab="tabHandwritten">
+          <i data-lucide="file-check-2" style="width:16px; height:16px;"></i>
+          Handwritten Sheet Evaluator
+        </button>
+        <button class="sub-tab-btn" id="tabBtnSmartReports" data-tab="tabSmartReports">
+          <i data-lucide="clipboard-check" style="width:16px; height:16px;"></i>
+          Weekly Dual Smart Reports
+        </button>
+      </div>
+
+      <!-- TAB 1: AI LATEX QUESTION GENERATOR STUDIO -->
+      <div class="teacher-tab-content active" id="tabGenerator">
+        <div class="grid-2col">
+          <!-- Generator Config Card -->
+          <div class="glass-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <div class="card-icon"><i data-lucide="cpu" style="width:20px; height:20px;"></i></div>
+                <div>
+                  <h2 class="card-title">Curriculum AI Question Engine</h2>
+                  <p class="card-subtitle">Generate vetted LaTeX questions for HP Board, CBSE, JEE & NEET</p>
+                </div>
+              </div>
+            </div>
+
+            <form id="aiQuestionGenForm">
+              <div class="grid-2col">
+                <div class="form-group">
+                  <label class="form-label" for="selectGrade">Target Class</label>
+                  <select class="form-select" id="selectGrade">
+                    <option value="11" selected>Class XI Science</option>
+                    <option value="12">Class XII Science</option>
+                    <option value="10">Class X (Boards)</option>
+                    <option value="9">Class IX (Foundation)</option>
+                    <option value="8">Class VIII</option>
+                    <option value="7">Class VII</option>
+                    <option value="6">Class VI</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="selectBoard">Target Exam / Board</label>
+                  <select class="form-select" id="selectBoard">
+                    <option value="JEE_MAIN" selected>JEE Main (Speed & Traps)</option>
+                    <option value="JEE_ADVANCED">JEE Advanced (Multi-Concept)</option>
+                    <option value="CBSE">CBSE Board (Derivations)</option>
+                    <option value="HP_BOARD">HP Board (HPBOSE)</option>
+                    <option value="NEET">NEET UG (NCERT Precision)</option>
+                    <option value="OLYMPIAD">Olympiad & Advanced</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid-2col">
+                <div class="form-group">
+                  <label class="form-label" for="selectSubject">Subject</label>
+                  <select class="form-select" id="selectSubject">
+                    <option value="Physics" selected>Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Biology">Biology</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="selectTopic">Chapter / Topic</label>
+                  <select class="form-select" id="selectTopic">
+                    <option value="Rotational Motion" selected>Rotational Motion & Dynamics</option>
+                    <option value="Work, Energy and Power">Work, Energy and Power</option>
+                    <option value="Oscillations & SHM">Oscillations & SHM</option>
+                    <option value="Chemical Thermodynamics">Chemical Thermodynamics</option>
+                    <option value="Calculus & Limits">Calculus & Limits</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid-2col">
+                <div class="form-group">
+                  <label class="form-label" for="selectDifficulty">Difficulty & Bloom Level</label>
+                  <select class="form-select" id="selectDifficulty">
+                    <option value="MEDIUM" selected>Medium (Application)</option>
+                    <option value="HARD">Hard (Analyze / Distractor Heavy)</option>
+                    <option value="OLYMPIAD_LEVEL">Olympiad (Create / Non-Routine)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="selectQuestionType">Format</label>
+                  <select class="form-select" id="selectQuestionType">
+                    <option value="MCQ_SINGLE" selected>Single Choice MCQ (With Traps)</option>
+                    <option value="NUMERICAL">Numerical Subjective</option>
+                    <option value="SUBJECTIVE_DERIVATION">Derivation with Rubric</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+                <button type="button" class="btn-primary" id="btnGenerateQuestion">
+                  <i data-lucide="wand-2" style="width:16px; height:16px;"></i>
+                  Generate AI LaTeX Question
+                </button>
+                <button type="button" class="btn-secondary" id="btnAddToClassTest">
+                  <i data-lucide="plus-circle" style="width:16px; height:16px;"></i>
+                  Add to Class XI Test
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- LaTeX Preview & Mathematical Typesetting Card -->
+          <div class="glass-card" id="latexPreviewCard">
+            <div class="card-header">
+              <div class="card-title-group">
+                <div class="card-icon" style="background:rgba(16, 185, 129, 0.12); color:#10b981;">
+                  <i data-lucide="file-code-2" style="width:20px; height:20px;"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">Live KaTeX Mathematical Preview</h2>
+                  <p class="card-subtitle" id="previewMetaSubtitle">Rigorous LaTeX validation & distractor analysis</p>
+                </div>
+              </div>
+              <span class="pilot-tag" id="previewBadge">JEE Main &bull; Class 11</span>
+            </div>
+
+            <div class="latex-preview-box">
+              <div class="latex-question-text" id="renderQuestionText">
+                <!-- KaTeX content injected dynamically -->
+              </div>
+
+              <div class="latex-options-list" id="renderOptionsList">
+                <!-- Options rendered here -->
+              </div>
+
+              <div id="renderSolutionBox" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-subtle);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.5rem;">
+                  <strong style="color:var(--accent-emerald); font-size:0.88rem;">Step-by-Step Mathematical Derivation:</strong>
+                  <span style="font-size:0.75rem; color:var(--text-muted);">Benchmark: 90s</span>
+                </div>
+                <div id="renderSolutionText" style="font-size: 0.95rem; color: var(--text-secondary);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: LIVE TELEMETRY & CONCEPT DIAGNOSTICS -->
+      <div class="teacher-tab-content" id="tabTelemetry" style="display:none;">
+        <div class="grid-2col" style="margin-bottom: 1.5rem;">
+          <!-- Real-Time Telemetry Feed -->
+          <div class="glass-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <div class="card-icon"><i data-lucide="zap" style="width:20px; height:20px;"></i></div>
+                <div>
+                  <h2 class="card-title">Classroom Live Telemetry Stream</h2>
+                  <p class="card-subtitle">Real-time student timers & attempt telemetry streamed via Kafka</p>
+                </div>
+              </div>
+              <button class="btn-secondary" id="btnSimulateTelemetryEvent" style="font-size:0.75rem; padding:4px 8px;">
+                <i data-lucide="refresh-cw" style="width:12px; height:12px;"></i> Stream Live Event
+              </button>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;" id="telemetryTable">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted); text-align: left;">
+                    <th style="padding: 8px 6px;">Student</th>
+                    <th style="padding: 8px 6px;">Question Subtopic</th>
+                    <th style="padding: 8px 6px;">Time Spent</th>
+                    <th style="padding: 8px 6px;">Hesitation</th>
+                    <th style="padding: 8px 6px;">Status</th>
+                    <th style="padding: 8px 6px;">Classification</th>
+                  </tr>
+                </thead>
+                <tbody id="telemetryTableBody">
+                  <!-- Injected dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Concept Mastery Diagnostic Radar -->
+          <div class="glass-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <div class="card-icon" style="background:rgba(245, 158, 11, 0.12); color:#f59e0b;">
+                  <i data-lucide="target" style="width:20px; height:20px;"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">Diagnostic Concept Matrix</h2>
+                  <p class="card-subtitle">Student: Aryan Sharma (Roll: 11-S-24)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3 Category Breakdown -->
+            <div id="diagnosticConceptsContainer">
+              <!-- Mastered -->
+              <div class="concept-item-card">
+                <div class="concept-info">
+                  <h4>Moment of Inertia (Rigid Body Rotations)</h4>
+                  <p>95% Accuracy &bull; 54s Avg Time (Benchmark: 90s)</p>
+                </div>
+                <div style="text-align: right;">
+                  <span class="diagnostic-badge badge-mastered">Mastered</span>
+                  <div class="progress-track" style="margin-top: 6px;"><div class="progress-fill green" style="width: 95%;"></div></div>
+                </div>
+              </div>
+
+              <!-- Recap Needed -->
+              <div class="concept-item-card">
+                <div class="concept-info">
+                  <h4>Work-Energy Theorem (Variable Forces)</h4>
+                  <p>75% Accuracy &bull; 185s Avg Time (Lagging benchmark by 54%)</p>
+                </div>
+                <div style="text-align: right;">
+                  <span class="diagnostic-badge badge-recap">Needs Recap</span>
+                  <div class="progress-track" style="margin-top: 6px;"><div class="progress-fill amber" style="width: 75%;"></div></div>
+                </div>
+              </div>
+
+              <!-- Critical Weakness -->
+              <div class="concept-item-card">
+                <div class="concept-info">
+                  <h4>Damped Oscillations (Decay Constants)</h4>
+                  <p>30% Accuracy &bull; Confusing energy decay with amplitude decay</p>
+                </div>
+                <div style="text-align: right;">
+                  <span class="diagnostic-badge badge-weak">Critical Weakness</span>
+                  <div class="progress-track" style="margin-top: 6px;"><div class="progress-fill red" style="width: 30%;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Teacher Action Trigger -->
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="color:var(--accent-cyan); font-size:0.88rem;">Recommended Teacher Intervention:</strong>
+                <p style="font-size:0.78rem; color:var(--text-secondary);">Assign targeted evening drill on Damped SHM to Aryan Sharma.</p>
+              </div>
+              <button class="btn-primary" id="btnTriggerEveningDrill" style="font-size:0.8rem; padding:6px 14px;">
+                Dispatch Prep Drill
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: HANDWRITTEN ANSWER SHEET EVALUATOR -->
+      <div class="teacher-tab-content" id="tabHandwritten" style="display:none;">
+        <div class="sheet-evaluator-layout">
+          <!-- Physical Scanned Sheet Viewer with Bounding Box Overlays -->
+          <div class="glass-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <div class="card-icon"><i data-lucide="scan" style="width:20px; height:20px;"></i></div>
+                <div>
+                  <h2 class="card-title">Physical Answer Script Scanner</h2>
+                  <p class="card-subtitle">Student: Aryan Sharma &bull; Terminal Assessment #04</p>
+                </div>
+              </div>
+              <span class="pilot-tag">AI Confidence: 98%</span>
+            </div>
+
+            <div class="sheet-preview-pane" id="sheetScanContainer">
+              <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80" alt="Scanned Student Physical Answer Script" class="sheet-img" id="scannedPaperImg">
+              
+              <!-- Bounding Box Overlay for Step 1 -->
+              <div class="bounding-overlay-box" style="top: 25%; left: 10%; width: 78%; height: 20%;" title="Step 1: Definite Integral Formulation"></div>
+              <!-- Bounding Box Overlay for Step 2 -->
+              <div class="bounding-overlay-box" style="top: 50%; left: 10%; width: 78%; height: 22%;" title="Step 2: Antiderivative Polynomial"></div>
+            </div>
+
+            <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.78rem; color: var(--text-muted);">
+                <i data-lucide="info" style="width:14px; height:14px; vertical-align:middle;"></i>
+                Bounding boxes generated via Multi-Modal Vision AI
+              </span>
+              <button class="btn-secondary" id="btnReScanSheet" style="font-size:0.8rem; padding:6px 12px;">
+                <i data-lucide="camera" style="width:14px; height:14px;"></i> Scan New Sheet
+              </button>
+            </div>
+          </div>
+
+          <!-- Step-by-Step Rubric Breakdown & Teacher Audit Station -->
+          <div class="glass-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <div class="card-icon" style="background:rgba(16, 185, 129, 0.12); color:#10b981;">
+                  <i data-lucide="check-circle-2" style="width:20px; height:20px;"></i>
+                </div>
+                <div>
+                  <h2 class="card-title">Step-by-Step Marking Rubric</h2>
+                  <p class="card-subtitle">Audited against CBSE & HPBOSE Step-Marking Guidelines</p>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-size: 1.25rem; font-weight: 800; color: var(--accent-emerald);" id="displayTotalMarks">4.0 / 4.0</div>
+                <span style="font-size: 0.72rem; color: var(--text-muted);">Marks Awarded</span>
+              </div>
+            </div>
+
+            <!-- Steps -->
+            <div id="rubricStepsList">
+              <div class="rubric-step-item">
+                <div class="rubric-step-header">
+                  <span class="step-num-badge">Step 1: Formula Setup (1.0 Pt)</span>
+                  <span style="color:var(--accent-emerald); font-weight:700; font-size:0.85rem;">+1.0</span>
+                </div>
+                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 4px;">
+                  Formula: $W = \int_{1}^{3} (3x^2 - 2x + 5) dx$
+                </div>
+                <p style="font-size:0.75rem; color:var(--text-muted);">Status: Formula correctly specified with proper boundary limits.</p>
+              </div>
+
+              <div class="rubric-step-item">
+                <div class="rubric-step-header">
+                  <span class="step-num-badge">Step 2: Antiderivative Integration (1.5 Pts)</span>
+                  <span style="color:var(--accent-emerald); font-weight:700; font-size:0.85rem;">+1.5</span>
+                </div>
+                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 4px;">
+                  Expression: $[x^3 - x^2 + 5x]_{1}^{3}$
+                </div>
+                <p style="font-size:0.75rem; color:var(--text-muted);">Status: Clean monomial integration; no missing negative signs.</p>
+              </div>
+
+              <div class="rubric-step-item">
+                <div class="rubric-step-header">
+                  <span class="step-num-badge">Step 3: Arithmetic & SI Units (1.5 Pts)</span>
+                  <span style="color:var(--accent-emerald); font-weight:700; font-size:0.85rem;">+1.5</span>
+                </div>
+                <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: 4px;">
+                  Result: $33 - 5 = 28\text{ Joules (J)}$
+                </div>
+                <p style="font-size:0.75rem; color:var(--text-muted);">Status: Accurate arithmetic with correct SI energy unit.</p>
+              </div>
+            </div>
+
+            <!-- Teacher Override & Final Signoff -->
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+              <label class="form-label" for="teacherCommentInput">Teacher Review Comments & Signoff</label>
+              <textarea class="form-control" id="teacherCommentInput" rows="2" placeholder="Add verified feedback for student...">Rigorous steps and clean mathematical presentation. Standard units verified.</textarea>
+              
+              <div style="margin-top: 0.75rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                <button class="btn-secondary" id="btnOverrideMarks" style="font-size:0.82rem;">Adjust Marks</button>
+                <button class="btn-primary" id="btnApproveHandwritten" style="font-size:0.82rem;">
+                  <i data-lucide="check" style="width:14px; height:14px;"></i> Approve & Post to Gradebook
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: WEEKLY DUAL SMART REPORT CARDS -->
+      <div class="teacher-tab-content" id="tabSmartReports" style="display:none;">
+        <div class="glass-card" style="max-width: 900px; margin: 0 auto;">
+          <div class="card-header" style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem;">
+            <div>
+              <div class="pilot-tag" style="margin-bottom: 6px;">HAPS Academic Intelligence Document</div>
+              <h2 class="card-title" style="font-size: 1.35rem;">Weekly Diagnostic Smart Report Card</h2>
+              <p class="card-subtitle">Generated for: Aryan Sharma (Roll: 11-S-24) &bull; Class XI Science-A</p>
+            </div>
+            <div style="text-align: right;">
+              <button class="btn-primary" id="btnDownloadReportPdf" style="font-size:0.82rem; padding:6px 14px;">
+                <i data-lucide="printer" style="width:14px; height:14px;"></i> Print / Export PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Weekly Overview Metrics -->
+          <div class="grid-4col" style="margin: 1.25rem 0;">
+            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Weekly Accuracy</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-cyan); margin-top: 4px;">78.4%</div>
+            </div>
+            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Study Hours</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-emerald); margin-top: 4px;">15.2 Hrs</div>
+            </div>
+            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Questions Solved</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-indigo); margin-top: 4px;">68 Qs</div>
+            </div>
+            <div style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); text-align: center;">
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Avg Velocity</span>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-amber); margin-top: 4px;">112s / Q</div>
+            </div>
+          </div>
+
+          <!-- DIRECTIVE 1: FOR SCHOOL & HOSTEL FACULTY -->
+          <div class="report-directive-box directive-school">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="school" style="color: var(--accent-indigo); width: 22px; height: 22px;"></i>
+              <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">
+                Directives for School & Residential Hostel Faculty (Evening Prep)
+              </h3>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+              Specific academic interventions during 7:00 PM - 9:00 PM self-study hours at HAPS hostel.
+            </p>
+
+            <div class="directive-item">
+              <span class="directive-num">1</span>
+              <div>
+                <strong style="color: var(--text-primary); font-size: 0.88rem;">1-on-1 Socratic Derivation Session (15 Mins)</strong>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                  During Monday evening study, conduct a short whiteboard check with Aryan on the differential equation of damped oscillations ($\frac{d^2x}{dt^2} + \frac{b}{m}\frac{dx}{dt} + \omega_0^2x = 0$), clarifying why mechanical energy decays at rate $\frac{b}{m}$ while amplitude decays at $\frac{b}{2m}$.
+                </p>
+                <span style="font-size: 0.72rem; color: var(--accent-indigo); font-weight: 600;">Assigned To: Er. Rajesh Kumar &bull; Target: 26 Oct 2026</span>
+              </div>
+            </div>
+
+            <div class="directive-item">
+              <span class="directive-num">2</span>
+              <div>
+                <strong style="color: var(--text-primary); font-size: 0.88rem;">Remedial Practice Drill #SHM-04</strong>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                  Dispatch 5 targeted numerical problems with friction and viscous damping to reinforce energy calculations before Wednesday's section quiz.
+                </p>
+                <span style="font-size: 0.72rem; color: var(--accent-indigo); font-weight: 600;">Assigned To: Hostel Proctor &bull; Target: 27 Oct 2026</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- DIRECTIVE 2: FOR PARENTS AT HOME -->
+          <div class="report-directive-box directive-parent">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="home" style="color: var(--accent-emerald); width: 22px; height: 22px;"></i>
+              <h3 style="font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">
+                Directives for Parents at Home (Weekend Support)
+              </h3>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
+              Empathetic, non-technical actions to support Aryan's learning rhythm without exam stress.
+            </p>
+
+            <div class="directive-item">
+              <span class="directive-num">1</span>
+              <div>
+                <strong style="color: var(--text-primary); font-size: 0.88rem;">5-Minute Casual Feynman Technique Check</strong>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                  During your regular Sunday phone call or visit, casually ask Aryan: <em>"How do car shock absorbers stop a car from bouncing forever?"</em> Let him explain the physics in his own words. Explaining to parents builds deep intuitive clarity!
+                </p>
+                <span style="font-size: 0.72rem; color: var(--accent-emerald); font-weight: 600;">Purpose: Builds conceptual mastery without pressure</span>
+              </div>
+            </div>
+
+            <div class="directive-item">
+              <span class="directive-num">2</span>
+              <div>
+                <strong style="color: var(--text-primary); font-size: 0.88rem;">Quiet Focus Block (Sunday Morning)</strong>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+                  Ensure Aryan has 45 minutes of quiet time on Sunday morning to complete the short 5-question speed recap test sent by the school platform.
+                </p>
+                <span style="font-size: 0.72rem; color: var(--accent-emerald); font-weight: 600;">Purpose: Solidifies retention before Monday's new physics unit</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         2. STUDENT ADAPTIVE VIEW (3 LEARNING MODES + QUIZ ENGINE)
+         ====================================================================== -->
+    <section class="view-section" id="studentView">
+      <!-- 3 Learning Modes Switcher -->
+      <div class="modes-selector-grid" id="studentModeGrid">
+        <div class="mode-card selected" id="modeCardJee" data-mode="JEE_NEET">
+          <div class="mode-card-badge">Mode 01 &bull; Speed & Accuracy</div>
+          <h3>JEE / NEET Preparation</h3>
+          <p>Application, calculation shortcuts, negative mark avoidance & distractor trap analysis.</p>
+        </div>
+
+        <div class="mode-card" id="modeCardCbse" data-mode="CBSE_EXCELLENCE">
+          <div class="mode-card-badge">Mode 02 &bull; Concepts & Derivations</div>
+          <h3>CBSE & HP Board Excellence</h3>
+          <p>Step-by-step derivations, structured definitions, and rubric-guided answer writing.</p>
+        </div>
+
+        <div class="mode-card" id="modeCardOlympiad" data-mode="OLYMPIAD_ADVANCED">
+          <div class="mode-card-badge">Mode 03 &bull; Deep Reasoning</div>
+          <h3>Olympiad & Advanced</h3>
+          <p>Non-routine multi-step problems, progressive hints, and hypothesis justification.</p>
+        </div>
+      </div>
+
+      <!-- Live Quiz Telemetry Container -->
+      <div class="glass-card" style="max-width: 900px; margin: 0 auto;">
+        <!-- HUD Bar with live question timer -->
+        <div class="quiz-hud-bar">
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Active Assessment</span>
+            <div style="font-family: var(--font-heading); font-weight: 700; color: var(--text-primary); font-size: 1.05rem;" id="quizTitle">
+              Class XI Science Weekly Diagnostic #04
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 1.25rem;">
+            <div class="timer-badge">
+              <i data-lucide="clock" style="width:18px; height:18px; color:var(--accent-amber);"></i>
+              <span id="activeQuestionTimer">00:54</span>
+            </div>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">Benchmark: 90s</span>
+          </div>
+        </div>
+
+        <!-- Student Question Prompt rendered with KaTeX -->
+        <div class="latex-preview-box" style="margin-top: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan);">Question 1 of 3 &bull; Physics</span>
+            <span class="diagnostic-badge badge-mastered" style="font-size:0.7rem;">+4.0 / -1.0 Marks</span>
+          </div>
+
+          <div class="latex-question-text" id="studentRenderQuestion">
+            <!-- KaTeX injected -->
+          </div>
+
+          <div class="latex-options-list" id="studentRenderOptions">
+            <!-- Options injected -->
+          </div>
+        </div>
+
+        <!-- Socratic AI Tutor progressive hint box -->
+        <div class="socratic-hint-box" id="socraticHintBox">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+            <strong style="color:var(--accent-purple); font-size:0.88rem;">
+              <i data-lucide="lightbulb" style="width:16px; height:16px; vertical-align:middle;"></i>
+              Socratic Guide Hint #<span id="hintNumber">1</span>:
+            </strong>
+            <span style="font-size:0.75rem; color:var(--text-muted);">Think before looking!</span>
+          </div>
+          <p id="socraticHintText" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">
+            What is the formula for torque exerted by a tension force acting tangent to the cylinder perimeter?
+          </p>
+        </div>
+
+        <!-- Action Controls -->
+        <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
+          <button class="btn-secondary" id="btnRequestSocraticHint" style="font-size:0.85rem;">
+            <i data-lucide="help-circle" style="width:16px; height:16px;"></i>
+            Ask Socratic Hint (Progressive)
+          </button>
+
+          <button class="btn-primary" id="btnSubmitStudentAnswer" style="font-size:0.9rem; padding:0.7rem 1.5rem;">
+            Submit Answer & Stream Telemetry
+            <i data-lucide="arrow-right" style="width:16px; height:16px;"></i>
+          </button>
+        </div>
+
+        <!-- Feedback alert box -->
+        <div id="studentFeedbackAlert" style="display:none; margin-top: 1rem; padding: 1rem; border-radius: var(--radius-sm);"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         3. LEADERSHIP & PILOT INTELLIGENCE VIEW (DIRECTOR/PRINCIPAL)
+         ====================================================================== -->
+    <section class="view-section" id="directorView">
+      <div class="glass-card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="brand-logo-badge" style="width:36px; height:36px; font-size:1rem;">HAPS</div>
+            <div>
+              <h2 class="card-title">14-Day Pilot Intelligence Dashboard</h2>
+              <p class="card-subtitle">Prepared for: The Director & Principal, Him Academy Public School, Hamirpur</p>
+            </div>
+          </div>
+          <span class="pilot-tag">Class XI Science (Section A)</span>
+        </div>
+
+        <!-- 4 Key Pilot Metrics -->
+        <div class="grid-4col">
+          <div style="background:var(--bg-secondary); padding:1.2rem; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Active Adoption</span>
+              <i data-lucide="users" style="color:var(--accent-cyan); width:18px; height:18px;"></i>
+            </div>
+            <div style="font-size:1.6rem; font-weight:800; color:var(--text-primary); margin-top:6px;">94.2%</div>
+            <p style="font-size:0.75rem; color:var(--accent-emerald); margin-top:2px;">30 of 32 Students Enrolled</p>
+          </div>
+
+          <div style="background:var(--bg-secondary); padding:1.2rem; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Faculty Time Saved</span>
+              <i data-lucide="clock-9" style="color:var(--accent-emerald); width:18px; height:18px;"></i>
+            </div>
+            <div style="font-size:1.6rem; font-weight:800; color:var(--accent-emerald); margin-top:6px;">18.5 Hrs</div>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">On LaTeX worksheets & marking</p>
+          </div>
+
+          <div style="background:var(--bg-secondary); padding:1.2rem; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Velocity Gain</span>
+              <i data-lucide="trending-up" style="color:var(--accent-indigo); width:18px; height:18px;"></i>
+            </div>
+            <div style="font-size:1.6rem; font-weight:800; color:var(--accent-indigo); margin-top:6px;">+26%</div>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Faster numerical derivations</p>
+          </div>
+
+          <div style="background:var(--bg-secondary); padding:1.2rem; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase;">Handwritten Accuracy</span>
+              <i data-lucide="check-check" style="color:var(--accent-amber); width:18px; height:18px;"></i>
+            </div>
+            <div style="font-size:1.6rem; font-weight:800; color:var(--accent-amber); margin-top:6px;">98.2%</div>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Teacher rubric agreement</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topic Level Weakness Heatmap for Leadership -->
+      <div class="grid-2col">
+        <div class="glass-card">
+          <h3 class="card-title" style="margin-bottom: 1rem;">Section Weakness Heatmap & Triage</h3>
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                <span>Damped & Forced Oscillations (SHM)</span>
+                <span style="color: var(--accent-rose); font-weight: 700;">68% Class Struggling</span>
+              </div>
+              <div class="progress-track" style="width: 100%;"><div class="progress-fill red" style="width: 68%;"></div></div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                <span>Work-Energy Theorem (Variable 1D Forces)</span>
+                <span style="color: var(--accent-amber); font-weight: 700;">32% Class Needs Speed Recap</span>
+              </div>
+              <div class="progress-track" style="width: 100%;"><div class="progress-fill amber" style="width: 32%;"></div></div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px;">
+                <span>Moment of Inertia (Perpendicular & Parallel Axes)</span>
+                <span style="color: var(--accent-emerald); font-weight: 700;">88% Section Mastered</span>
+              </div>
+              <div class="progress-track" style="width: 100%;"><div class="progress-fill green" style="width: 88%;"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3 class="card-title" style="margin-bottom: 1rem;">Pilot Governance & Safeguards</h3>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem; color: var(--text-secondary);">
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="shield-check" style="color:var(--accent-emerald); width:18px; height:18px;"></i>
+              <strong>Zero Student PII Leakage:</strong> Names tokenized with UUIDs prior to AI generation.
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="user-check" style="color:var(--accent-cyan); width:18px; height:18px;"></i>
+              <strong>Teacher Veto Power:</strong> 100% human sign-off before marks enter school archives.
+            </li>
+            <li style="display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="lock" style="color:var(--accent-indigo); width:18px; height:18px;"></i>
+              <strong>Infrastructure Isolation:</strong> Dedicated Staging & Production Kubernetes pods.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Application Logic -->
+  <script src="js/app.js"></script>
+</body>
+</html>
