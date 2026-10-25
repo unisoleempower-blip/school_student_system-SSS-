@@ -261,6 +261,17 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- TASK-11: Live Classroom Seat Map (32 Desk Pods) -->
+            <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+                <strong style="font-size:0.85rem; color:var(--text-primary);"><i data-lucide="layout-grid" style="width:14px;height:14px;vertical-align:middle;"></i> Class XI Science-A Live Seatmap (Hostel Prep)</strong>
+                <span style="font-size:0.72rem; color:var(--text-muted);">🟢 Solving Fast &bull; 🟡 Hesitating &bull; 🔴 Need Assistance</span>
+              </div>
+              <div class="seatmap-grid" id="classroomSeatmapGrid">
+                <!-- 32 student desk pods dynamically injected -->
+              </div>
+            </div>
           </div>
 
           <!-- Concept Mastery Diagnostic Radar -->
@@ -346,13 +357,23 @@
               <span class="pilot-tag">AI Confidence: 98%</span>
             </div>
 
+            <!-- TASK-10: Live Drag & Drop File Upload Zone -->
+            <input type="file" id="handwrittenFileInput" accept="image/*,.pdf" style="display:none;">
+            <div class="drop-zone" id="sheetDropZone">
+              <i data-lucide="upload-cloud" style="width:28px;height:28px;color:var(--accent-cyan);margin-bottom:6px;"></i>
+              <div style="font-size:0.88rem; font-weight:600; color:var(--text-primary);">Drop student handwritten sheet here, or <span style="color:var(--accent-cyan); text-decoration:underline;">Browse Photo/PDF</span></div>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Supports physical test papers, camera scans & PDF answer scripts ($300\text{ DPI}$)</p>
+            </div>
+
             <div class="sheet-preview-pane" id="sheetScanContainer">
+              <div class="scanline-bar" id="sheetScanline"></div>
               <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80" alt="Scanned Student Physical Answer Script" class="sheet-img" id="scannedPaperImg">
               
-              <!-- Bounding Box Overlay for Step 1 -->
-              <div class="bounding-overlay-box" style="top: 25%; left: 10%; width: 78%; height: 20%;" title="Step 1: Definite Integral Formulation"></div>
-              <!-- Bounding Box Overlay for Step 2 -->
-              <div class="bounding-overlay-box" style="top: 50%; left: 10%; width: 78%; height: 22%;" title="Step 2: Antiderivative Polynomial"></div>
+              <!-- Bounding Box Overlays -->
+              <div id="dynamicBoundingBoxesContainer">
+                <div class="bounding-overlay-box" style="top: 25%; left: 10%; width: 78%; height: 20%;" title="Step 1: Definite Integral Formulation"></div>
+                <div class="bounding-overlay-box" style="top: 50%; left: 10%; width: 78%; height: 22%;" title="Step 2: Antiderivative Polynomial"></div>
+              </div>
             </div>
 
             <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
@@ -360,9 +381,14 @@
                 <i data-lucide="info" style="width:14px; height:14px; vertical-align:middle;"></i>
                 Bounding boxes generated via Multi-Modal Vision AI
               </span>
-              <button class="btn-secondary" id="btnReScanSheet" style="font-size:0.8rem; padding:6px 12px;">
-                <i data-lucide="camera" style="width:14px; height:14px;"></i> Scan New Sheet
-              </button>
+              <div style="display:flex; gap:6px;">
+                <button class="btn-secondary" id="btnUploadNewSheet" style="font-size:0.8rem; padding:6px 12px;">
+                  <i data-lucide="camera" style="width:14px; height:14px;"></i> Select File / Photo
+                </button>
+                <button class="btn-primary" id="btnRunVisionAiScan" style="font-size:0.8rem; padding:6px 12px;">
+                  <i data-lucide="sparkles" style="width:14px; height:14px;"></i> Run Vision AI Evaluation
+                </button>
+              </div>
             </div>
           </div>
 
@@ -445,7 +471,10 @@
               <h2 class="card-title" style="font-size: 1.35rem;">Weekly Diagnostic Smart Report Card</h2>
               <p class="card-subtitle">Generated for: Aryan Sharma (Roll: 11-S-24) &bull; Class XI Science-A</p>
             </div>
-            <div style="text-align: right;">
+            <div style="text-align: right; display:flex; gap:8px;">
+              <button class="btn-secondary" id="btnOpenWhatsAppModal" style="font-size:0.82rem; padding:6px 14px; color:#22c55e; border-color:rgba(34,197,94,0.4);">
+                <i data-lucide="message-square" style="width:14px; height:14px;"></i> WhatsApp to Parents
+              </button>
               <button class="btn-primary" id="btnDownloadReportPdf" style="font-size:0.82rem; padding:6px 14px;">
                 <i data-lucide="printer" style="width:14px; height:14px;"></i> Print / Export PDF
               </button>
@@ -570,71 +599,115 @@
         </div>
       </div>
 
-      <!-- Live Quiz Telemetry Container -->
-      <div class="glass-card" style="max-width: 900px; margin: 0 auto;">
-        <!-- HUD Bar with live question timer -->
-        <div class="quiz-hud-bar">
-          <div>
-            <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Active Assessment</span>
-            <div style="font-family: var(--font-heading); font-weight: 700; color: var(--text-primary); font-size: 1.05rem;" id="quizTitle">
-              Class XI Science Weekly Diagnostic #04
+      <!-- TASK-13: NTA Exam Simulator (Question View + 30-Question Palette Grid) -->
+      <div style="display: grid; grid-template-columns: 2.2fr 1fr; gap: 1.5rem;" id="ntaExamContainer">
+        
+        <!-- Left: Question & Telemetry Station -->
+        <div class="glass-card">
+          <!-- Subject Switcher -->
+          <div class="section-switch-tab" id="examSubjectSwitcher">
+            <button class="section-tab-btn active" data-subject="Physics">Physics (Sec A & B)</button>
+            <button class="section-tab-btn" data-subject="Chemistry">Chemistry (Sec A & B)</button>
+            <button class="section-tab-btn" data-subject="Mathematics">Mathematics (Sec A & B)</button>
+          </div>
+
+          <!-- Question Prompt HUD -->
+          <div class="quiz-hud-bar">
+            <div>
+              <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Current Problem</span>
+              <div style="font-family: var(--font-heading); font-weight: 700; color: var(--text-primary); font-size: 1rem;" id="ntaQuestionTitle">
+                Question <span id="currentQuestionNum">1</span> of 30 &bull; Single Choice
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 1rem;">
+              <span class="diagnostic-badge badge-mastered" style="font-size:0.7rem;">+4.0 / -1.0</span>
+              <div class="timer-badge">
+                <i data-lucide="clock" style="width:16px; height:16px; color:var(--accent-amber);"></i>
+                <span id="activeQuestionTimer">00:54</span>
+              </div>
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 1.25rem;">
-            <div class="timer-badge">
-              <i data-lucide="clock" style="width:18px; height:18px; color:var(--accent-amber);"></i>
-              <span id="activeQuestionTimer">00:54</span>
+          <!-- KaTeX Question Box -->
+          <div class="latex-preview-box" style="margin-top: 0;">
+            <div class="latex-question-text" id="studentRenderQuestion">
+              <!-- KaTeX injected -->
             </div>
-            <span style="font-size: 0.78rem; color: var(--text-muted);">Benchmark: 90s</span>
+
+            <div class="latex-options-list" id="studentRenderOptions">
+              <!-- Options injected -->
+            </div>
           </div>
+
+          <!-- Socratic AI Tutor Progressive Hint Box -->
+          <div class="socratic-hint-box" id="socraticHintBox">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
+              <strong style="color:var(--accent-purple); font-size:0.88rem;">
+                <i data-lucide="lightbulb" style="width:16px; height:16px; vertical-align:middle;"></i>
+                Socratic Guide Hint #<span id="hintNumber">1</span>:
+              </strong>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Think before looking!</span>
+            </div>
+            <p id="socraticHintText" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">
+              What is the formula for torque exerted by a tension force acting tangent to the cylinder perimeter?
+            </p>
+          </div>
+
+          <!-- NTA Exam Actions -->
+          <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+            <div style="display:flex; gap: 6px;">
+              <button class="btn-secondary" id="btnRequestSocraticHint" style="font-size:0.82rem; padding:6px 12px;">
+                <i data-lucide="help-circle" style="width:14px; height:14px;"></i> Socratic Hint
+              </button>
+              <button class="btn-secondary" id="btnClearResponse" style="font-size:0.82rem; padding:6px 12px; color:var(--accent-rose);">
+                Clear Response
+              </button>
+            </div>
+
+            <div style="display:flex; gap: 6px;">
+              <button class="btn-secondary" id="btnMarkForReview" style="font-size:0.82rem; padding:6px 12px; color:#c084fc;">
+                Mark for Review & Next
+              </button>
+              <button class="btn-primary" id="btnSaveAndNext" style="font-size:0.82rem; padding:6px 16px;">
+                Save & Next <i data-lucide="chevron-right" style="width:14px; height:14px;"></i>
+              </button>
+            </div>
+          </div>
+
+          <div id="studentFeedbackAlert" style="display:none; margin-top: 1rem; padding: 0.85rem; border-radius: var(--radius-sm);"></div>
         </div>
 
-        <!-- Student Question Prompt rendered with KaTeX -->
-        <div class="latex-preview-box" style="margin-top: 0;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-cyan);">Question 1 of 3 &bull; Physics</span>
-            <span class="diagnostic-badge badge-mastered" style="font-size:0.7rem;">+4.0 / -1.0 Marks</span>
+        <!-- Right: Official NTA Question Palette Grid (1 to 30) -->
+        <div class="glass-card">
+          <div class="card-header" style="margin-bottom: 0.85rem;">
+            <div>
+              <h3 class="card-title" style="font-size: 0.95rem;">Question Palette</h3>
+              <p class="card-subtitle" style="font-size: 0.72rem;">NTA JEE Main / NEET Standard</p>
+            </div>
+            <span style="font-size: 0.72rem; color: var(--accent-emerald);" id="autoSaveIndicator">
+              <i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> Auto-Saved
+            </span>
           </div>
 
-          <div class="latex-question-text" id="studentRenderQuestion">
-            <!-- KaTeX injected -->
+          <!-- Legend -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.72rem; margin-bottom: 0.85rem; background: var(--bg-secondary); padding: 8px; border-radius: var(--radius-sm);">
+            <div><span style="display:inline-block; width:10px; height:10px; background:#16a34a; border-radius:2px; margin-right:4px;"></span> Answered: <strong id="countAnswered">1</strong></div>
+            <div><span style="display:inline-block; width:10px; height:10px; background:#dc2626; border-radius:2px; margin-right:4px;"></span> Not Answered: <strong id="countNotAnswered">2</strong></div>
+            <div><span style="display:inline-block; width:10px; height:10px; background:#9333ea; border-radius:2px; margin-right:4px;"></span> Review: <strong id="countReview">0</strong></div>
+            <div><span style="display:inline-block; width:10px; height:10px; background:#334155; border-radius:2px; margin-right:4px;"></span> Not Visited: <strong id="countNotVisited">27</strong></div>
           </div>
 
-          <div class="latex-options-list" id="studentRenderOptions">
-            <!-- Options injected -->
+          <!-- 30 Question Buttons Grid -->
+          <div class="palette-grid" id="ntaQuestionPalette">
+            <!-- Questions 1-30 dynamically injected -->
           </div>
-        </div>
 
-        <!-- Socratic AI Tutor progressive hint box -->
-        <div class="socratic-hint-box" id="socraticHintBox">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-            <strong style="color:var(--accent-purple); font-size:0.88rem;">
-              <i data-lucide="lightbulb" style="width:16px; height:16px; vertical-align:middle;"></i>
-              Socratic Guide Hint #<span id="hintNumber">1</span>:
-            </strong>
-            <span style="font-size:0.75rem; color:var(--text-muted);">Think before looking!</span>
-          </div>
-          <p id="socraticHintText" style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">
-            What is the formula for torque exerted by a tension force acting tangent to the cylinder perimeter?
-          </p>
-        </div>
-
-        <!-- Action Controls -->
-        <div style="margin-top: 1.25rem; display: flex; justify-content: space-between; align-items: center;">
-          <button class="btn-secondary" id="btnRequestSocraticHint" style="font-size:0.85rem;">
-            <i data-lucide="help-circle" style="width:16px; height:16px;"></i>
-            Ask Socratic Hint (Progressive)
+          <button class="btn-primary" id="btnSubmitFullExam" style="width: 100%; margin-top: 1.25rem; font-size: 0.85rem; padding: 8px;">
+            <i data-lucide="send" style="width:14px; height:14px;"></i> Submit Full Assessment
           </button>
-
-          <button class="btn-primary" id="btnSubmitStudentAnswer" style="font-size:0.9rem; padding:0.7rem 1.5rem;">
-            Submit Answer & Stream Telemetry
-            <i data-lucide="arrow-right" style="width:16px; height:16px;"></i>
-          </button>
         </div>
 
-        <!-- Feedback alert box -->
-        <div id="studentFeedbackAlert" style="display:none; margin-top: 1rem; padding: 1rem; border-radius: var(--radius-sm);"></div>
       </div>
     </section>
 
@@ -745,7 +818,44 @@
       </div>
     </section>
 
-  </main>
+  <!-- TASK-12: Interactive WhatsApp Notification Modal -->
+  <div class="modal-overlay" id="whatsAppModal">
+    <div class="modal-card">
+      <div style="background:#075e54; padding:12px 16px; color:#fff; display:flex; justify-content:space-between; align-items:center;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <i data-lucide="message-circle" style="width:20px; height:20px;"></i>
+          <strong style="font-size:0.95rem;">HAPS Parent WhatsApp Dispatch</strong>
+        </div>
+        <button id="btnCloseWhatsAppModal" style="background:transparent; border:none; color:#fff; cursor:pointer;">
+          <i data-lucide="x" style="width:18px; height:18px;"></i>
+        </button>
+      </div>
+
+      <div class="whatsapp-chat-preview">
+        <div class="wa-bubble">
+          <strong>🎓 Him Academy Public School, Hamirpur</strong><br>
+          <em>Weekly Academic Dossier for Aryan Sharma (Roll: 11-S-24)</em><br><br>
+          📊 <strong>Performance Summary:</strong><br>
+          • Weekly Accuracy: 78.4%<br>
+          • Study Time: 15.2 hrs<br>
+          • Mastered: Moment of Inertia (95%)<br>
+          • Focus Needed: Damped Oscillations (30%)<br><br>
+          🏡 <strong>Recommended Parent Action for this Weekend:</strong><br>
+          1. Ask Aryan: <em>"How do car shock absorbers stop a car from bouncing?"</em> (5-min Feynman check)<br>
+          2. Ensure 45 mins quiet time Sunday morning for the speed recap drill.<br><br>
+          🔗 <em>View full verified report: https://scholar.himacademy.ac.in/report/11-S-24</em>
+          <div style="text-align:right; font-size:0.65rem; color:#8696a0; margin-top:4px;">11:45 AM &bull; Delivered</div>
+        </div>
+      </div>
+
+      <div style="padding:12px 16px; background:var(--bg-secondary); display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle);">
+        <span style="font-size:0.75rem; color:var(--text-muted);">Recipient: +91 98160-XXXXX (Mr. Ramesh Sharma)</span>
+        <button class="btn-primary" id="btnConfirmSendWhatsApp" style="font-size:0.8rem; padding:6px 14px; background:#22c55e;">
+          <i data-lucide="send" style="width:14px; height:14px;"></i> Dispatch WhatsApp Webhook
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Application Logic -->
   <script src="js/app.js"></script>

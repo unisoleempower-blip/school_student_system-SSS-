@@ -18,6 +18,8 @@ const telemetryRouter = require('./routes/telemetry');
 const analyticsRouter = require('./routes/analytics');
 const handwrittenRouter = require('./routes/handwritten');
 const reportsRouter = require('./routes/reports');
+const uploadRouter = require('./routes/upload');
+const notificationsRouter = require('./routes/notifications');
 
 const app = express();
 const server = http.createServer(app);
@@ -40,6 +42,22 @@ wss.on('connection', (ws) => {
     message: 'Connected to HAPS-AI Real-Time Telemetry Stream Bus',
     timestamp: new Date().toISOString()
   }));
+
+  // Handle incoming student telemetry stream over WebSocket
+  ws.on('message', (messageRaw) => {
+    try {
+      const msg = JSON.parse(messageRaw.toString());
+      console.log(`[WEBSOCKET INCOMING] Type: ${msg.type} from student ${msg.studentId || 'anon'}`);
+      
+      // Broadcast student telemetry to all connected teacher screens
+      broadcastToClients({
+        ...msg,
+        broadcastTime: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('[WEBSOCKET MSG PARSE ERROR]', err.message);
+    }
+  });
 
   ws.on('close', () => {
     wsClients.delete(ws);
@@ -78,6 +96,8 @@ app.use('/api/telemetry', telemetryRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/handwritten', handwrittenRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/upload', uploadRouter);
+app.use('/api/notifications', notificationsRouter);
 
 // 404 Handler
 app.use((req, res) => {

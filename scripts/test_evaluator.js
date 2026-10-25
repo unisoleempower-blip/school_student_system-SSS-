@@ -44,6 +44,23 @@ async function runDiagnostics() {
   console.log('School Hostel Directives:', report.schoolHostelActions[0].directive);
   console.log('Parent Home Directives:', report.parentActions[0].directive);
 
+  // Test 4: Gemini Vision AI Handwritten Sheet Evaluation
+  console.log('\n--- TEST 4: Gemini 1.5 Flash Vision OCR & Bounding Box Overlay ---');
+  const { processHandwrittenImage } = require('../backend/src/services/geminiVisionService');
+  const visionOutput = await processHandwrittenImage({
+    imageData: 'data:image/png;base64,mockImageDataSample',
+    subject: 'Physics'
+  });
+  console.log('✅ Vision Model:', visionOutput.aiModel);
+  console.log('Detected Steps:', visionOutput.steps.length, '| Awarded:', visionOutput.totalMarksAwarded, 'pts');
+  console.log('Bounding Box 1:', JSON.stringify(visionOutput.steps[0].boundingBox));
+
+  // Test 5: Headless PDF Report Generator
+  console.log('\n--- TEST 5: Headless Printable Dossier Template ---');
+  const { generatePrintableReportHtml } = require('../backend/src/services/pdfReportService');
+  const htmlOutput = generatePrintableReportHtml(report);
+  console.log('✅ Generated Printable Dossier HTML (bytes):', htmlOutput.length);
+
   console.log('\n🎉 ALL SERVICES VERIFIED AND READY FOR STAGING/PROD DEPLOYMENT!');
 }
 
