@@ -268,6 +268,15 @@ body {
   border-bottom: 2px solid var(--accent-cyan);
 }
 
+.teacher-tab-content {
+  display: none;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.teacher-tab-content.active {
+  display: block;
+}
+
 /* Grid & Cards */
 .grid-2col {
   display: grid;
@@ -1022,3 +1031,29 @@ body {
   background: var(--accent-blue);
   color: #fff;
 }
+
+/* Universal Button & Interactive Element Hover/Active Feedback */
+button,
+.role-btn,
+.sub-tab-btn,
+.btn-primary,
+.btn-secondary,
+.btn-icon,
+.section-tab-btn,
+.palette-btn,
+.mode-card,
+.latex-option-item,
+.seat-pod,
+.drop-zone {
+  cursor: pointer !important;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:active,
+.btn-primary:active,
+.btn-secondary:active,
+.palette-btn:active {
+  transform: scale(0.97);
+}
+

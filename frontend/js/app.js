@@ -51,18 +51,29 @@ const state = {
 
 // DOM Content Loaded Handler
 document.addEventListener('DOMContentLoaded', () => {
+  initApp();
+});
+
+function initApp() {
   initLucideIcons();
   setupRoleSwitching();
   setupTeacherSubTabs();
   setupThemeToggle();
   setupAiGenerator();
-  setupStudentMode();
-  setupHandwrittenStation();
-  renderInitialQuestion();
+  setupTelemetryControls();
   renderTelemetryTable();
+  setupHandwrittenStation();
+  setupHandwrittenUploadAndVisionAi();
+  setupWhatsAppNotificationModal();
+  setupStudentMode();
+  setupNtaExamPaletteEngine();
+  setupWebSocketClient();
+  initClassroomSeatmap();
+  renderInitialQuestion();
   startStudentTimer();
   setupClass10PyqExplorer();
-});
+}
+
 
 function initLucideIcons() {
   if (window.lucide) {
@@ -147,8 +158,14 @@ function setupTeacherSubTabs() {
       btn.classList.add('active');
 
       tabContents.forEach(tab => {
-        tab.style.display = tab.id === targetTabId ? 'block' : 'none';
+        const isTarget = tab.id === targetTabId;
+        tab.style.display = isTarget ? 'block' : 'none';
+        tab.classList.toggle('active', isTarget);
       });
+
+      if (targetTabId === 'tabClass10Pyq' && allClass10Pyqs.length === 0) {
+        setupClass10PyqExplorer();
+      }
 
       initLucideIcons();
     });
@@ -160,12 +177,14 @@ function setupThemeToggle() {
   const themeIcon = document.getElementById('themeIcon');
   const htmlRoot = document.documentElement;
 
-  toggleBtn.addEventListener('click', () => {
-    state.theme = state.theme === 'dark' ? 'light' : 'dark';
-    htmlRoot.setAttribute('data-theme', state.theme);
-    themeIcon.setAttribute('data-lucide', state.theme === 'dark' ? 'sun' : 'moon');
-    initLucideIcons();
-  });
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      htmlRoot.setAttribute('data-theme', state.theme);
+      if (themeIcon) themeIcon.setAttribute('data-lucide', state.theme === 'dark' ? 'sun' : 'moon');
+      initLucideIcons();
+    });
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -225,58 +244,62 @@ function setupAiGenerator() {
   // Check LLM Provider status from backend
   checkProviderStatus();
 
-  btnGenerate.addEventListener('click', async () => {
-    btnGenerate.disabled = true;
-    btnGenerate.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;"></i> Generating via LLM...`;
-    initLucideIcons();
-
-    const grade = document.getElementById('selectGrade').value;
-    const board = document.getElementById('selectBoard').value;
-    const subject = document.getElementById('selectSubject').value;
-    const chapter = document.getElementById('selectTopic').value;
-    const difficulty = document.getElementById('selectDifficulty').value;
-    const questionType = document.getElementById('selectQuestionType').value;
-    const provider = document.getElementById('selectLlmProvider') ? document.getElementById('selectLlmProvider').value : 'auto';
-    const ncertSection = document.getElementById('inputNcertBlueprint') ? document.getElementById('inputNcertBlueprint').value : '';
-
-    try {
-      // Call Multi-LLM API endpoint
-      const res = await fetch('http://localhost:5050/api/questions/generate-llm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          grade,
-          board,
-          subject,
-          chapter,
-          ncertSection,
-          difficulty,
-          questionType,
-          provider
-        })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        state.currentQuestion = data.question;
-      } else {
-        throw new Error('Fallback to local engine');
-      }
-    } catch (e) {
-      console.warn('Backend LLM error, generating curated fallback question:', e);
-      state.currentQuestion = generateLocalAiQuestion(subject, chapter, board);
-    } finally {
-      btnGenerate.disabled = false;
-      btnGenerate.innerHTML = `<i data-lucide="wand-2" style="width:16px; height:16px;"></i> Generate via LLM Engine`;
+  if (btnGenerate) {
+    btnGenerate.addEventListener('click', async () => {
+      btnGenerate.disabled = true;
+      btnGenerate.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:16px;height:16px;"></i> Generating via LLM...`;
       initLucideIcons();
-      renderCurrentQuestionInPreview();
-    }
-  });
 
-  btnAddToTest.addEventListener('click', () => {
-    const q = state.currentQuestion || {};
-    alert(`✅ Question added to Active Classroom Test Session!\nTarget: Class ${q.grade || '10'} ${q.subject || 'Science'}\nEngine: ${q.llm_provider || 'AI Engine'}\nBenchmark Time: ${q.benchmark_time_seconds || 120}s`);
-  });
+      const grade = document.getElementById('selectGrade') ? document.getElementById('selectGrade').value : '10';
+      const board = document.getElementById('selectBoard') ? document.getElementById('selectBoard').value : 'CBSE';
+      const subject = document.getElementById('selectSubject') ? document.getElementById('selectSubject').value : 'Science';
+      const chapter = document.getElementById('selectTopic') ? document.getElementById('selectTopic').value : 'Light – Reflection and Refraction';
+      const difficulty = document.getElementById('selectDifficulty') ? document.getElementById('selectDifficulty').value : 'MEDIUM';
+      const questionType = document.getElementById('selectQuestionType') ? document.getElementById('selectQuestionType').value : 'NUMERICAL';
+      const provider = document.getElementById('selectLlmProvider') ? document.getElementById('selectLlmProvider').value : 'auto';
+      const ncertSection = document.getElementById('inputNcertBlueprint') ? document.getElementById('inputNcertBlueprint').value : '';
+
+      try {
+        // Call Multi-LLM API endpoint
+        const res = await fetch('http://localhost:5050/api/questions/generate-llm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            grade,
+            board,
+            subject,
+            chapter,
+            ncertSection,
+            difficulty,
+            questionType,
+            provider
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          state.currentQuestion = data.question;
+        } else {
+          throw new Error('Fallback to local engine');
+        }
+      } catch (e) {
+        console.warn('Backend LLM error, generating curated fallback question:', e);
+        state.currentQuestion = generateLocalAiQuestion(subject, chapter, board);
+      } finally {
+        btnGenerate.disabled = false;
+        btnGenerate.innerHTML = `<i data-lucide="wand-2" style="width:16px; height:16px;"></i> Generate via LLM Engine`;
+        initLucideIcons();
+        renderCurrentQuestionInPreview();
+      }
+    });
+  }
+
+  if (btnAddToTest) {
+    btnAddToTest.addEventListener('click', () => {
+      const q = state.currentQuestion || {};
+      alert(`✅ Question added to Active Classroom Test Session!\nTarget: Class ${q.grade || '10'} ${q.subject || 'Science'}\nEngine: ${q.llm_provider || 'AI Engine'}\nBenchmark Time: ${q.benchmark_time_seconds || 120}s`);
+    });
+  }
 }
 
 async function checkProviderStatus() {
@@ -720,7 +743,9 @@ function renderTelemetryTable() {
     `;
     tbody.appendChild(tr);
   });
+}
 
+function setupTelemetryControls() {
   const btnSim = document.getElementById('btnSimulateTelemetryEvent');
   if (btnSim) {
     btnSim.addEventListener('click', () => {
@@ -798,83 +823,96 @@ function setupStudentMode() {
   const hintTextEl = document.getElementById('socraticHintText');
   const hintNumEl = document.getElementById('hintNumber');
 
-  btnHint.addEventListener('click', () => {
-    state.studentTimer.hintsRevealed = (state.studentTimer.hintsRevealed % (state.currentQuestion.socratic_hints.length || 3)) + 1;
-    const hintIdx = state.studentTimer.hintsRevealed - 1;
-    const hint = (state.currentQuestion.socratic_hints && state.currentQuestion.socratic_hints[hintIdx]) 
-      || "Think about the relationship between torque and moment of inertia.";
+  if (btnHint && hintNumEl && hintTextEl && hintBox) {
+    btnHint.addEventListener('click', () => {
+      const activeQ = (examState.questions && examState.questions.length > 0)
+        ? examState.questions[examState.currentQuestionIndex]
+        : state.currentQuestion;
+      const hints = (activeQ && activeQ.socratic_hints && activeQ.socratic_hints.length > 0)
+        ? activeQ.socratic_hints
+        : (state.currentQuestion?.socratic_hints || [
+            "What fundamental formula governs this physical or mathematical system?",
+            "Check what values or quantities are conserved in this interaction.",
+            "Substitute given numerical values carefully to solve for the target variable."
+          ]);
 
-    hintNumEl.innerText = state.studentTimer.hintsRevealed;
-    hintTextEl.innerText = hint;
-    renderMathInElement(hintTextEl);
-    hintBox.classList.add('visible');
-    initLucideIcons();
-  });
+      state.studentTimer.hintsRevealed = (state.studentTimer.hintsRevealed % hints.length) + 1;
+      const hintIdx = state.studentTimer.hintsRevealed - 1;
+      const hint = hints[hintIdx];
+
+      hintNumEl.innerText = state.studentTimer.hintsRevealed;
+      hintTextEl.innerText = hint;
+      renderMathInElement(hintTextEl);
+      hintBox.classList.add('visible');
+      initLucideIcons();
+    });
+  }
 
   const btnSubmit = document.getElementById('btnSubmitStudentAnswer');
   const feedbackAlert = document.getElementById('studentFeedbackAlert');
 
-  btnSubmit.addEventListener('click', async () => {
-    if (!state.studentTimer.selectedOption) {
-      alert('Please select an option before submitting.');
-      return;
-    }
+  if (btnSubmit) {
+    btnSubmit.addEventListener('click', async () => {
+      if (!state.studentTimer.selectedOption) {
+        alert('Please select an option before submitting.');
+        return;
+      }
 
-    const isCorrect = state.studentTimer.selectedOption === (state.currentQuestion.correct_answer || 'B');
-    const timeSpent = state.studentTimer.secondsElapsed;
+      const isCorrect = state.studentTimer.selectedOption === (state.currentQuestion.correct_answer || 'B');
+      const timeSpent = state.studentTimer.secondsElapsed;
 
-    const isCorrect = state.studentTimer.selectedOption === (state.currentQuestion.correct_answer || 'B');
-    const timeSpent = state.studentTimer.secondsElapsed;
+      // Post telemetry to backend and broadcast via WebSocket
+      try {
+        fetch('http://localhost:5050/api/telemetry/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            studentId: 'b0000000-0000-0000-0000-000000000001',
+            questionId: state.currentQuestion.id,
+            timeSpentSeconds: timeSpent,
+            attemptStatus: isCorrect ? 'CORRECT' : 'INCORRECT',
+            selectedOption: state.studentTimer.selectedOption,
+            subtopic: state.currentQuestion.subtopic || 'Moment of Inertia',
+            topic: state.currentQuestion.topic || 'Rotational Motion',
+            hintsUsed: state.studentTimer.hintsRevealed
+          })
+        });
+      } catch (e) {
+        console.log('Streamed telemetry to local Kafka bus.');
+      }
 
-    // Post telemetry to backend and broadcast via WebSocket
-    try {
-      fetch('http://localhost:5050/api/telemetry/record', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          studentId: 'b0000000-0000-0000-0000-000000000001',
-          questionId: state.currentQuestion.id,
-          timeSpentSeconds: timeSpent,
-          attemptStatus: isCorrect ? 'CORRECT' : 'INCORRECT',
-          selectedOption: state.studentTimer.selectedOption,
-          subtopic: state.currentQuestion.subtopic || 'Moment of Inertia',
-          topic: state.currentQuestion.topic || 'Rotational Motion',
-          hintsUsed: state.studentTimer.hintsRevealed
-        })
+      // Send WebSocket Telemetry Tick
+      sendWsMessage({
+        type: 'STUDENT_ANSWER_SUBMITTED',
+        studentId: 'b0000000-0000-0000-0000-000000000001',
+        studentName: 'Aryan Sharma',
+        seatIndex: 0,
+        timeSpent,
+        isCorrect
       });
-    } catch (e) {
-      console.log('Streamed telemetry to local Kafka bus.');
-    }
 
-    // Send WebSocket Telemetry Tick
-    sendWsMessage({
-      type: 'STUDENT_ANSWER_SUBMITTED',
-      studentId: 'b0000000-0000-0000-0000-000000000001',
-      studentName: 'Aryan Sharma',
-      seatIndex: 0,
-      timeSpent,
-      isCorrect
+      if (feedbackAlert) {
+        feedbackAlert.style.display = 'block';
+        if (isCorrect) {
+          feedbackAlert.style.background = 'rgba(16, 185, 129, 0.15)';
+          feedbackAlert.style.border = '1px solid rgba(16, 185, 129, 0.4)';
+          feedbackAlert.style.color = '#34d399';
+          feedbackAlert.innerHTML = `
+            <strong>🎉 Accurate Solution! (+4.0 Marks)</strong>
+            <p style="font-size:0.85rem; margin-top:4px;">You solved it in ${timeSpent}s (Benchmark: 90s). Real-time telemetry streamed to Teacher Co-Pilot.</p>
+          `;
+        } else {
+          feedbackAlert.style.background = 'rgba(244, 63, 94, 0.15)';
+          feedbackAlert.style.border = '1px solid rgba(244, 63, 94, 0.4)';
+          feedbackAlert.style.color = '#fb7185';
+          feedbackAlert.innerHTML = `
+            <strong>⚠️ Incorrect Attempt (-1.0 Mark)</strong>
+            <p style="font-size:0.85rem; margin-top:4px;">Option ${state.studentTimer.selectedOption} is a common distractor trap. Review torque formulation!</p>
+          `;
+        }
+      }
     });
-
-    feedbackAlert.style.display = 'block';
-    if (isCorrect) {
-      feedbackAlert.style.background = 'rgba(16, 185, 129, 0.15)';
-      feedbackAlert.style.border = '1px solid rgba(16, 185, 129, 0.4)';
-      feedbackAlert.style.color = '#34d399';
-      feedbackAlert.innerHTML = `
-        <strong>🎉 Accurate Solution! (+4.0 Marks)</strong>
-        <p style="font-size:0.85rem; margin-top:4px;">You solved it in ${timeSpent}s (Benchmark: 90s). Real-time telemetry streamed to Teacher Co-Pilot.</p>
-      `;
-    } else {
-      feedbackAlert.style.background = 'rgba(244, 63, 94, 0.15)';
-      feedbackAlert.style.border = '1px solid rgba(244, 63, 94, 0.4)';
-      feedbackAlert.style.color = '#fb7185';
-      feedbackAlert.innerHTML = `
-        <strong>⚠️ Incorrect Attempt (-1.0 Mark)</strong>
-        <p style="font-size:0.85rem; margin-top:4px;">Option ${state.studentTimer.selectedOption} is a common distractor trap. Review torque formulation!</p>
-      `;
-    }
-  });
+  }
 }
 
 function startStudentTimer() {
@@ -1170,6 +1208,12 @@ function setupWhatsAppNotificationModal() {
     });
   }
 
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.remove('active');
+    });
+  }
+
   if (btnConfirm) {
     btnConfirm.addEventListener('click', async () => {
       btnConfirm.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;"></i> Dispatching...`;
@@ -1231,7 +1275,12 @@ function generate30ExamQuestions() {
         { key: 'C', latex: `$\\tau = ${i * 2}\\,\\text{N}\\cdot\\text{m}$` },
         { key: 'D', latex: '$\\tau = \\infty$' }
       ],
-      correctKey: 'A'
+      correctKey: 'A',
+      socratic_hints: [
+        "What is the angle $\\theta$ between the position vector $\\vec{r}$ and the centripetal force $\\vec{F}_c$ directed towards the center?",
+        "Recall torque $\\vec{\\tau} = \\vec{r} \\times \\vec{F} = r F \\sin(\\theta)$. Here $\\vec{r}$ and $\\vec{F}_c$ are collinear.",
+        "Since $\\sin(180^\\circ) = 0$, the centripetal torque about the origin is identically zero."
+      ]
     });
   }
   // 11-20 Chemistry
@@ -1247,7 +1296,12 @@ function generate30ExamQuestions() {
         { key: 'C', latex: `$\\Delta S = -${i} R \\ln(10)$` },
         { key: 'D', latex: `$\\Delta S = ${i} R$` }
       ],
-      correctKey: 'A'
+      correctKey: 'A',
+      socratic_hints: [
+        "In an isothermal reversible expansion, $\\Delta U = 0 \\implies q_{\\text{rev}} = -W$.",
+        "Recall the formula for work in isothermal expansion: $W = -nRT \\ln\\left(\\frac{V_2}{V_1}\\right)$.",
+        "Entropy change is $\\Delta S = \\frac{q_{\\text{rev}}}{T} = n R \\ln\\left(\\frac{V_2}{V_1}\\right)$."
+      ]
     });
   }
   // 21-30 Mathematics
@@ -1263,7 +1317,12 @@ function generate30ExamQuestions() {
         { key: 'C', latex: `${i - 18}` },
         { key: 'D', latex: '$\\pi$' }
       ],
-      correctKey: 'A'
+      correctKey: 'A',
+      socratic_hints: [
+        "Use the product rule: $\\frac{d}{dx}[u \\cdot v] = u' v + u v'$ where $u(x) = x^k$ and $v(x) = \\sin(x)$.",
+        "Notice that as $x \\to 0$, both $x^k = 0$ (for $k \\ge 2$) and $\\sin(0) = 0$.",
+        "Evaluating both terms at $x=0$ yields $0 \\cdot \\sin(0) + 0 \\cdot \\cos(0) = 0$."
+      ]
     });
   }
   return list;
@@ -1332,20 +1391,51 @@ function setupNtaExamPaletteEngine() {
 
   if (btnSubmitExam) {
     btnSubmitExam.addEventListener('click', () => {
-      const answered = examState.answers.filter(a => a !== null).length;
-      if (confirm(`Submit Assessment?\n\n• Answered: ${answered} of 30\n• Unanswered: ${30 - answered}\n\nProceed to submit official grade to HAPS?`)) {
-        alert('🎉 Assessment Submitted Successfully!\nYour score and concept breakdown have been synced to the Teacher Co-Pilot and Weekly Smart Report.');
+      let correct = 0;
+      let incorrect = 0;
+      let unattempted = 0;
+      let totalMarks = 0;
+
+      examState.questions.forEach((q, idx) => {
+        const studentAns = examState.answers[idx];
+        if (studentAns === null) {
+          unattempted++;
+        } else if (studentAns === q.correctKey) {
+          correct++;
+          totalMarks += 4;
+        } else {
+          incorrect++;
+          totalMarks -= 1;
+        }
+      });
+
+      const maxMarks = examState.questions.length * 4;
+      const pct = Math.max(0, ((totalMarks / maxMarks) * 100)).toFixed(1);
+
+      if (confirm(`Submit Official Assessment?\n\n• Attempted: ${30 - unattempted} / 30\n• Correct (+4): ${correct}\n• Incorrect (-1): ${incorrect}\n• Estimated Score: ${totalMarks} / ${maxMarks} (${pct}%)\n\nProceed to sync results to Teacher Co-Pilot?`)) {
+        alert(`🎉 Assessment Successfully Submitted!\n\nScore: ${totalMarks} / ${maxMarks} (${pct}%)\n• Correct: ${correct}\n• Incorrect: ${incorrect}\n• Unanswered: ${unattempted}\n\nReal-time Kafka telemetry sent to HAPS Teacher Co-Pilot and Parent WhatsApp Dossier.`);
       }
     });
   }
 }
 
 function advanceQuestion() {
+  const autoSave = document.getElementById('autoSaveIndicator');
+  if (autoSave) {
+    autoSave.innerHTML = `<i data-lucide="check-check" style="width:12px; height:12px; vertical-align:middle; color:#10b981;"></i> Saved!`;
+    initLucideIcons();
+    setTimeout(() => {
+      autoSave.innerHTML = `<i data-lucide="check" style="width:12px; height:12px; vertical-align:middle;"></i> Auto-Saved`;
+      initLucideIcons();
+    }, 1200);
+  }
+
   if (examState.currentQuestionIndex < 29) {
     jumpToQuestion(examState.currentQuestionIndex + 1);
   } else {
     renderPaletteButtons();
     updatePaletteCounts();
+    alert("You have reached the final question (Q30). You can review responses on the palette or click 'Submit Full Assessment'.");
   }
 }
 
@@ -1353,6 +1443,12 @@ function jumpToQuestion(index) {
   examState.currentQuestionIndex = index;
   examState.visitedStatus[index] = true;
   state.studentTimer.selectedOption = examState.answers[index];
+
+  // Reset hint box
+  const hintBox = document.getElementById('socraticHintBox');
+  if (hintBox) hintBox.classList.remove('visible');
+  state.studentTimer.hintsRevealed = 0;
+
   renderActiveNtaQuestion();
   renderPaletteButtons();
   updatePaletteCounts();
@@ -1450,13 +1546,4 @@ function updatePaletteCounts() {
   document.getElementById('countNotVisited').innerText = notVisited;
 }
 
-// -----------------------------------------------------------------------------
-// EXTENDED DOM INITIALIZATION
-// -----------------------------------------------------------------------------
-window.addEventListener('load', () => {
-  setupHandwrittenUploadAndVisionAi();
-  setupWebSocketClient();
-  initClassroomSeatmap();
-  setupWhatsAppNotificationModal();
-  setupNtaExamPaletteEngine();
-});
+// Initialization is handled cleanly on DOMContentLoaded via initApp()
