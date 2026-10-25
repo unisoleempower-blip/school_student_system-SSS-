@@ -215,10 +215,11 @@ const inMemoryStore = {
         target_exam: 'NEET_UG',
         subject: 'Biology',
         branch: 'BOTANY',
-        chapter_number: 5,
+        chapter_number: 4,
         chapter_name: 'Principles of Inheritance and Variation',
-        topic: 'Mendelian Genetics',
-        subtopic: 'Dihybrid Cross & Law of Independent Assortment',
+        chapter: 'Principles of Inheritance and Variation',
+        topic: 'Dihybrid Cross & Law of Independent Assortment',
+        subtopic: 'Mendelian Genetics & Dihybrid Cross',
         curriculum_board: 'NEET_UG',
         pyq_appearance: 'NEET 2023 & AIPMT 2014',
         difficulty: 'MEDIUM',
@@ -238,6 +239,167 @@ const inMemoryStore = {
           "Treat the two gene pairs ($R$ and $Y$) independently.",
           "What is the probability of obtaining $RR$ from $Rr \\times Rr$?",
           "What is the probability of obtaining $Yy$ from $Yy \\times Yy$? Multiply the probabilities."
+        ]
+      },
+      {
+        id: 'snr_b_02',
+        grade: '12',
+        stream: 'MEDICAL',
+        target_exam: 'NEET_UG',
+        subject: 'Biology',
+        branch: 'BOTANY',
+        chapter_number: 5,
+        chapter_name: 'Molecular Basis of Inheritance',
+        chapter: 'Molecular Basis of Inheritance',
+        topic: 'Replication: Semi-Conservative Mode (Meselson & Stahl) & Enzymes',
+        subtopic: 'Semi-Conservative DNA Replication (Meselson & Stahl)',
+        curriculum_board: 'NEET_UG',
+        pyq_appearance: 'NEET 2022 Phase-1 & CBSE 2023',
+        difficulty: 'MEDIUM',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 50,
+        marks_weightage: 4,
+        question_latex: '$E. coli$ cells grown in $^{15}\\text{NH}_4\\text{Cl}$ medium were transferred to $^{14}\\text{NH}_4\\text{Cl}$ medium. After 40 minutes (2 generations of replication), what will be the ratio of hybrid density DNA ($^{15}\\text{N}/^{14}\\text{N}$) to light density DNA ($^{14}\\text{N}/^{14}\\text{N}$)?',
+        options_latex: [
+          { key: 'A', latex: '$1 : 1$', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: '$1 : 3$', is_correct: false, distractor_trap: 'Calculated 3 generations (60 min) instead of 2 generations (40 min)' },
+          { key: 'C', latex: '$3 : 1$', is_correct: false, distractor_trap: 'Inverted ratio of light vs hybrid' },
+          { key: 'D', latex: '$0 : 1$', is_correct: false, distractor_trap: 'Assumed conservative replication mechanism' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: 'Generation 0 (0 min): 100% Heavy ($^{15}\\text{N}/^{15}\\text{N}$). Generation 1 (20 min): 100% Hybrid ($^{15}\\text{N}/^{14}\\text{N}$). Generation 2 (40 min): 50% Hybrid ($^{15}\\text{N}/^{14}\\text{N}$) and 50% Light ($^{14}\\text{N}/^{14}\\text{N}$). Thus, the ratio of hybrid to light DNA is $50 : 50 = 1 : 1$.',
+        socratic_hints: [
+          "Recall that $E. coli$ divides every 20 minutes.",
+          "In 40 minutes, how many rounds of DNA replication occur?",
+          "Trace the 2 parent strands and 2 newly synthesized light strands in generation 2."
+        ]
+      },
+      {
+        id: 'snr_b_03',
+        grade: '12',
+        stream: 'MEDICAL',
+        target_exam: 'NEET_UG',
+        subject: 'Biology',
+        branch: 'BOTANY',
+        chapter_number: 5,
+        chapter_name: 'Molecular Basis of Inheritance',
+        chapter: 'Molecular Basis of Inheritance',
+        topic: 'Regulation of Gene Expression (Lac Operon)',
+        subtopic: 'Lac Operon & Inducer Mechanism',
+        curriculum_board: 'NEET_UG',
+        pyq_appearance: 'NEET 2024 & CBSE 2020',
+        difficulty: 'EASY',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 40,
+        marks_weightage: 4,
+        question_latex: 'In the lactose operon of $E. coli$, lactose acts as an inducer by directly binding to which component?',
+        options_latex: [
+          { key: 'A', latex: 'Repressor protein produced by the $i$ gene', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: 'Operator gene ($o$ gene)', is_correct: false, distractor_trap: 'Repressor binds to operator, not lactose directly' },
+          { key: 'C', latex: 'Promoter gene ($p$ gene)', is_correct: false, distractor_trap: 'RNA polymerase binds to promoter' },
+          { key: 'D', latex: 'Structural gene $z$', is_correct: false, distractor_trap: 'Gene $z$ encodes $\\beta$-galactosidase' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: 'Lactose (or allolactose) functions as an inducer by binding to the active repressor protein synthesized by the regulatory $i$ gene. This binding alters repressor conformation, preventing it from binding to the operator region and allowing RNA polymerase to transcribe the $z, y, a$ structural genes.',
+        socratic_hints: [
+          "Which protein keeps the operon in an 'OFF' state by blocking the operator?",
+          "How does an inducer release this blockage?"
+        ]
+      },
+      {
+        id: 'snr_b_04',
+        grade: '11',
+        stream: 'MEDICAL',
+        target_exam: 'NEET_UG',
+        subject: 'Biology',
+        branch: 'ZOOLOGY',
+        chapter_number: 16,
+        chapter_name: 'Excretory Products and their Elimination',
+        chapter: 'Excretory Products and their Elimination',
+        topic: 'Counter-Current Mechanism (Loop of Henle & Vasa Recta)',
+        subtopic: 'Medullary Osmotic Gradient',
+        curriculum_board: 'NEET_UG',
+        pyq_appearance: 'NEET 2023 & AIPMT 2015',
+        difficulty: 'MEDIUM',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 60,
+        marks_weightage: 4,
+        question_latex: 'The counter-current mechanism in the human kidney maintains an osmotic gradient in the medullary interstitium increasing from $300\\,\\text{mOsmol/L}$ to $1200\\,\\text{mOsmol/L}$. Which two solutes are primarily responsible for maintaining this medullary gradient?',
+        options_latex: [
+          { key: 'A', latex: '$\\text{NaCl}$ and Urea', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: '$\\text{NaCl}$ and Glucose', is_correct: false, distractor_trap: 'Glucose is fully reabsorbed in PCT and does not create medullary osmolarity' },
+          { key: 'C', latex: 'Uric acid and Potassium ($K^+$)', is_correct: false, distractor_trap: 'Uric acid has minimal concentration in medullary interstitial fluid' },
+          { key: 'D', latex: 'Creatinine and Bicarbonate ($\\text{HCO}_3^-$)', is_correct: false, distractor_trap: 'Bicarbonate is absorbed in PCT/DCT for acid-base buffer' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: 'According to NCERT Chapter 16, the medullary interstitial hyperosmolarity gradient is maintained primarily by $\\text{NaCl}$ (transported by the ascending limb of Henle loop and exchanged with the descending limb of vasa recta) and small amounts of Urea (entering the thin ascending limb from the medullary collecting duct).',
+        socratic_hints: [
+          "Which electrolyte is actively extruded by the thick ascending limb of Henle's loop?",
+          "Which organic nitrogenous waste diffuses out of the collecting duct into the medullary interstitium?"
+        ]
+      },
+      {
+        id: 'snr_b_05',
+        grade: '12',
+        stream: 'MEDICAL',
+        target_exam: 'NEET_UG',
+        subject: 'Biology',
+        branch: 'BOTANY',
+        chapter_number: 9,
+        chapter_name: 'Biotechnology: Principles and Processes',
+        chapter: 'Biotechnology: Principles and Processes',
+        topic: 'Cloning Vectors (pBR322: ori, rop, Selectable Markers, ampR, tetR)',
+        subtopic: 'Insertional Inactivation in pBR322',
+        curriculum_board: 'NEET_UG',
+        pyq_appearance: 'NEET 2024 & CBSE Class 12 Board 2023',
+        difficulty: 'HARD',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 70,
+        marks_weightage: 4,
+        question_latex: 'If a foreign gene is ligated at the $Bam\\text{HI}$ restriction site located within the tetracycline resistance gene ($tet^R$) of cloning vector $\\text{pBR322}$, what will be the antibiotic phenotype of recombinant transformants?',
+        options_latex: [
+          { key: 'A', latex: 'Ampicillin resistant ($\\text{amp}^R$) and Tetracycline sensitive ($\\text{tet}^S$)', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: 'Tetracycline resistant ($\\text{tet}^R$) and Ampicillin sensitive ($\\text{amp}^S$)', is_correct: false, distractor_trap: 'Inverted antibiotic resistance markers' },
+          { key: 'C', latex: 'Resistant to both Ampicillin and Tetracycline', is_correct: false, distractor_trap: 'Ignored insertional inactivation of the $tet^R$ gene' },
+          { key: 'D', latex: 'Sensitive to both Ampicillin and Tetracycline', is_correct: false, distractor_trap: 'Ampicillin gene remained intact and functional' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: 'The $Bam\\text{HI}$ recognition sequence lies within the $tet^R$ gene of pBR322. Insertion of alien DNA disrupts the coding sequence of the $tet^R$ gene (insertional inactivation), causing loss of tetracycline resistance. The $amp^R$ gene remains intact and expresses $\\beta$-lactamase, so recombinants grow on ampicillin medium but not on tetracycline medium.',
+        socratic_hints: [
+          "Where is the $Bam\\text{HI}$ site situated in the standard pBR322 plasmid map?",
+          "What happens to a gene's expression when a foreign DNA sequence is spliced inside its coding region?"
+        ]
+      },
+      {
+        id: 'snr_b_06',
+        grade: '11',
+        stream: 'MEDICAL',
+        target_exam: 'NEET_UG',
+        subject: 'Biology',
+        branch: 'BOTANY',
+        chapter_number: 8,
+        chapter_name: 'Cell: The Unit of Life',
+        chapter: 'Cell: The Unit of Life',
+        topic: 'Plasma Membrane (Fluid Mosaic Model)',
+        subtopic: 'Fluid Mosaic Model & Membrane Lipids',
+        curriculum_board: 'NEET_UG',
+        pyq_appearance: 'NEET 2023 & AIPMT 2012',
+        difficulty: 'EASY',
+        question_format: 'MCQ_SINGLE',
+        benchmark_time_seconds: 35,
+        marks_weightage: 4,
+        question_latex: 'According to the Fluid Mosaic Model of Singer and Nicolson (1972), the quasi-fluid nature of the membrane lipid bilayer enables:',
+        options_latex: [
+          { key: 'A', latex: 'Lateral movement of proteins within the overall bilayer', is_correct: true, distractor_trap: null },
+          { key: 'B', latex: 'Rapid flip-flop movement of all membrane proteins', is_correct: false, distractor_trap: 'Proteins rarely or never undergo flip-flop movement across the hydrophilic interior' },
+          { key: 'C', latex: 'Completely rigid mechanical support with zero fluidity', is_correct: false, distractor_trap: 'Contradicts the fluid model' },
+          { key: 'D', latex: 'Dissolution of the lipid bilayer at physiological temperature', is_correct: false, distractor_trap: 'Bilayer maintains integrity and selective permeability' }
+        ],
+        correct_answer_latex: 'A',
+        solution_latex: 'The quasi-fluid nature of lipids enables lateral movement of integral proteins within the overall bilayer. This ability to move within the membrane is measured as its fluidity, which is vital for cell growth, formation of intercellular junctions, secretion, endocytosis, and cell division.',
+        socratic_hints: [
+          "Do proteins in a biological membrane move laterally or flip-flop across?",
+          "How did Singer and Nicolson describe proteins in the lipid sea ('protein icebergs in a sea of lipids')?"
         ]
       }
     ]

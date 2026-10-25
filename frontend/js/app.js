@@ -275,7 +275,7 @@ function setupTeacherSubTabs() {
         tab.classList.toggle('active', isTarget);
       });
 
-      if (targetTabId === 'tabClass10Pyq' && allClass10Pyqs.length === 0) {
+      if (targetTabId === 'tabClass10Pyq' && !currentCurriculumTaxonomy) {
         setupClass10PyqExplorer();
       }
 
@@ -559,82 +559,469 @@ function renderCurrentQuestionInPreview() {
 }
 
 // -----------------------------------------------------------------------------
-// 2B. CLASS 10 NCERT & PYQ EXPLORER
+// -----------------------------------------------------------------------------
+// 2B. MASTER CURRICULUM SYLLABUS BREAKDOWN (SUBJECT -> CHAPTER -> TOPIC)
 // -----------------------------------------------------------------------------
 let allClass10Pyqs = [];
+let currentCurriculumTaxonomy = null;
 
 async function setupClass10PyqExplorer() {
-  const container = document.getElementById('class10PyqContainer');
-  const totalCountEl = document.getElementById('pyqTotalCount');
+  const accordionContainer = document.getElementById('curriculumAccordionContainer');
+  const subjectSelect = document.getElementById('curriculumSubjectSelect');
+  const gradeSelect = document.getElementById('curriculumGradeSelect');
+  const searchInput = document.getElementById('curriculumSearchInput');
   const btnRefresh = document.getElementById('btnRefreshPyqBank');
-  const filterSubject = document.getElementById('pyqFilterSubject');
-  const filterChapter = document.getElementById('pyqFilterChapter');
-  const filterBoard = document.getElementById('pyqFilterBoard');
-  const searchInput = document.getElementById('pyqSearchInput');
+  const btnExpandAll = document.getElementById('btnExpandAllChapters');
+  const btnCollapseAll = document.getElementById('btnCollapseAllChapters');
 
-  if (!container) return;
+  const chaptersCountEl = document.getElementById('curriculumChaptersCount');
+  const topicsCountEl = document.getElementById('curriculumTopicsCount');
+  const totalCountEl = document.getElementById('pyqTotalCount');
+  const subjectTitleEl = document.getElementById('curriculumSubjectTitle');
+  const streamBadgeEl = document.getElementById('curriculumStreamBadge');
+  const targetExamsEl = document.getElementById('curriculumTargetExamsText');
 
-  const loadPyqs = async () => {
-    container.innerHTML = `
-      <div style="text-align:center; padding: 2.5rem; color: var(--text-muted);">
-        <i data-lucide="loader-2" class="spin" style="width:24px; height:24px; margin: 0 auto 8px; display:block;"></i>
-        Loading verified NCERT Class 10 Board Questions...
+  if (!accordionContainer) return;
+
+  // 1. Core Fetch Function
+  const loadCurriculum = async () => {
+    const subjectKey = subjectSelect ? subjectSelect.value : 'BIOLOGY';
+    const grade = gradeSelect ? gradeSelect.value : 'ALL';
+
+    accordionContainer.innerHTML = `
+      <div style="text-align:center; padding: 3rem; color: var(--text-muted);">
+        <i data-lucide="loader-2" class="spin" style="width:28px; height:28px; margin: 0 auto 10px; display:block; color:var(--accent-blue);"></i>
+        Loading hierarchical syllabus breakdown for ${subjectKey}...
       </div>
     `;
     initLucideIcons();
 
     try {
-      const res = await fetch('http://localhost:5050/api/questions/class10-pyq');
+      const url = `http://localhost:5050/api/curriculum/taxonomy/${subjectKey}${grade !== 'ALL' ? `?grade=${grade}` : ''}`;
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
-        allClass10Pyqs = data.questions || [];
+        currentCurriculumTaxonomy = data;
       } else {
-        throw new Error('Fallback to bundled PYQs');
+        throw new Error(`API returned ${res.status}`);
       }
-    } catch (e) {
-      console.warn('Backend PYQ fetch error, loading default PYQ set:', e);
-      allClass10Pyqs = getBundledClass10Pyqs();
+    } catch (err) {
+      console.warn('Backend curriculum fetch error, using offline fallback:', err);
+      currentCurriculumTaxonomy = getOfflineCurriculumFallback(subjectKey, grade);
     }
 
-    if (totalCountEl) totalCountEl.innerText = allClass10Pyqs.length;
-    filterAndRenderPyqs();
+    if (currentCurriculumTaxonomy) {
+      // Update Summary KPI stats
+      const chapters = currentCurriculumTaxonomy.chapters || [];
+      const totalTopics = chapters.reduce((acc, ch) => acc + (ch.topics ? ch.topics.length : 0), 0);
+      const totalQuestions = chapters.reduce((acc, ch) => acc + (ch.totalQuestionsInChapter || 0), 0);
+
+      if (chaptersCountEl) chaptersCountEl.innerText = chapters.length;
+      if (topicsCountEl) topicsCountEl.innerText = totalTopics;
+      if (totalCountEl) totalCountEl.innerText = totalQuestions;
+
+      if (subjectTitleEl) {
+        subjectTitleEl.innerText = `${currentCurriculumTaxonomy.subjectName} (${currentCurriculumTaxonomy.stream === 'MEDICAL' ? 'Botany & Zoology' : currentCurriculumTaxonomy.stream})`;
+      }
+      if (streamBadgeEl) {
+        streamBadgeEl.innerText = `${currentCurriculumTaxonomy.stream} • Class ${currentCurriculumTaxonomy.grades ? currentCurriculumTaxonomy.grades.join(' & ') : '11 & 12'}`;
+      }
+      if (targetExamsEl) {
+        const exams = currentCurriculumTaxonomy.targetExams || ['NEET_UG', 'BOARDS'];
+        targetExamsEl.innerText = `Target Exams: ${exams.map(e => e.replace(/_/g, ' ')).join(', ')}`;
+      }
+
+      renderCurriculumAccordion();
+    }
   };
 
-  const filterAndRenderPyqs = () => {
-    let filtered = [...allClass10Pyqs];
-    const subj = filterSubject ? filterSubject.value : 'ALL';
-    const chap = filterChapter ? filterChapter.value : 'ALL';
-    const board = filterBoard ? filterBoard.value : 'ALL';
+  // 2. Render Accordion Function
+  const renderCurriculumAccordion = () => {
+    if (!currentCurriculumTaxonomy || !currentCurriculumTaxonomy.chapters) return;
+
     const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    let chapters = currentCurriculumTaxonomy.chapters;
 
-    if (subj !== 'ALL') {
-      filtered = filtered.filter(q => q.subject.toLowerCase() === subj.toLowerCase());
-    }
-    if (chap !== 'ALL') {
-      filtered = filtered.filter(q => q.chapter.toLowerCase().includes(chap.toLowerCase()));
-    }
-    if (board !== 'ALL') {
-      filtered = filtered.filter(q => q.ncert_mapping && q.ncert_mapping.pyq_tag.toLowerCase().includes(board.toLowerCase()));
-    }
+    // Filter chapters and topics by search query
     if (query) {
-      filtered = filtered.filter(q => 
-        q.chapter.toLowerCase().includes(query) ||
-        q.question_latex.toLowerCase().includes(query) ||
-        (q.ncert_mapping && q.ncert_mapping.ncert_section.toLowerCase().includes(query)) ||
-        (q.ncert_mapping && q.ncert_mapping.page_reference.toLowerCase().includes(query))
-      );
+      chapters = chapters.map(ch => {
+        const chNameMatches = ch.chapterName.toLowerCase().includes(query) || (ch.unit && ch.unit.toLowerCase().includes(query));
+        const matchedTopics = (ch.topics || []).filter(t => 
+          t.topicName.toLowerCase().includes(query) ||
+          (t.ncertSection && t.ncertSection.toLowerCase().includes(query)) ||
+          chNameMatches
+        );
+
+        return {
+          ...ch,
+          matchedTopics,
+          matchesFilter: chNameMatches || matchedTopics.length > 0
+        };
+      }).filter(ch => ch.matchesFilter);
     }
 
-    renderPyqCards(filtered);
+    if (chapters.length === 0) {
+      accordionContainer.innerHTML = `
+        <div class="glass-card" style="text-align:center; padding: 3rem;">
+          <i data-lucide="inbox" style="width:36px; height:36px; color:var(--text-muted); margin: 0 auto 10px; display:block;"></i>
+          <h3 style="color:var(--text-primary); font-size:1.1rem; margin-bottom:4px;">No Chapters or Topics Match "${query}"</h3>
+          <p style="color:var(--text-secondary); font-size:0.85rem;">Try searching for terms like "Lac Operon", "Replication", "Nephron", "pBR322", or "Meiosis".</p>
+        </div>
+      `;
+      initLucideIcons();
+      return;
+    }
+
+    accordionContainer.innerHTML = '';
+
+    chapters.forEach((ch, chIdx) => {
+      const card = document.createElement('div');
+      card.className = `curriculum-chapter-card ${query ? 'expanded' : (chIdx === 0 ? 'expanded' : '')}`;
+      card.id = `chapter_card_${ch.id}`;
+
+      const topicsToRender = query && ch.matchedTopics ? ch.matchedTopics : (ch.topics || []);
+      const totalQInCh = ch.totalQuestionsInChapter || 0;
+
+      card.innerHTML = `
+        <!-- Chapter Header -->
+        <div class="chapter-header" data-chapter-id="${ch.id}">
+          <div class="chapter-title-group">
+            <span class="chapter-num-badge">Ch ${ch.chapterNumber || (chIdx + 1)}</span>
+            <div>
+              <div class="chapter-name">${ch.chapterName}</div>
+              <div class="chapter-meta-badges">
+                ${ch.discipline ? `<span class="${ch.discipline.toLowerCase().includes('bot') ? 'badge-botany' : 'badge-zoology'}">${ch.discipline}</span>` : ''}
+                ${ch.unit ? `<span class="badge-unit"><i data-lucide="layers" style="width:10px; height:10px; display:inline-block; vertical-align:middle;"></i> Unit: ${ch.unit}</span>` : ''}
+                <span class="badge-grade">Class ${ch.grade}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chapter-right-metrics">
+            <span class="metric-pill">
+              <i data-lucide="list-tree" style="width:13px; height:13px; color:var(--accent-blue);"></i>
+              ${topicsToRender.length} Subtopics
+            </span>
+            <span class="metric-pill" style="${totalQInCh > 0 ? 'border-color: rgba(16, 185, 129, 0.4); color: #34d399;' : ''}">
+              <i data-lucide="help-circle" style="width:13px; height:13px; color:${totalQInCh > 0 ? '#34d399' : 'var(--text-muted)'};"></i>
+              ${totalQInCh} Questions in Bank
+            </span>
+            <i data-lucide="chevron-down" class="chevron-icon"></i>
+          </div>
+        </div>
+
+        <!-- Chapter Body: Subtopics List -->
+        <div class="chapter-body">
+          <div class="topic-list-container">
+            ${topicsToRender.map((t, tIdx) => `
+              <div class="topic-row ${t.highYield ? 'high-yield' : ''}" id="topic_row_${t.id}">
+                <div class="topic-left-details">
+                  <span class="ncert-sec-badge">NCERT §${t.ncertSection || `${ch.chapterNumber || chIdx + 1}.${tIdx + 1}`}</span>
+                  <span class="topic-name-text">${t.topicName}</span>
+                  ${t.highYield ? `
+                    <span class="high-yield-tag">
+                      <i data-lucide="flame" style="width:10px; height:10px;"></i> High Yield
+                    </span>
+                  ` : ''}
+                </div>
+
+                <div class="topic-actions">
+                  <button class="btn-topic-action btn-topic-ai" 
+                          data-grade="${ch.grade}" 
+                          data-subject="${currentCurriculumTaxonomy.subjectName}" 
+                          data-chapter="${ch.chapterName}" 
+                          data-topic="${t.topicName}"
+                          data-board="${currentCurriculumTaxonomy.stream === 'MEDICAL' ? 'NEET' : 'JEE_MAIN'}"
+                          title="Generate a brand new exam-quality question for this specific topic using AI">
+                    <i data-lucide="sparkles" style="width:12px; height:12px;"></i> AI Question
+                  </button>
+
+                  <button class="btn-topic-action btn-topic-preview ${t.questionCount > 0 ? 'has-questions' : ''}" 
+                          data-grade="${ch.grade}" 
+                          data-subject="${currentCurriculumTaxonomy.subjectName}" 
+                          data-chapter="${ch.chapterName}" 
+                          data-topic="${t.topicName}"
+                          data-topic-id="${t.id}"
+                          title="View questions mapped to this topic">
+                    <i data-lucide="eye" style="width:12px; height:12px;"></i> Questions (${t.questionCount || 0})
+                  </button>
+                </div>
+
+                <!-- Topic Questions Drawer (Accordion Sub-Panel) -->
+                <div class="topic-questions-drawer" id="drawer_${t.id}">
+                  <!-- Dynamically populated when teacher clicks Questions -->
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+
+      accordionContainer.appendChild(card);
+    });
+
+    // Attach Click Events for Chapter Accordion Toggle
+    accordionContainer.querySelectorAll('.chapter-header').forEach(header => {
+      header.addEventListener('click', (e) => {
+        const card = header.closest('.curriculum-chapter-card');
+        if (card) {
+          card.classList.toggle('expanded');
+        }
+      });
+    });
+
+    // Attach Click Events for "AI Question" Generation
+    accordionContainer.querySelectorAll('.btn-topic-ai').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const grade = btn.getAttribute('data-grade');
+        const subject = btn.getAttribute('data-subject');
+        const chapter = btn.getAttribute('data-chapter');
+        const topic = btn.getAttribute('data-topic');
+        const board = btn.getAttribute('data-board') || 'NEET';
+
+        const originalText = btn.innerHTML;
+        btn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:12px; height:12px;"></i> Synthesizing...`;
+        btn.disabled = true;
+
+        try {
+          const res = await fetch('http://localhost:5050/api/curriculum/generate-topic-question', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              grade,
+              subject,
+              chapter,
+              topic,
+              difficulty: 'MEDIUM',
+              board
+            })
+          });
+
+          const data = await res.json();
+          if (data.success && data.question) {
+            btn.innerHTML = `<i data-lucide="check" style="width:12px; height:12px; color:#10b981;"></i> Generated!`;
+            setTimeout(() => {
+              btn.innerHTML = originalText;
+              btn.disabled = false;
+              initLucideIcons();
+            }, 1800);
+
+            // Add question to active test draft automatically or refresh view
+            addQuestionToTestDraft(data.question);
+
+            // Re-fetch taxonomy to update counts live
+            await loadCurriculum();
+          } else {
+            throw new Error(data.error || 'Synthesis error');
+          }
+        } catch (err) {
+          console.error('Failed to generate topic question:', err);
+          btn.innerHTML = `<i data-lucide="alert-circle" style="width:12px; height:12px; color:#ef4444;"></i> Retry`;
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            initLucideIcons();
+          }, 2000);
+        }
+      });
+    });
+
+    // Attach Click Events for Topic "Questions" Drawer
+    accordionContainer.querySelectorAll('.btn-topic-preview').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const topicId = btn.getAttribute('data-topic-id');
+        const subject = btn.getAttribute('data-subject');
+        const chapter = btn.getAttribute('data-chapter');
+        const topic = btn.getAttribute('data-topic');
+        const drawer = document.getElementById(`drawer_${topicId}`);
+
+        if (!drawer) return;
+
+        if (drawer.classList.contains('active')) {
+          drawer.classList.remove('active');
+          drawer.innerHTML = '';
+          return;
+        }
+
+        drawer.classList.add('active');
+        drawer.innerHTML = `
+          <div style="text-align:center; padding: 1.25rem; color: var(--text-muted); font-size: 0.85rem;">
+            <i data-lucide="loader-2" class="spin" style="width:18px; height:18px; margin: 0 auto 6px; display:block;"></i>
+            Loading questions for ${topic}...
+          </div>
+        `;
+        initLucideIcons();
+
+        try {
+          const qUrl = `http://localhost:5050/api/curriculum/questions?subject=${encodeURIComponent(subject)}&chapter=${encodeURIComponent(chapter)}&topic=${encodeURIComponent(topic)}`;
+          const res = await fetch(qUrl);
+          const data = await res.json();
+          const qList = (data.success && data.questions) ? data.questions : [];
+
+          if (qList.length === 0) {
+            drawer.innerHTML = `
+              <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+                No questions currently filed under <strong>${topic}</strong>.<br/>
+                Click <span style="color:var(--accent-cyan); font-weight:600;">"AI Question"</span> above to synthesize a verified exam question immediately!
+              </div>
+            `;
+          } else {
+            drawer.innerHTML = `
+              <div style="font-size: 0.82rem; font-weight: 700; color: #34d399; margin-bottom: 0.5rem; display:flex; justify-content:space-between; align-items:center;">
+                <span>Verified Questions for ${topic} (${qList.length})</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">KaTeX Rendered</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                ${qList.map((q, idx) => `
+                  <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 12px 14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 6px; flex-wrap:wrap; gap:6px;">
+                      <span class="pilot-tag" style="background:rgba(59,130,246,0.15); color:var(--accent-blue); font-size:0.72rem;">
+                        Q${idx + 1} &bull; ${q.curriculum_board || 'NEET'} &bull; ${q.difficulty}
+                      </span>
+                      <span style="font-size:0.72rem; color:var(--text-muted);">
+                        ⏱ Benchmark: ${q.benchmark_time_seconds || 60}s
+                      </span>
+                    </div>
+
+                    <div style="font-size:0.92rem; color:var(--text-primary); margin-bottom:8px; line-height:1.5;" class="topic-math-block">
+                      ${renderLatexString(q.question_latex)}
+                    </div>
+
+                    ${q.options_latex && q.options_latex.length > 0 ? `
+                      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:6px; margin-bottom:8px;">
+                        ${q.options_latex.map(opt => `
+                          <div style="display:flex; align-items:center; gap:8px; padding:6px 10px; background:${opt.is_correct ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)'}; border:1px solid ${opt.is_correct ? 'rgba(16,185,129,0.4)' : 'var(--border-subtle)'}; border-radius:4px; font-size:0.82rem;">
+                            <strong style="color:${opt.is_correct ? '#10b981' : 'var(--text-muted)'}">${opt.key}</strong>
+                            <div style="flex:1;" class="topic-math-block">${renderLatexString(opt.latex)}</div>
+                            ${opt.is_correct ? '<span style="color:#10b981; font-size:0.68rem; font-weight:700;">✓ Correct</span>' : (opt.distractor_trap ? `<span style="color:#ef4444; font-size:0.65rem;" title="${opt.distractor_trap}">Trap</span>` : '')}
+                          </div>
+                        `).join('')}
+                      </div>
+                    ` : ''}
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px dashed var(--border-subtle); padding-top:6px; margin-top:6px;">
+                      <div style="font-size:0.78rem; color:var(--text-muted);" class="topic-math-block">
+                        <strong>Solution:</strong> ${renderLatexString(q.solution_latex?.slice(0, 140) || 'Step-by-step verification complete.')}...
+                      </div>
+                      <button class="btn-primary btn-add-drawer-q" data-qid="${q.id}" style="font-size:0.72rem; padding:4px 10px; white-space:nowrap;">
+                        <i data-lucide="plus" style="width:12px; height:12px;"></i> Add to Draft
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+
+            // Attach "Add to Draft" button clicks
+            drawer.querySelectorAll('.btn-add-drawer-q').forEach(addBtn => {
+              addBtn.addEventListener('click', (ev) => {
+                ev.stopPropagation();
+                const qid = addBtn.getAttribute('data-qid');
+                const matchedQ = qList.find(item => item.id === qid);
+                if (matchedQ) {
+                  addQuestionToTestDraft(matchedQ);
+                  addBtn.innerHTML = `<i data-lucide="check" style="width:12px; height:12px; color:#10b981;"></i> Added!`;
+                  setTimeout(() => {
+                    addBtn.innerHTML = `<i data-lucide="plus" style="width:12px; height:12px;"></i> Add to Draft`;
+                    initLucideIcons();
+                  }, 1500);
+                }
+              });
+            });
+          }
+
+          renderMathInElement(drawer);
+          initLucideIcons();
+        } catch (err) {
+          console.error('Failed to load topic questions:', err);
+          drawer.innerHTML = `<div style="color:#ef4444; padding:10px; font-size:0.82rem;">Error loading questions. Please try again.</div>`;
+        }
+      });
+    });
+
+    renderMathInElement(accordionContainer);
+    initLucideIcons();
   };
 
-  if (filterSubject) filterSubject.addEventListener('change', filterAndRenderPyqs);
-  if (filterChapter) filterChapter.addEventListener('change', filterAndRenderPyqs);
-  if (filterBoard) filterBoard.addEventListener('change', filterAndRenderPyqs);
-  if (searchInput) searchInput.addEventListener('input', filterAndRenderPyqs);
-  if (btnRefresh) btnRefresh.addEventListener('click', loadPyqs);
+  // 3. Event Listeners
+  if (subjectSelect) {
+    subjectSelect.addEventListener('change', loadCurriculum);
+  }
 
-  await loadPyqs();
+  if (gradeSelect) {
+    gradeSelect.addEventListener('change', loadCurriculum);
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      renderCurriculumAccordion();
+    });
+  }
+
+  if (btnRefresh) {
+    btnRefresh.addEventListener('click', loadCurriculum);
+  }
+
+  if (btnExpandAll) {
+    btnExpandAll.addEventListener('click', () => {
+      accordionContainer.querySelectorAll('.curriculum-chapter-card').forEach(card => {
+        card.classList.add('expanded');
+      });
+    });
+  }
+
+  if (btnCollapseAll) {
+    btnCollapseAll.addEventListener('click', () => {
+      accordionContainer.querySelectorAll('.curriculum-chapter-card').forEach(card => {
+        card.classList.remove('expanded');
+      });
+    });
+  }
+
+  // Initial load
+  await loadCurriculum();
+}
+
+// Fallback curriculum helper when backend is offline
+function getOfflineCurriculumFallback(subjectKey, grade) {
+  return {
+    subjectKey: subjectKey || 'BIOLOGY',
+    subjectName: subjectKey === 'BIOLOGY' ? 'Biology' : (subjectKey === 'PHYSICS' ? 'Physics' : 'Science'),
+    stream: subjectKey === 'BIOLOGY' ? 'MEDICAL' : 'COMMON_SENIOR',
+    targetExams: ['NEET_UG', 'CBSE_CLASS_12', 'HP_BOARD_CLASS_12'],
+    totalChapters: 2,
+    chapters: [
+      {
+        id: 'bio_12_ch05',
+        grade: '12',
+        discipline: 'BOTANY',
+        unit: 'Genetics and Evolution',
+        chapterNumber: 5,
+        chapterName: 'Molecular Basis of Inheritance',
+        totalQuestionsInChapter: 2,
+        topics: [
+          { id: 't1', topicName: 'The DNA Double Helix & Packaging of DNA (Nucleosome)', ncertSection: '5.1', highYield: true, questionCount: 0 },
+          { id: 't2', topicName: 'Replication: Semi-Conservative Mode (Meselson & Stahl) & Enzymes', ncertSection: '5.4', highYield: true, questionCount: 1 },
+          { id: 't3', topicName: 'Regulation of Gene Expression (Lac Operon)', ncertSection: '5.8', highYield: true, questionCount: 1 }
+        ]
+      },
+      {
+        id: 'bio_12_ch04',
+        grade: '12',
+        discipline: 'BOTANY',
+        unit: 'Genetics and Evolution',
+        chapterNumber: 4,
+        chapterName: 'Principles of Inheritance and Variation',
+        totalQuestionsInChapter: 1,
+        topics: [
+          { id: 't4', topicName: 'Mendels Laws of Inheritance (Dominance & Segregation)', ncertSection: '4.1', highYield: true, questionCount: 0 },
+          { id: 't5', topicName: 'Dihybrid Cross & Law of Independent Assortment', ncertSection: '4.3', highYield: true, questionCount: 1 }
+        ]
+      }
+    ]
+  };
 }
 
 function renderPyqCards(pyqs) {

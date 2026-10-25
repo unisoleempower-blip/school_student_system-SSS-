@@ -1295,5 +1295,295 @@ button:active,
   padding: 1.75rem;
 }
 
+/* ==========================================================================
+   CURRICULUM SYLLABUS BREAKDOWN (SUBJECT -> CHAPTER -> TOPIC) STYLES
+   ========================================================================== */
+.curriculum-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.curriculum-chapter-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.curriculum-chapter-card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.4);
+}
+
+.curriculum-chapter-card.expanded {
+  border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: 0 8px 30px -4px rgba(59, 130, 246, 0.15);
+}
+
+.chapter-header {
+  padding: 1.15rem 1.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.15));
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+.chapter-header:hover {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.chapter-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chapter-num-badge {
+  background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.35);
+}
+
+.chapter-name {
+  font-family: var(--font-heading);
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.chapter-meta-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.badge-botany {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.badge-zoology {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.badge-unit {
+  background: rgba(147, 51, 234, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(147, 51, 234, 0.35);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.badge-grade {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.chapter-right-metrics {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.metric-pill {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+}
+
+.chevron-icon {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.curriculum-chapter-card.expanded .chevron-icon {
+  transform: rotate(180deg);
+  color: var(--accent-blue);
+}
+
+.chapter-body {
+  display: none;
+  border-top: 1px solid var(--border-subtle);
+  background: rgba(10, 15, 29, 0.4);
+  padding: 1.25rem 1.4rem;
+}
+
+.curriculum-chapter-card.expanded .chapter-body {
+  display: block;
+}
+
+.topic-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.topic-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.15rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent-blue);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.topic-row:hover {
+  background: rgba(59, 130, 246, 0.05);
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateX(2px);
+}
+
+.topic-row.high-yield {
+  border-left-color: #f59e0b;
+}
+
+.topic-left-details {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 280px;
+  flex-wrap: wrap;
+}
+
+.ncert-sec-badge {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.12);
+  color: #38bdf8;
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.topic-name-text {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.high-yield-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.topic-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-topic-action {
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-weight: 600;
+}
+
+.btn-topic-ai {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.2), rgba(59, 130, 246, 0.2));
+  color: #c084fc;
+  border: 1px solid rgba(147, 51, 234, 0.4);
+}
+
+.btn-topic-ai:hover {
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.4), rgba(59, 130, 246, 0.4));
+  color: #fff;
+}
+
+.btn-topic-preview {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-topic-preview:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.btn-topic-preview.has-questions {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.topic-questions-drawer {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  display: none;
+}
+
+.topic-questions-drawer.active {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+
 
 

@@ -21,6 +21,7 @@ const reportsRouter = require('./routes/reports');
 const uploadRouter = require('./routes/upload');
 const notificationsRouter = require('./routes/notifications');
 const assessmentsRouter = require('./routes/assessments');
+const curriculumRouter = require('./routes/curriculum');
 
 const app = express();
 const server = http.createServer(app);
@@ -100,6 +101,7 @@ app.use('/api/reports', reportsRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/assessments', assessmentsRouter);
+app.use('/api/curriculum', curriculumRouter);
 
 // 404 Handler
 app.use((req, res) => {
