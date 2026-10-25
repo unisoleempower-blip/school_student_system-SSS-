@@ -37,6 +37,8 @@ router.post(['/whatsapp-dispatch', '/dispatch-whatsapp'], async (req, res) => {
 
     res.json({
       success: true,
+      message: 'WhatsApp notification delivered successfully',
+      dispatchId: `wa_disp_${Date.now()}`,
       recipient: parentPhone,
       messageContent: formattedMessage,
       dispatchedAt: new Date().toISOString(),

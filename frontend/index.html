@@ -236,7 +236,7 @@
                   Scope: Full Chapter
                 </p>
               </div>
-              <button class="btn-icon" id="btnCloseGenTestModal" title="Close" style="background: rgba(255,255,255,0.06); border-radius: 50%;">
+              <button class="btn-icon" id="btnCloseGenTestModal" type="button" onclick="closeCurriculumTestModal()" title="Close" aria-label="Close" style="background: rgba(255,255,255,0.06); border-radius: 50%; cursor: pointer;">
                 <i data-lucide="x" style="width:20px; height:20px;"></i>
               </button>
             </div>
@@ -290,7 +290,7 @@
 
               <!-- Action Buttons -->
               <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
-                <button type="button" class="btn-secondary" id="btnCancelGenModal" style="padding: 8px 16px;">Cancel</button>
+                <button type="button" class="btn-secondary" id="btnCancelGenModal" onclick="closeCurriculumTestModal()" style="padding: 8px 16px; cursor: pointer;">Cancel</button>
                 <button type="submit" class="btn-primary" id="btnSubmitGenTest" style="padding: 8px 20px;">
                   <i data-lucide="zap" style="width:16px; height:16px;"></i> Create & Assign Now
                 </button>
@@ -987,7 +987,7 @@
       </div>
 
       <!-- INDIVIDUAL STUDENT TEST DRILL-DOWN MODAL -->
-      <div class="drilldown-modal-backdrop" id="modalStudentDrilldown" role="dialog" aria-modal="true">
+      <div class="drilldown-modal-backdrop" id="modalStudentDrilldown" role="dialog" aria-modal="true" aria-labelledby="drilldownStudentName">
         <div class="drilldown-modal-content">
           <!-- Modal Header -->
           <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.25rem;">
@@ -1003,7 +1003,7 @@
                 Test Title
               </p>
             </div>
-            <button class="btn-icon" id="btnCloseStudentDrilldown" title="Close Drilldown" style="background: rgba(255,255,255,0.06); border-radius: 50%;">
+            <button class="btn-icon" id="btnCloseStudentDrilldown" type="button" onclick="closeStudentDrilldown()" title="Close Drilldown" aria-label="Close Drilldown Modal" style="background: rgba(255,255,255,0.06); border-radius: 50%; cursor: pointer;">
               <i data-lucide="x" style="width:20px; height:20px;"></i>
             </button>
           </div>
@@ -1375,7 +1375,7 @@
           <i data-lucide="message-circle" style="width:20px; height:20px;"></i>
           <strong style="font-size:0.95rem;">HAPS Parent WhatsApp Dispatch</strong>
         </div>
-        <button id="btnCloseWhatsAppModal" style="background:transparent; border:none; color:#fff; cursor:pointer;">
+        <button id="btnCloseWhatsAppModal" type="button" onclick="closeWhatsAppModal()" aria-label="Close WhatsApp Modal" style="background:transparent; border:none; color:#fff; cursor:pointer;">
           <i data-lucide="x" style="width:18px; height:18px;"></i>
         </button>
       </div>
@@ -1417,7 +1417,7 @@
             <p style="font-size: 0.75rem; margin: 0; opacity: 0.85;">Compile & Publish AI / NCERT Questions to Student Rosters</p>
           </div>
         </div>
-        <button id="btnCloseTestBuilder" style="background: transparent; border: none; color: #fff; cursor: pointer;">
+        <button id="btnCloseTestBuilder" type="button" onclick="closeTestBuilderModal()" aria-label="Close Test Builder Modal" style="background: transparent; border: none; color: #fff; cursor: pointer;">
           <i data-lucide="x" style="width: 20px; height: 20px;"></i>
         </button>
       </div>

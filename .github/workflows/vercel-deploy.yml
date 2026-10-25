@@ -14,7 +14,19 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Verify Vercel Authentication Secrets
+        id: check-secrets
+        run: |
+          if [ -n "${{ secrets.VERCEL_TOKEN }}" ] && [ -n "${{ secrets.VERCEL_ORG_ID }}" ] && [ -n "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            echo "has_secrets=true" >> $GITHUB_OUTPUT
+            echo "✅ Vercel authentication secrets detected."
+          else
+            echo "has_secrets=false" >> $GITHUB_OUTPUT
+            echo "::warning ::Vercel credentials (VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID) are not configured in GitHub Secrets. Skipping GitHub Actions deployment step to avoid CI failure."
+          fi
+
       - name: Deploy to Vercel (Preview or Production)
+        if: steps.check-secrets.outputs.has_secrets == 'true'
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}

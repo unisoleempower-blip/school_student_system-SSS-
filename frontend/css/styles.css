@@ -195,6 +195,12 @@ body {
   color: var(--accent-cyan);
 }
 
+.btn-icon svg,
+.btn-icon i,
+.btn-icon * {
+  pointer-events: none;
+}
+
 .pilot-tag {
   background: rgba(16, 185, 129, 0.15);
   color: var(--accent-emerald);
@@ -927,12 +933,14 @@ body {
 
 .modal-overlay.active {
   display: flex;
+  cursor: pointer;
 }
 
 .modal-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
+  cursor: default;
   max-width: 520px;
   width: 100%;
   box-shadow: 0 20px 40px rgba(0,0,0,0.6);
@@ -1281,6 +1289,7 @@ button:active,
 .drilldown-modal-backdrop.active {
   opacity: 1;
   pointer-events: auto;
+  cursor: pointer;
 }
 
 .drilldown-modal-content {
@@ -1293,6 +1302,7 @@ button:active,
   overflow-y: auto;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
   padding: 1.75rem;
+  cursor: default;
 }
 
 /* ==========================================================================
