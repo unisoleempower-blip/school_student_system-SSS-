@@ -293,7 +293,13 @@ function setupTeacherSubTabs() {
       }
 
       if (targetTabId === 'tabClassAnalytics') {
-        loadClassAnalytics();
+        const selectAssessment = document.getElementById('selectAnalyticsAssessment');
+        const targetId = state.lastSubmittedAssessmentId || (selectAssessment && selectAssessment.value) || state.activeAssessment?.id;
+        loadClassAnalytics(targetId);
+      }
+
+      if (targetTabId === 'tabSmartReports') {
+        loadAndRenderSmartReport('b0000000-0000-0000-0000-000000000001');
       }
 
       if (targetTabId === 'tabStudents' && currentAnalyticsData) {
@@ -2260,6 +2266,7 @@ function setupNtaExamPaletteEngine() {
 
         if (res.ok) {
           const data = await res.json();
+          state.lastSubmittedAssessmentId = data.results?.assessmentId || asgnId;
           displayDiagnosticResults(data.results);
         } else {
           throw new Error('Fallback to local calculation');
@@ -2658,39 +2665,16 @@ async function setupStudentAssignedTests() {
   // Diagnostic Results Modal Handlers
   const btnCloseDiag = document.getElementById('btnCloseDiagnosticResults');
   const btnGoReport = document.getElementById('btnGoToSmartReport');
-  const modalDiag = document.getElementById('modalDiagnosticResults');
-
-  if (btnCloseDiag && modalDiag) {
-    btnCloseDiag.addEventListener('click', () => {
-      modalDiag.classList.remove('active');
-    });
-  }
-
-  if (btnGoReport) {
-    btnGoReport.addEventListener('click', () => {
-      if (modalDiag) modalDiag.classList.remove('active');
-      // Switch to Teacher role & Smart Reports sub-tab
-      const btnRoleTeacher = document.getElementById('btnRoleTeacher');
-      if (btnRoleTeacher) btnRoleTeacher.click();
-      const tabSmartReports = document.getElementById('tabBtnSmartReports');
-      if (tabSmartReports) tabSmartReports.click();
-    });
-  }
-
   const btnGoDashboard = document.getElementById('btnGoToClassDashboard');
+
+  if (btnCloseDiag) {
+    btnCloseDiag.onclick = closeDiagnosticResultsModal;
+  }
+  if (btnGoReport) {
+    btnGoReport.onclick = handleGoToSmartReport;
+  }
   if (btnGoDashboard) {
-    btnGoDashboard.addEventListener('click', async () => {
-      if (modalDiag) modalDiag.classList.remove('active');
-      // Switch to Teacher role & Class Analytics tab
-      const btnRoleTeacher = document.getElementById('btnRoleTeacher');
-      if (btnRoleTeacher) btnRoleTeacher.click();
-      const tabAnalytics = document.getElementById('tabBtnClassAnalytics');
-      if (tabAnalytics) tabAnalytics.click();
-      const asgnId = state.activeAssessment?.id;
-      if (asgnId) {
-        await loadClassAnalytics(asgnId);
-      }
-    });
+    btnGoDashboard.onclick = handleGoToClassDashboard;
   }
 }
 
@@ -2836,7 +2820,163 @@ function displayDiagnosticResults(results) {
     `).join('');
   }
 
+  if (results && results.assessmentId) {
+    state.lastSubmittedAssessmentId = results.assessmentId;
+  }
+
+  modal.style.display = 'flex';
   modal.classList.add('active');
+  initLucideIcons();
+}
+
+function closeDiagnosticResultsModal() {
+  const modal = document.getElementById('modalDiagnosticResults');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+}
+
+async function loadAndRenderSmartReport(studentId = 'b0000000-0000-0000-0000-000000000001') {
+  try {
+    const res = await fetch(`http://localhost:5050/api/reports/weekly/${studentId}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const report = data.report;
+    if (!report) return;
+
+    const subtitleEl = document.getElementById('smartReportSubtitle');
+    const accEl = document.getElementById('smartReportAccuracy');
+    const hoursEl = document.getElementById('smartReportStudyHours');
+    const qCountEl = document.getElementById('smartReportQuestionsSolved');
+    const velEl = document.getElementById('smartReportVelocity');
+    const schoolListEl = document.getElementById('smartReportSchoolDirectivesList');
+    const parentListEl = document.getElementById('smartReportParentDirectivesList');
+
+    if (subtitleEl) {
+      subtitleEl.innerHTML = `Generated for: <strong>${report.studentName || 'Aryan Sharma'}</strong> (Roll: ${report.rollNumber || '12-NM-01'}) &bull; Class ${report.grade || '12'} ${report.section || 'Non-Med'}`;
+    }
+    if (accEl) accEl.innerText = `${report.overallScorePercentage || 78.4}%`;
+    if (hoursEl) hoursEl.innerText = `${report.totalStudyHours || 15.2} Hrs`;
+    if (qCountEl) qCountEl.innerText = `${report.questionsAttempted || 68} Qs`;
+    if (velEl) velEl.innerText = `${report.averageVelocitySeconds || 112}s / Q`;
+
+    if (schoolListEl && report.schoolHostelActions && report.schoolHostelActions.length > 0) {
+      schoolListEl.innerHTML = report.schoolHostelActions.map((act, idx) => `
+        <div class="directive-item">
+          <span class="directive-num">${idx + 1}</span>
+          <div>
+            <strong style="color: var(--text-primary); font-size: 0.88rem;">${act.directive}</strong>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+              Expected Outcome: ${act.expected_outcome || 'Verify independent problem-solving.'}
+            </p>
+            <span style="font-size: 0.72rem; color: var(--accent-indigo); font-weight: 600;">
+              Assigned To: ${act.responsible_faculty || 'Subject Faculty'} &bull; Priority: ${act.priority || 'HIGH'}
+            </span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    if (parentListEl && report.parentActions && report.parentActions.length > 0) {
+      parentListEl.innerHTML = report.parentActions.map((act, idx) => `
+        <div class="directive-item">
+          <span class="directive-num">${idx + 1}</span>
+          <div>
+            <strong style="color: var(--text-primary); font-size: 0.88rem;">${act.directive}</strong>
+            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">
+              ${act.purpose || 'Supports learning cadence without exam anxiety.'}
+            </p>
+            <span style="font-size: 0.72rem; color: var(--accent-emerald); font-weight: 600;">
+              Frequency: ${act.frequency || 'Weekly cadence'}
+            </span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    initLucideIcons();
+  } catch (err) {
+    console.warn('[SMART REPORT] Could not load dynamic weekly report:', err);
+  }
+}
+
+async function handleGoToSmartReport() {
+  closeDiagnosticResultsModal();
+
+  // 1. Switch to Teacher role
+  const btnRoleTeacher = document.getElementById('btnRoleTeacher');
+  if (btnRoleTeacher) {
+    btnRoleTeacher.click();
+  } else {
+    state.activeRole = 'teacher';
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('teacherView')?.classList.add('active');
+  }
+
+  // 2. Switch to Weekly Smart Report sub-tab
+  const tabSmartReportsBtn = document.getElementById('tabBtnSmartReports');
+  if (tabSmartReportsBtn) {
+    document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+    tabSmartReportsBtn.classList.add('active');
+
+    document.querySelectorAll('.teacher-tab-content').forEach(tab => {
+      const isTarget = tab.id === 'tabSmartReports';
+      tab.style.display = isTarget ? 'block' : 'none';
+      tab.classList.toggle('active', isTarget);
+    });
+  } else {
+    const tabStudentsBtn = document.getElementById('tabBtnStudents');
+    if (tabStudentsBtn) tabStudentsBtn.click();
+  }
+
+  // 3. Load & render latest dynamic smart report
+  await loadAndRenderSmartReport('b0000000-0000-0000-0000-000000000001');
+
+  // 4. Scroll smoothly to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  initLucideIcons();
+}
+
+async function handleGoToClassDashboard() {
+  closeDiagnosticResultsModal();
+
+  // 1. Switch to Teacher role
+  const btnRoleTeacher = document.getElementById('btnRoleTeacher');
+  if (btnRoleTeacher) {
+    btnRoleTeacher.click();
+  } else {
+    state.activeRole = 'teacher';
+    document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('teacherView')?.classList.add('active');
+  }
+
+  // 2. Identify target assessment ID
+  const selectAssessment = document.getElementById('selectAnalyticsAssessment');
+  const targetId = state.lastSubmittedAssessmentId 
+    || state.activeAssessment?.id 
+    || (selectAssessment && selectAssessment.value)
+    || (state.publishedAssessments && state.publishedAssessments[0]?.id)
+    || 'asgn_1792954983484';
+
+  // 3. Switch to Class Progress Dashboard tab
+  const tabAnalyticsBtn = document.getElementById('tabBtnClassAnalytics');
+  if (tabAnalyticsBtn) {
+    document.querySelectorAll('.sub-tab-btn').forEach(b => b.classList.remove('active'));
+    tabAnalyticsBtn.classList.add('active');
+
+    document.querySelectorAll('.teacher-tab-content').forEach(tab => {
+      const isTarget = tab.id === 'tabClassAnalytics';
+      tab.style.display = isTarget ? 'block' : 'none';
+      tab.classList.toggle('active', isTarget);
+    });
+  }
+
+  // 4. Load class analytics for this assessment
+  await loadClassAnalytics(targetId);
+
+  // 5. Scroll smoothly to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   initLucideIcons();
 }
 
@@ -4526,6 +4666,7 @@ window.submitGenerateCurriculumTest = submitGenerateCurriculumTest;
 window.setupTeacherTestBuilder = setupTeacherTestBuilder;
 window.attemptActiveTestInStudentPortal = attemptActiveTestInStudentPortal;
 window.simulateClassAttemptsAndGenerateDashboard = simulateClassAttemptsAndGenerateDashboard;
-
-
-
+window.closeDiagnosticResultsModal = closeDiagnosticResultsModal;
+window.handleGoToSmartReport = handleGoToSmartReport;
+window.handleGoToClassDashboard = handleGoToClassDashboard;
+window.loadAndRenderSmartReport = loadAndRenderSmartReport;
