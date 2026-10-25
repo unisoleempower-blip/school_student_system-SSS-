@@ -15,235 +15,820 @@ const CURRICULUM_TAXONOMY = {
   // 1. BIOLOGY (Class 11 & Class 12) - NEET UG & Board Specialization
   // ==========================================================================
   'BIOLOGY': {
-    subjectName: 'Biology',
-    stream: 'MEDICAL',
-    grades: ['11', '12'],
-    targetExams: ['NEET_UG', 'CBSE_CLASS_12', 'HP_BOARD_CLASS_12'],
-    chapters: [
-      // --- CLASS 11 BIOLOGY ---
+  "subjectName": "Class 12 Biology",
+  "stream": "MEDICAL",
+  "grades": [
+    "12"
+  ],
+  "targetExams": [
+    "CBSE_CLASS_12",
+    "HP_BOARD_CLASS_12",
+    "NEET_UG"
+  ],
+  "units": [
+    {
+      "unitNumber": "Unit VI",
+      "unitName": "Reproduction (Chapters 1 to 3)",
+      "weightageMarks": 16,
+      "chapters": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "unitNumber": "Unit VII",
+      "unitName": "Genetics and Evolution (Chapters 4 to 6)",
+      "weightageMarks": 20,
+      "chapters": [
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "unitNumber": "Unit VIII",
+      "unitName": "Biology in Human Welfare (Chapters 7 & 8)",
+      "weightageMarks": 12,
+      "chapters": [
+        7,
+        8
+      ]
+    },
+    {
+      "unitNumber": "Unit IX",
+      "unitName": "Biotechnology: Principles & Applications (Chapters 9 & 10)",
+      "weightageMarks": 12,
+      "chapters": [
+        9,
+        10
+      ]
+    },
+    {
+      "unitNumber": "Unit X",
+      "unitName": "Ecology and Environment (Chapters 11 to 13)",
+      "weightageMarks": 10,
+      "chapters": [
+        11,
+        12,
+        13
+      ]
+    }
+  ],
+  "boardHighYieldSummary": {
+    "examBoard": "CBSE / HPBOSE Class 12 Biology (70 Marks Theory)",
+    "fiveMarkGuarantees": [
       {
-        id: 'bio_11_ch01',
-        grade: '11',
-        discipline: 'BOTANY',
-        unit: 'Diversity in the Living World',
-        chapterNumber: 1,
-        chapterName: 'The Living World',
-        topics: [
-          { id: 'bio_11_ch01_t1', topicName: 'Characteristics of Living Organisms', ncertSection: '1.1', highYield: false },
-          { id: 'bio_11_ch01_t2', topicName: 'Binomial Nomenclature & Taxonomy', ncertSection: '1.2', highYield: true },
-          { id: 'bio_11_ch01_t3', topicName: 'Taxonomical Categories & Hierarchy', ncertSection: '1.3', highYield: true },
-          { id: 'bio_11_ch01_t4', topicName: 'Taxonomical Aids (Herbarium, Botanical Gardens)', ncertSection: '1.4', highYield: false }
-        ]
+        "rank": 1,
+        "topic": "Menstrual Cycle & Gametogenesis Pathways",
+        "detail": "Hormone tracking plots (FSH, LH, Estrogen, Progesterone) across the 28-day cycle, spermatogenesis vs oogenesis stage comparison, or 7-celled 8-nucleate embryo sac structure and double fertilization.",
+        "chapter": "Chapter 1: Flowering Plants & Chapter 2: Human Reproduction"
       },
       {
-        id: 'bio_11_ch02',
-        grade: '11',
-        discipline: 'BOTANY',
-        unit: 'Diversity in the Living World',
-        chapterNumber: 2,
-        chapterName: 'Biological Classification',
-        topics: [
-          { id: 'bio_11_ch02_t1', topicName: 'Five Kingdom Classification Criteria', ncertSection: '2.1', highYield: true },
-          { id: 'bio_11_ch02_t2', topicName: 'Kingdom Monera (Archaebacteria & Eubacteria)', ncertSection: '2.2', highYield: true },
-          { id: 'bio_11_ch02_t3', topicName: 'Kingdom Protista (Chrysophytes, Dinoflagellates, Euglenoids)', ncertSection: '2.3', highYield: true },
-          { id: 'bio_11_ch02_t4', topicName: 'Kingdom Fungi (Phycomycetes, Ascomycetes, Basidiomycetes)', ncertSection: '2.4', highYield: true },
-          { id: 'bio_11_ch02_t5', topicName: 'Viruses, Viroids, Prions and Lichens', ncertSection: '2.6', highYield: true }
-        ]
+        "rank": 2,
+        "topic": "Molecular Genetics & Gene Regulation Pathways",
+        "detail": "DNA replication fork mechanisms (continuous leading vs discontinuous lagging Okazaki fragments), transcription unit with split-gene processing (splicing, capping, tailing), and Lac Operon switched-on vs switched-off states.",
+        "chapter": "Chapter 5: Molecular Basis of Inheritance"
       },
       {
-        id: 'bio_11_ch03',
-        grade: '11',
-        discipline: 'BOTANY',
-        unit: 'Diversity in the Living World',
-        chapterNumber: 3,
-        chapterName: 'Plant Kingdom',
-        topics: [
-          { id: 'bio_11_ch03_t1', topicName: 'Algae (Chlorophyceae, Phaeophyceae, Rhodophyceae)', ncertSection: '3.1', highYield: true },
-          { id: 'bio_11_ch03_t2', topicName: 'Bryophytes (Liverworts & Mosses)', ncertSection: '3.2', highYield: true },
-          { id: 'bio_11_ch03_t3', topicName: 'Pteridophytes (Homosporous & Heterosporous)', ncertSection: '3.3', highYield: true },
-          { id: 'bio_11_ch03_t4', topicName: 'Gymnosperms (Pinus, Cycas, Mycorrhiza)', ncertSection: '3.4', highYield: true },
-          { id: 'bio_11_ch03_t5', topicName: 'Plant Life Cycles and Alternation of Generations', ncertSection: '3.6', highYield: false }
-        ]
+        "rank": 3,
+        "topic": "Recombinant DNA Technology & Applications",
+        "detail": "Vector pBR322 architecture with selectable markers and insertional inactivation, step-by-step PCR thermal cycle (denaturation, annealing, extension), and recombinant human insulin (Humulin) / ADA gene therapy.",
+        "chapter": "Chapter 9: Biotechnology Principles & Chapter 10: Biotechnology Applications"
+      }
+    ],
+    "caseStudyFourMark": [
+      {
+        "topic": "Genetics: Pedigree Analysis & Mendelian Disorders",
+        "detail": "Deducing inheritance pattern from family pedigrees (Autosomal Recessive vs Dominant vs X-linked) and molecular causes of Sickle-cell anemia (GAG→GUG transversion), Thalassemia, and Hemophilia.",
+        "chapter": "Chapter 4: Principles of Inheritance and Variation"
       },
       {
-        id: 'bio_11_ch04',
-        grade: '11',
-        discipline: 'ZOOLOGY',
-        unit: 'Diversity in the Living World',
-        chapterNumber: 4,
-        chapterName: 'Animal Kingdom',
-        topics: [
-          { id: 'bio_11_ch04_t1', topicName: 'Basis of Classification (Symmetry, Coelom, Segmentation)', ncertSection: '4.1', highYield: true },
-          { id: 'bio_11_ch04_t2', topicName: 'Non-Chordates: Porifera to Platyhelminthes & Annelida', ncertSection: '4.2.1', highYield: true },
-          { id: 'bio_11_ch04_t3', topicName: 'Arthropoda, Mollusca, Echinodermata & Hemichordata', ncertSection: '4.2.7', highYield: true },
-          { id: 'bio_11_ch04_t4', topicName: 'Chordata: Urochordata, Cephalochordata, Vertebrata', ncertSection: '4.2.11', highYield: true },
-          { id: 'bio_11_ch04_t5', topicName: 'Classes of Vertebrates (Chondrichthyes, Osteichthyes, Amphibia, Reptilia, Aves, Mammalia)', ncertSection: '4.2.11.2', highYield: true }
-        ]
+        "topic": "Ecology: Population Growth & Species-Area Relationship",
+        "detail": "Verhulst-Pearl Logistic vs Exponential growth curves (dN/dt = rN(K-N)/K) and Alexander von Humboldt's species-area rectangular hyperbola / log-log relationship (log S = log C + Z log A).",
+        "chapter": "Chapter 11: Organisms and Populations & Chapter 13: Biodiversity and Conservation"
       },
       {
-        id: 'bio_11_ch08',
-        grade: '11',
-        discipline: 'BOTANY',
-        unit: 'Cell Structure and Function',
-        chapterNumber: 8,
-        chapterName: 'Cell: The Unit of Life',
-        topics: [
-          { id: 'bio_11_ch08_t1', topicName: 'Cell Theory & Overview of Cell', ncertSection: '8.1', highYield: false },
-          { id: 'bio_11_ch08_t2', topicName: 'Prokaryotic Cell (Plasmids, Mesosomes, Cell Envelope)', ncertSection: '8.4', highYield: true },
-          { id: 'bio_11_ch08_t3', topicName: 'Plasma Membrane (Fluid Mosaic Model)', ncertSection: '8.5.1', highYield: true },
-          { id: 'bio_11_ch08_t4', topicName: 'Endomembrane System (ER, Golgi, Lysosomes, Vacuoles)', ncertSection: '8.5.3', highYield: true },
-          { id: 'bio_11_ch08_t5', topicName: 'Mitochondria & Chloroplasts (Endosymbiotic Origin)', ncertSection: '8.5.4', highYield: true },
-          { id: 'bio_11_ch08_t6', topicName: 'Nucleus, Chromatin & Chromosome Morphology', ncertSection: '8.5.8', highYield: true }
-        ]
+        "topic": "Human Health: Retrovirus & Plasmodium Life Cycles",
+        "detail": "Replication mechanism of HIV in macrophages and helper T-cells, or sequential stages of Plasmodium from human liver cells (haemozoin release) to mosquito gut and salivary glands.",
+        "chapter": "Chapter 7: Human Health and Diseases"
+      }
+    ],
+    "threeMarkCorePool": [
+      {
+        "topic": "Outbreeding Devices & Double Fertilization",
+        "detail": "Mechanisms preventing inbreeding depression (dichogamy, self-incompatibility, dioecy) and triple fusion yielding triploid primary endosperm nucleus (PEN).",
+        "chapter": "Chapter 1: Flowering Plants"
       },
       {
-        id: 'bio_11_ch09',
-        grade: '11',
-        discipline: 'ZOOLOGY',
-        unit: 'Cell Structure and Function',
-        chapterNumber: 9,
-        chapterName: 'Biomolecules',
-        topics: [
-          { id: 'bio_11_ch09_t1', topicName: 'Primary & Secondary Metabolites', ncertSection: '9.3', highYield: true },
-          { id: 'bio_11_ch09_t2', topicName: 'Proteins & Amino Acids (Structure & Peptide Bond)', ncertSection: '9.4', highYield: true },
-          { id: 'bio_11_ch09_t3', topicName: 'Carbohydrates & Lipids (Fatty Acids & Phospholipids)', ncertSection: '9.2', highYield: true },
-          { id: 'bio_11_ch09_t4', topicName: 'Nucleic Acids (B-DNA Structure & Nitrogenous Bases)', ncertSection: '9.6', highYield: true },
-          { id: 'bio_11_ch09_t5', topicName: 'Enzymes: Mechanism, Km, Inhibition & Nomenclature', ncertSection: '9.12', highYield: true }
-        ]
+        "topic": "Hardy-Weinberg Equilibrium & Organ Evolution",
+        "detail": "Allelic frequency numericals (p² + 2pq + q² = 1) and differentiating Homologous (divergent evolution) vs Analogous organs (convergent evolution).",
+        "chapter": "Chapter 6: Evolution"
       },
       {
-        id: 'bio_11_ch10',
-        grade: '11',
-        discipline: 'BOTANY',
-        unit: 'Cell Structure and Function',
-        chapterNumber: 10,
-        chapterName: 'Cell Cycle and Cell Division',
-        topics: [
-          { id: 'bio_11_ch10_t1', topicName: 'Interphase (G1, S, G2 phases & G0 quiescent stage)', ncertSection: '10.1', highYield: true },
-          { id: 'bio_11_ch10_t2', topicName: 'M-Phase (Prophase, Metaphase, Anaphase, Telophase)', ncertSection: '10.2', highYield: true },
-          { id: 'bio_11_ch10_t3', topicName: 'Cytokinesis in Plant vs Animal Cells', ncertSection: '10.2.5', highYield: false },
-          { id: 'bio_11_ch10_t4', topicName: 'Meiosis I (Prophase I: Leptotene, Zygotene, Pachytene, Diplotene, Diakinesis)', ncertSection: '10.4.1', highYield: true },
-          { id: 'bio_11_ch10_t5', topicName: 'Meiosis II & Significance of Recombination', ncertSection: '10.4.2', highYield: true }
-        ]
+        "topic": "Microbes: Bioactive Molecules & Sewage Treatment",
+        "detail": "Match-the-following industrial products (Statins from Monascus purpureus, Cyclosporin A from Trichoderma polysporum, Streptokinase) and STP aeration flocs with BOD reduction.",
+        "chapter": "Chapter 8: Microbes in Human Welfare"
       },
       {
-        id: 'bio_11_ch11',
-        grade: '11',
-        discipline: 'BOTANY',
-        unit: 'Plant Physiology',
-        chapterNumber: 11,
-        chapterName: 'Photosynthesis in Higher Plants',
-        topics: [
-          { id: 'bio_11_ch11_t1', topicName: 'Pigments in Photosynthesis & Absorption Spectra', ncertSection: '11.3', highYield: true },
-          { id: 'bio_11_ch11_t2', topicName: 'Light Reaction, Photosystems (PS I & PS II), Z-Scheme', ncertSection: '11.4', highYield: true },
-          { id: 'bio_11_ch11_t3', topicName: 'Chemiosmotic Hypothesis of ATP Synthesis', ncertSection: '11.6', highYield: true },
-          { id: 'bio_11_ch11_t4', topicName: 'Calvin Cycle (C3 Pathway: Carboxylation, Reduction, Regeneration)', ncertSection: '11.7', highYield: true },
-          { id: 'bio_11_ch11_t5', topicName: 'C4 Pathway (Kranz Anatomy & PEPcase)', ncertSection: '11.8', highYield: true },
-          { id: 'bio_11_ch11_t6', topicName: 'Photorespiration & Factors Affecting Photosynthesis', ncertSection: '11.9', highYield: true }
-        ]
-      },
-      {
-        id: 'bio_11_ch16',
-        grade: '11',
-        discipline: 'ZOOLOGY',
-        unit: 'Human Physiology',
-        chapterNumber: 16,
-        chapterName: 'Excretory Products and their Elimination',
-        topics: [
-          { id: 'bio_11_ch16_t1', topicName: 'Ammonotelism, Ureotelism, Uricotelism', ncertSection: '16.1', highYield: true },
-          { id: 'bio_11_ch16_t2', topicName: 'Human Excretory System & Nephron Histology', ncertSection: '16.2', highYield: true },
-          { id: 'bio_11_ch16_t3', topicName: 'Urine Formation: Ultrafiltration, Reabsorption, Secretion', ncertSection: '16.3', highYield: true },
-          { id: 'bio_11_ch16_t4', topicName: 'Counter-Current Mechanism (Loop of Henle & Vasa Recta)', ncertSection: '16.5', highYield: true },
-          { id: 'bio_11_ch16_t5', topicName: 'Renal Regulation (RAAS Pathway, ADH & ANF)', ncertSection: '16.6', highYield: true }
-        ]
-      },
-
-      // --- CLASS 12 BIOLOGY ---
-      {
-        id: 'bio_12_ch01',
-        grade: '12',
-        discipline: 'BOTANY',
-        unit: 'Reproduction',
-        chapterNumber: 1,
-        chapterName: 'Sexual Reproduction in Flowering Plants',
-        topics: [
-          { id: 'bio_12_ch01_t1', topicName: 'Microsporogenesis & Pollen Grain Structure', ncertSection: '1.2.1', highYield: true },
-          { id: 'bio_12_ch01_t2', topicName: 'Megasporogenesis & Embryo Sac (7-celled, 8-nucleate)', ncertSection: '1.2.2', highYield: true },
-          { id: 'bio_12_ch01_t3', topicName: 'Pollination: Autogamy, Geitonogamy, Xenogamy & Agents', ncertSection: '1.2.3', highYield: true },
-          { id: 'bio_12_ch01_t4', topicName: 'Outbreeding Devices & Pollen-Pistil Interaction', ncertSection: '1.2.4', highYield: true },
-          { id: 'bio_12_ch01_t5', topicName: 'Double Fertilization & Endosperm Development', ncertSection: '1.3', highYield: true },
-          { id: 'bio_12_ch01_t6', topicName: 'Apomixis and Polyembryony', ncertSection: '1.5', highYield: true }
-        ]
-      },
-      {
-        id: 'bio_12_ch02',
-        grade: '12',
-        discipline: 'ZOOLOGY',
-        unit: 'Reproduction',
-        chapterNumber: 2,
-        chapterName: 'Human Reproduction',
-        topics: [
-          { id: 'bio_12_ch02_t1', topicName: 'Male Reproductive System (Testes, Seminiferous Tubules)', ncertSection: '2.1', highYield: true },
-          { id: 'bio_12_ch02_t2', topicName: 'Female Reproductive System (Ovaries, Fallopian Tubes, Uterus)', ncertSection: '2.2', highYield: true },
-          { id: 'bio_12_ch02_t3', topicName: 'Gametogenesis (Spermatogenesis vs Oogenesis)', ncertSection: '2.3', highYield: true },
-          { id: 'bio_12_ch02_t4', topicName: 'Menstrual Cycle & Hormonal Control (FSH, LH, Estrogen, Progesterone)', ncertSection: '2.4', highYield: true },
-          { id: 'bio_12_ch02_t5', topicName: 'Fertilization, Cleavage, Blastocyst & Implantation', ncertSection: '2.5', highYield: true },
-          { id: 'bio_12_ch02_t6', topicName: 'Pregnancy, Placenta & Parturition (Oxytocin Reflex)', ncertSection: '2.6', highYield: true }
-        ]
-      },
-      {
-        id: 'bio_12_ch04',
-        grade: '12',
-        discipline: 'BOTANY',
-        unit: 'Genetics and Evolution',
-        chapterNumber: 4,
-        chapterName: 'Principles of Inheritance and Variation',
-        topics: [
-          { id: 'bio_12_ch04_t1', topicName: 'Mendels Laws of Inheritance (Dominance & Segregation)', ncertSection: '4.1', highYield: true },
-          { id: 'bio_12_ch04_t2', topicName: 'Incomplete Dominance, Codominance, Multiple Allelism (ABO Blood)', ncertSection: '4.2.2', highYield: true },
-          { id: 'bio_12_ch04_t3', topicName: 'Dihybrid Cross & Law of Independent Assortment', ncertSection: '4.3', highYield: true },
-          { id: 'bio_12_ch04_t4', topicName: 'Chromosomal Theory of Inheritance (Sutton & Boveri)', ncertSection: '4.4', highYield: true },
-          { id: 'bio_12_ch04_t5', topicName: 'Linkage and Recombination (Thomas Hunt Morgan & Drosophila)', ncertSection: '4.5', highYield: true },
-          { id: 'bio_12_ch04_t6', topicName: 'Sex Determination (Human, Drosophila, Honey Bee)', ncertSection: '4.6', highYield: true },
-          { id: 'bio_12_ch04_t7', topicName: 'Mendelian Disorders (Haemophilia, Sickle-Cell, Phenylketonuria, Thalassemia)', ncertSection: '4.8.2', highYield: true },
-          { id: 'bio_12_ch04_t8', topicName: 'Chromosomal Disorders (Down, Klinefelter, Turner Syndromes)', ncertSection: '4.8.3', highYield: true }
-        ]
-      },
-      {
-        id: 'bio_12_ch05',
-        grade: '12',
-        discipline: 'BOTANY',
-        unit: 'Genetics and Evolution',
-        chapterNumber: 5,
-        chapterName: 'Molecular Basis of Inheritance',
-        topics: [
-          { id: 'bio_12_ch05_t1', topicName: 'The DNA Double Helix & Packaging of DNA (Nucleosome)', ncertSection: '5.1', highYield: true },
-          { id: 'bio_12_ch05_t2', topicName: 'Transforming Principle (Griffith, Avery-MacLeod-McCarty, Hershey-Chase)', ncertSection: '5.2', highYield: true },
-          { id: 'bio_12_ch05_t3', topicName: 'Replication: Semi-Conservative Mode (Meselson & Stahl) & Enzymes', ncertSection: '5.4', highYield: true },
-          { id: 'bio_12_ch05_t4', topicName: 'Transcription (Promoter, RNA Polymerase, Post-transcriptional Modifications)', ncertSection: '5.5', highYield: true },
-          { id: 'bio_12_ch05_t5', topicName: 'Genetic Code (Universal, Degenerate, Non-overlapping) & tRNA Adapter', ncertSection: '5.6', highYield: true },
-          { id: 'bio_12_ch05_t6', topicName: 'Translation (Ribosome, Initiation, Elongation, Termination)', ncertSection: '5.7', highYield: true },
-          { id: 'bio_12_ch05_t7', topicName: 'Regulation of Gene Expression (Lac Operon)', ncertSection: '5.8', highYield: true },
-          { id: 'bio_12_ch05_t8', topicName: 'Human Genome Project (HGP) & DNA Fingerprinting (VNTRs)', ncertSection: '5.9', highYield: true }
-        ]
-      },
-      {
-        id: 'bio_12_ch09',
-        grade: '12',
-        discipline: 'BOTANY',
-        unit: 'Biotechnology',
-        chapterNumber: 9,
-        chapterName: 'Biotechnology: Principles and Processes',
-        topics: [
-          { id: 'bio_12_ch09_t1', topicName: 'Tools of Recombinant DNA Technology (Restriction Endonucleases, Ligases)', ncertSection: '9.2', highYield: true },
-          { id: 'bio_12_ch09_t2', topicName: 'Cloning Vectors (pBR322: ori, rop, Selectable Markers, ampR, tetR)', ncertSection: '9.2.2', highYield: true },
-          { id: 'bio_12_ch09_t3', topicName: 'Competent Host Transformation & Gene Guns', ncertSection: '9.2.3', highYield: true },
-          { id: 'bio_12_ch09_t4', topicName: 'Polymerase Chain Reaction (PCR: Denaturation, Annealing, Extension)', ncertSection: '9.3.3', highYield: true },
-          { id: 'bio_12_ch09_t5', topicName: 'Bioreactors & Downstream Processing', ncertSection: '9.3.5', highYield: true }
-        ]
+        "topic": "Ecology: The Evil Quartet & In-Situ vs Ex-Situ",
+        "detail": "Four major causes of biodiversity loss (habitat fragmentation, over-exploitation, alien invasion, co-extinctions) and Sacred Groves vs Cryopreservation.",
+        "chapter": "Chapter 13: Biodiversity and Conservation"
       }
     ]
   },
+  "chapters": [
+    {
+      "id": "bio_12_ch01",
+      "grade": "12",
+      "discipline": "BOTANY",
+      "unit": "Unit VI: Reproduction (16 Marks)",
+      "chapterNumber": 1,
+      "chapterName": "Sexual Reproduction in Flowering Plants",
+      "boardExamFocus": {
+        "highYield": "7-celled, 8-nucleate female gametophyte structure; L.S. of anatropous ovule; Double fertilization (syngamy + triple fusion); Outbreeding devices to prevent self-pollination.",
+        "standardTrap": "Confusing perisperm (persistent nucellus, e.g. black pepper) with pericarp (fruit wall); assuming cleistogamous flowers require insect pollinators (they are autogamous and set seeds without pollinators).",
+        "questionType": "5-mark developmental cycle of embryo sac or microsporogenesis; 3-mark outbreeding devices; 2-mark apomixis vs polyembryony."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch01_t1",
+          "topicName": "Pre-Fertilization: Structures and Events",
+          "ncertSection": "1.1",
+          "highYield": true,
+          "subtopics": [
+            "Anatomy of anther: Bilobed, dithecous, tetrasporangiate",
+            "Microsporangium wall layers: Epidermis, Endothecium, Middle layers, Tapetum (nourishes pollen, secretes sporopollenin)",
+            "Microsporogenesis: Microspore mother cell (2n) → Microspore tetrad (n) → Pollen grains",
+            "Pollen Grain: Exine (Sporopollenin & Germ pores), Intine (cellulose & pectin), Vegetative & Generative cells (60% shed at 2-celled stage)",
+            "Megasporangium (Ovule): Funicle, Hilum, Integuments, Micropyle, Chalaza, Nucellus",
+            "Megasporogenesis & Monosporic development: Functional chalazal megaspore undergoes 3 mitotic divisions",
+            "Mature 7-celled, 8-nucleate Embryo Sac: Egg apparatus (2 synergids with filiform apparatus + 1 egg cell), central cell with 2 polar nuclei, 3 antipodal cells"
+          ]
+        },
+        {
+          "id": "bio_12_ch01_t2",
+          "topicName": "Pollination Mechanisms & Adaptations",
+          "ncertSection": "1.2",
+          "highYield": true,
+          "subtopics": [
+            "Autogamy (cleistogamous flowers: Viola, Oxalis, Commelina guarantee seed set without pollinators)",
+            "Geitonogamy (functionally cross-pollination via agent, genetically autogamous)",
+            "Xenogamy (genetically and functionally cross-pollination)",
+            "Outbreeding devices: Dichogamy, spatial separation, self-incompatibility, dioecious vs monoecious plants",
+            "Pollen-pistil interaction: Dynamic chemical dialogue guided by filiform apparatus",
+            "Artificial hybridization: Emasculation (removal of anthers) and Bagging (butter paper)"
+          ]
+        },
+        {
+          "id": "bio_12_ch01_t3",
+          "topicName": "Double Fertilization & Post-Fertilization Events",
+          "ncertSection": "1.3",
+          "highYield": true,
+          "subtopics": [
+            "Double Fertilization: Syngamy (male gamete n + egg n → zygote 2n) and Triple Fusion (male gamete n + 2 polar nuclei 2n → PEN 3n)",
+            "Endosperm development: Free-nuclear (coconut water) vs Cellular endosperm (white kernel)",
+            "Non-albuminous seeds (pea, groundnut, beans) vs Albuminous seeds (wheat, maize, castor, sunflower)",
+            "Dicot embryo vs Monocot embryo (Scutellum single cotyledon, Coleoptile, Coleorhiza)",
+            "Apomixis (seed production without fertilization, e.g. Asteraceae, grasses) and Polyembryony (Citrus, mango)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch02",
+      "grade": "12",
+      "discipline": "ZOOLOGY",
+      "unit": "Unit VI: Reproduction (16 Marks)",
+      "chapterNumber": 2,
+      "chapterName": "Human Reproduction",
+      "boardExamFocus": {
+        "highYield": "Menstrual cycle hormone tracking graphs (FSH, LH surge, Estrogen, Progesterone); Spermatogenesis vs Oogenesis pathway with chromosome ploidy; Blastocyst implantation and placental hormones (hCG, hPL, Relaxin).",
+        "standardTrap": "Confusing primary oocyte (arrested at Prophase-I) with secondary oocyte (arrested at Metaphase-II until fertilization); placing LH surge on day 1 instead of day 14.",
+        "questionType": "5-mark menstrual cycle with graphs; 3-mark spermatogenesis vs oogenesis comparison; 3-mark parturition oxytocin reflex."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch02_t1",
+          "topicName": "The Male and Female Reproductive Systems",
+          "ncertSection": "2.1",
+          "highYield": true,
+          "subtopics": [
+            "Male System: Scrotum (2-2.5°C lower temperature), Seminiferous tubules, Sertoli cells (nourish germ cells), Leydig cells (testosterone)",
+            "Accessory ducts: Rete testis, Vasa efferentia, Epididymis (sperm maturation), Vas deferens, Ejaculatory duct",
+            "Accessory glands: Seminal vesicles (fructose, calcium), Prostate gland (alkaline fluid), Bulbourethral/Cowper's glands (lubrication)",
+            "Female System: Ovaries (follicles and medulla), Fallopian tubes (Infundibulum with Fimbriae, Ampulla site of fertilization, Isthmus)",
+            "Uterus layers: Perimetrium, Myometrium (vigorous parturition contractions), Endometrium (cyclic changes)"
+          ]
+        },
+        {
+          "id": "bio_12_ch02_t2",
+          "topicName": "Gametogenesis",
+          "ncertSection": "2.2",
+          "highYield": true,
+          "subtopics": [
+            "Spermatogenesis: Spermatogonia (2n) → 1° spermatocyte (2n) → 2° spermatocyte (n) → Spermatids (n) → Spermatozoa (n)",
+            "Spermiogenesis vs Spermiation (release of spermatozoa from Sertoli cells into lumen)",
+            "Hormonal control: GnRH → LH (stimulates Leydig cells → Testosterone) & FSH (stimulates Sertoli cells)",
+            "Sperm anatomy: Head (haploid nucleus + Acrosome with hyaluronidase), Neck, Middle piece (mitochondria), Tail",
+            "Oogenesis: Oogonia (2n) arrested at Prophase-I as primary oocytes; tertiary follicle with Antrum cavity",
+            "Secondary oocyte (n) and First Polar Body; arrest at Metaphase-II until sperm entry triggers completion of Meiosis-II"
+          ]
+        },
+        {
+          "id": "bio_12_ch02_t3",
+          "topicName": "The Menstrual Cycle",
+          "ncertSection": "2.3",
+          "highYield": true,
+          "subtopics": [
+            "Menstrual Phase (Days 1–5): Endometrial breakdown due to withdrawal of progesterone and estrogen",
+            "Follicular / Proliferative Phase (Days 6–13): FSH stimulates follicle maturation and Estrogen secretion; endometrial proliferation",
+            "Ovulatory Phase (Day 14): LH Surge induces rupture of Graafian follicle and release of secondary oocyte (ovulation)",
+            "Luteal / Secretory Phase (Days 15–28): Ruptured follicle transforms into Corpus Luteum; secretes Progesterone to maintain endometrium"
+          ]
+        },
+        {
+          "id": "bio_12_ch02_t4",
+          "topicName": "Fertilization, Pregnancy & Parturition",
+          "ncertSection": "2.4",
+          "highYield": true,
+          "subtopics": [
+            "Fertilization: Acrosomal reaction, penetration of Zona Pellucida, cortical block to polyspermy",
+            "Cleavage & Implantation: Zygote → Morula (8-16 blastomeres) → Blastocyst (Trophoblast outer + Inner cell mass)",
+            "Placenta: Structural and functional unit; secretes pregnancy-specific hCG, hPL, and Relaxin (from ovary)",
+            "Parturition: Foetal-ejection reflex triggers maternal pituitary to release Oxytocin (positive feedback contraction)",
+            "Lactation: Regulated by Prolactin; Colostrum rich in IgA antibodies conferring passive immunity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch03",
+      "grade": "12",
+      "discipline": "ZOOLOGY",
+      "unit": "Unit VI: Reproduction (16 Marks)",
+      "chapterNumber": 3,
+      "chapterName": "Reproductive Health",
+      "boardExamFocus": {
+        "highYield": "Classification and mechanism of IUDs (CuT, LNG-20, Lippes loop); Assisted Reproductive Technologies (ZIFT vs IUT vs GIFT vs ICSI); MTP legal conditions and STIs.",
+        "standardTrap": "Confusing ZIFT (transferred into fallopian tube up to 8 blastomeres) with IUT (transferred into uterus > 8 blastomeres); forgetting Hepatitis-B, Genital herpes, and HIV are incurable.",
+        "questionType": "3-mark IUD classification with examples; 3-mark ART techniques comparison; 2-mark Saheli non-steroidal pill."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch03_t1",
+          "topicName": "Population Explosion and Contraceptive Methods",
+          "ncertSection": "3.1",
+          "highYield": true,
+          "subtopics": [
+            "Contraceptive criteria: User-friendly, available, effective, reversible, minimal side effects",
+            "Natural methods: Periodic abstinence (days 10-17), Coitus interruptus, Lactational amenorrhea (up to 6 months)",
+            "Barrier methods: Condoms (STI protection), Diaphragms, Cervical caps, Vaults",
+            "Intrauterine Devices (IUDs): Non-medicated (Lippes loop), Copper-releasing (CuT, Cu7, Multiload 375 suppress motility), Hormone-releasing (Progestasert, LNG-20 make uterus hostile)",
+            "Oral Contraceptives: Progestogen-estrogen combinations; Saheli (non-steroidal, selective estrogen receptor modulator, once a week, CDRI)",
+            "Emergency contraception: Progestogens or combos within 72 hours of unprotected coitus",
+            "Surgical / Permanent methods: Vasectomy (vas deferens tied/cut) and Tubectomy (fallopian tubes tied/cut)"
+          ]
+        },
+        {
+          "id": "bio_12_ch03_t2",
+          "topicName": "MTP, STIs, and Infertility Interventions (ART)",
+          "ncertSection": "3.2",
+          "highYield": true,
+          "subtopics": [
+            "Medical Termination of Pregnancy (MTP): Legalized in India 1971; safest during first trimester (up to 12 weeks)",
+            "Sexually Transmitted Infections (STIs): Gonorrhoea, Syphilis, Genital herpes, Chlamydiasis, Hepatitis-B, HIV (Hepatitis-B, herpes, HIV not curable)",
+            "IVF - In Vitro Fertilization (\"Test Tube Baby\"): ZIFT (up to 8 blastomeres into fallopian tube) and IUT (more than 8 blastomeres into uterus)",
+            "GIFT (Gamete Intra-Fallopian Transfer): Transfer of unfertilized ovum into fallopian tube for female who cannot produce ovum",
+            "ICSI (Intra-Cytoplasmic Sperm Injection): Direct micro-injection of single sperm into ovum",
+            "Artificial Insemination (AI) / IUI: Semen introduced into vagina/uterus for low sperm count (oligozoospermia)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch04",
+      "grade": "12",
+      "discipline": "BOTANY",
+      "unit": "Unit VII: Genetics and Evolution (20 Marks)",
+      "chapterNumber": 4,
+      "chapterName": "Principles of Inheritance and Variation",
+      "boardExamFocus": {
+        "highYield": "Pedigree analysis charts (Autosomal Recessive vs Dominant vs X-linked); Molecular basis of Sickle-cell anemia (GAG→GUG transversion at codon 6 of β-globin); Morgan’s linkage and recombination in Drosophila; Haplodiploidy in honeybees.",
+        "standardTrap": "Classifying Thalassemia as qualitative (it is quantitative defect of globin synthesis, whereas Sickle-cell is qualitative defect); assuming male honeybees have a father (males develop parthenogenetically and have no father).",
+        "questionType": "5-mark dihybrid cross with independent assortment or Morgan linkage; 4-mark Case Study with Pedigree tree; 3-mark genetic disorder comparison (Down vs Klinefelter vs Turner)."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch04_t1",
+          "topicName": "Mendelian Principles",
+          "ncertSection": "4.1",
+          "highYield": true,
+          "subtopics": [
+            "Mendel experimental model: Pisum sativum, 7 pairs of contrasting traits",
+            "Monohybrid cross: Phenotypic ratio 3:1, Genotypic ratio 1:2:1; Law of Segregation (universal, no blending); Law of Dominance",
+            "Test cross: Crossing dominant phenotype with homozygous recessive parent (1:1 confirms heterozygous)",
+            "Incomplete Dominance: Antirrhinum majus / Snapdragon (1:2:1 phenotypic and genotypic ratio)",
+            "Co-dominance: ABO Blood Groups in humans (IA and IB codominant over i; 3 alleles, 6 genotypes, 4 phenotypes)",
+            "Pleiotropy: Single gene influencing multiple traits (Phenylketonuria, starch synthesis in pea seeds)",
+            "Dihybrid cross: 9:3:3:1 ratio; Law of Independent Assortment"
+          ]
+        },
+        {
+          "id": "bio_12_ch04_t2",
+          "topicName": "Chromosomal Theory, Linkage & Sex Determination",
+          "ncertSection": "4.2",
+          "highYield": true,
+          "subtopics": [
+            "Chromosomal Theory of Inheritance (Sutton and Boveri): Parallelism between chromosomes and genes",
+            "Morgan experiment with Drosophila melanogaster: Advantages of fruit fly, Linkage vs Recombination",
+            "Alfred Sturtevant genetic mapping: 1% recombination frequency = 1 map unit / centimorgan",
+            "Sex determination systems: XX-XY (human, Drosophila), XX-XO (grasshopper), ZZ-ZW (birds)",
+            "Haplodiploidy in Honeybees: Drones develop parthenogenetically (n=16, mitosis), females from fertilized eggs (2n=32)"
+          ]
+        },
+        {
+          "id": "bio_12_ch04_t3",
+          "topicName": "Genetic Disorders and Pedigree Analysis",
+          "ncertSection": "4.3",
+          "highYield": true,
+          "subtopics": [
+            "Pedigree analysis symbols and deducing autosomal dominant, autosomal recessive, and X-linked traits",
+            "Sickle-cell anaemia: Point mutation (transversion GAG → GUG at 6th codon of β-globin gene; Glutamic acid → Valine; HbS polymerizes)",
+            "Phenylketonuria (PKU): Lack of phenylalanine hydroxylase; accumulation of phenylpyruvic acid causing mental retardation",
+            "Thalassemia: Quantitative defect in globin chain synthesis (α-thalassemia on chr 16, β-thalassemia on chr 11)",
+            "X-linked recessive disorders: Haemophilia (criss-cross inheritance), Colour blindness (8% males, 0.4% females)",
+            "Aneuploidy: Down syndrome (Trisomy 21, 47 chromosomes), Klinefelter syndrome (47, XXY), Turner syndrome (45, X0)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch05",
+      "grade": "12",
+      "discipline": "BOTANY",
+      "unit": "Unit VII: Genetics and Evolution (20 Marks)",
+      "chapterNumber": 5,
+      "chapterName": "Molecular Basis of Inheritance",
+      "boardExamFocus": {
+        "highYield": "DNA replication fork mechanisms and Meselson-Stahl experiment; Transcription in eukaryotes (splicing, capping, tailing); Lac Operon switched-on vs switched-off states; Properties of genetic code; DNA fingerprinting using VNTRs.",
+        "standardTrap": "Writing RNA transcript polarity backwards (mRNA is synthesized 5'→3' complementary to 3'→5' template strand); forgetting that Lac operon regulation is negative.",
+        "questionType": "Guaranteed 5-mark long answer on Lac operon, Replication fork, or Transcription; 3-mark Hershey-Chase / Meselson-Stahl experimental proofs; 3-mark DNA fingerprinting steps."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch05_t1",
+          "topicName": "DNA Structure and Packaging",
+          "ncertSection": "5.1",
+          "highYield": true,
+          "subtopics": [
+            "Polynucleotide chain: N-glycosidic bond, phosphoester bond, 3'-5' phosphodiester bonds",
+            "Watson-Crick Double Helix: Antiparallel strands, pitch = 3.4 nm, 10 bp/turn, base pair distance = 0.34 nm, A=T (2 H-bonds), G≡C (3 H-bonds)",
+            "Chargaff’s rules: A=T, G=C, (A+G)/(T+C) = 1 in dsDNA",
+            "Packaging: Total human DNA length ~2.2 m; Nucleosome (histone octamer with Lysine & Arginine wrapped by ~200 bp DNA, H1 linker)",
+            "Euchromatin (loosely packed, transcriptionally active) vs Heterochromatin (densely packed, inactive)"
+          ]
+        },
+        {
+          "id": "bio_12_ch05_t2",
+          "topicName": "Identifying Genetic Material & Replication",
+          "ncertSection": "5.2",
+          "highYield": true,
+          "subtopics": [
+            "Transforming Principle (Griffith 1928): S-strain and R-strain Streptococcus pneumoniae",
+            "Biochemical characterization (Avery, MacLeod, McCarty 1944): Transformation abolished by DNase",
+            "Hershey and Chase proof (1952): ³⁵S (protein coat) vs ³²P (DNA) in T2 bacteriophage",
+            "DNA vs RNA stability: DNA lacks 2'-OH, has Thymine instead of Uracil, double-stranded",
+            "Semiconservative replication proof (Meselson and Stahl 1958): ¹⁵NH₄Cl shifted to ¹⁴NH₄Cl, CsCl gradient",
+            "Replication fork machinery: DNA-dependent DNA polymerase (5'→3'), leading strand continuous, lagging strand Okazaki fragments sealed by DNA ligase"
+          ]
+        },
+        {
+          "id": "bio_12_ch05_t3",
+          "topicName": "Transcription and Processing",
+          "ncertSection": "5.3",
+          "highYield": true,
+          "subtopics": [
+            "Transcription unit: Promoter, Structural gene, Terminator; Template (3'→5') vs Coding strand (5'→3')",
+            "Transcription in Prokaryotes: Single RNA polymerase, Initiation factor (sigma σ), Termination factor (rho ρ)",
+            "Transcription in Eukaryotes: RNA Pol I (rRNAs), RNA Pol II (hnRNA), RNA Pol III (tRNA, 5S rRNA)",
+            "Post-transcriptional processing of hnRNA: Splicing (snRNPs remove introns), Capping (methyl guanosine triphosphate at 5'), Tailing (poly-A at 3')"
+          ]
+        },
+        {
+          "id": "bio_12_ch05_t4",
+          "topicName": "Genetic Code, Translation & Regulation",
+          "ncertSection": "5.4",
+          "highYield": true,
+          "subtopics": [
+            "Genetic Code properties: Triplet (61 sense, 3 stop: UAA, UAG, UGA), Degenerate, Unambiguous, Commaless, Universal, Initiator AUG (Methionine)",
+            "tRNA adapter: Cloverleaf 2D, inverted L-shape 3D, Anticodon loop, 3'-CCA amino acid acceptor end",
+            "Translation: Aminoacylation of tRNA, Ribosome P-site and A-site, peptidyl transferase 23S rRNA ribozyme",
+            "Lac Operon (Jacob and Monod): Regulatory i gene, promoter p, operator o, structural genes z (β-galactosidase), y (permease), a (transacetylase)",
+            "Repressor mechanism: Absence of inducer (repressor binds operator = OFF) vs Presence of Lactose (inactivates repressor = ON)"
+          ]
+        },
+        {
+          "id": "bio_12_ch05_t5",
+          "topicName": "Human Genome Project (HGP) & DNA Fingerprinting",
+          "ncertSection": "5.5",
+          "highYield": true,
+          "subtopics": [
+            "HGP milestones: 3 billion bp, average gene 3000 bases, Dystrophin 2.4 million bases, chromosome 1 most genes (2968), Y fewest (231), 1.4 million SNPs",
+            "ESTs (Expressed Sequence Tags) vs Sequence Annotation",
+            "DNA Fingerprinting (Alec Jeffreys): Satellite DNA polymorphism, VNTRs (Variable Number of Tandem Repeats)",
+            "Steps: DNA extraction → Restriction endonuclease digestion → Gel electrophoresis → Southern blotting → Radiolabeled VNTR probe hybridization → Autoradiography"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch06",
+      "grade": "12",
+      "discipline": "ZOOLOGY",
+      "unit": "Unit VII: Genetics and Evolution (20 Marks)",
+      "chapterNumber": 6,
+      "chapterName": "Evolution",
+      "boardExamFocus": {
+        "highYield": "Hardy-Weinberg equilibrium numericals (p² + 2pq + q² = 1); Homologous vs Analogous organs (divergent vs convergent evolution); Industrial melanism; Human evolution timeline with cranial capacities.",
+        "standardTrap": "Confusing saltation (single-step large mutation by de Vries) with Darwinian gradualism; mixing up Homo habilis (650-800 cc, vegetarian) and Homo erectus (900 cc, meat eater).",
+        "questionType": "3-mark Hardy-Weinberg calculation; 3-mark homologous vs analogous organ categorization; 2-mark natural selection graphs (stabilizing, directional, disruptive)."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch06_t1",
+          "topicName": "Origin of Life & Evidences for Evolution",
+          "ncertSection": "6.1",
+          "highYield": true,
+          "subtopics": [
+            "Origin of Life: Big Bang, Oparin-Haldane chemical evolution hypothesis",
+            "Miller-Urey experiment: Spark discharge (CH₄, NH₃, H₂O, H₂ at 800°C) producing amino acids (alanine, glycine, aspartic acid)",
+            "Homologous organs (Divergent Evolution: whale/bat/cheetah/human forelimbs, Bougainvillea thorns & Cucurbita tendrils)",
+            "Analogous organs (Convergent Evolution: bird/butterfly wings, octopus/mammal eye, penguin/dolphin flippers, sweet potato & potato)",
+            "Industrial melanism in Biston betularia (peppered moth) and anthropogenic selection (antibiotic resistance)",
+            "Adaptive radiation: Darwin's finches in Galapagos, Australian marsupials"
+          ]
+        },
+        {
+          "id": "bio_12_ch06_t2",
+          "topicName": "Biological Evolution & Hardy-Weinberg Principle",
+          "ncertSection": "6.2",
+          "highYield": true,
+          "subtopics": [
+            "Theories: Lamarckism (use/disuse disproved), Darwinism (reproductive fitness), Mutation theory (Hugo de Vries saltation)",
+            "Hardy-Weinberg Principle: p + q = 1 ⇒ p² + 2pq + q² = 1",
+            "Factors affecting equilibrium: Gene flow, Genetic drift (Founder effect, Bottleneck), Mutation, Recombination, Natural Selection",
+            "Natural selection curves: Stabilizing (favors average), Directional (favors one extreme), Disruptive (two peaks)"
+          ]
+        },
+        {
+          "id": "bio_12_ch06_t3",
+          "topicName": "Human Evolution",
+          "ncertSection": "6.3",
+          "highYield": true,
+          "subtopics": [
+            "Dryopithecus & Ramapithecus (15 mya, Ramapithecus more man-like)",
+            "Australopithecines (2 mya, East Africa, stone weapons, fruit eaters)",
+            "Homo habilis (650–800 cc, handy man, did not eat meat)",
+            "Homo erectus (1.5 mya, Java fossils, 900 cc, ate meat)",
+            "Homo neanderthalensis (100,000–40,000 ya, 1400 cc, cave dweller, buried dead)",
+            "Homo sapiens (75,000–10,000 ya, modern human, cave art 18,000 ya, agriculture 10,000 ya)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch07",
+      "grade": "12",
+      "discipline": "ZOOLOGY",
+      "unit": "Unit VIII: Biology in Human Welfare (12 Marks)",
+      "chapterNumber": 7,
+      "chapterName": "Human Health and Diseases",
+      "boardExamFocus": {
+        "highYield": "Life cycle schematic of Plasmodium (sporozoite injection to mosquito transmission); Retrovirus (HIV) replication cycle in helper T-cells; Structure of an antibody molecule (H₂L₂); Innate vs Acquired immunity.",
+        "standardTrap": "Assuming Common Cold infects lungs (it infects nose and upper respiratory tract, whereas Pneumonia infects lung alveoli); confusing Benign tumors with Malignant tumors (only malignant show metastasis).",
+        "questionType": "5-mark Plasmodium life cycle or HIV replication; 3-mark Innate immunity barriers with examples; 3-mark Drug classes (Opioids vs Cannabinoids vs Coca alkaloids)."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch07_t1",
+          "topicName": "Pathogens and Common Infectious Diseases",
+          "ncertSection": "7.1",
+          "highYield": true,
+          "subtopics": [
+            "Bacterial: Typhoid (Salmonella typhi, sustained 39-40°C fever, Widal test); Pneumonia (Streptococcus pneumoniae, lung alveoli fluid, lips/nails turn gray)",
+            "Viral: Common Cold (Rhinoviruses, infects nose/passage but not lungs, 3-7 days)",
+            "Protozoan: Malaria (Plasmodium vivax, falciparum; sporozoites → liver cells → RBCs burst releasing Haemozoin chills/fever; gametocytes in blood, fertilization in mosquito gut)",
+            "Protozoan: Amoebiasis (Entamoeba histolytica, large intestine, housefly mechanical carrier)",
+            "Helminthic & Fungal: Ascariasis (Ascaris lumbricoides); Filariasis (Wuchereria bancrofti, Culex vector, lymphatic swelling); Ringworm (Microsporum, Trichophyton)"
+          ]
+        },
+        {
+          "id": "bio_12_ch07_t2",
+          "topicName": "Immunity and Immune Responses",
+          "ncertSection": "7.2",
+          "highYield": true,
+          "subtopics": [
+            "Innate Immunity: Physical (skin, mucus), Physiological (acid, saliva, lysozyme tears), Cellular (PMNL, monocytes, NK cells), Cytokine (Interferons)",
+            "Acquired Immunity: B-lymphocytes (humoral antibodies), T-lymphocytes (Cell-Mediated Immunity CMI, graft rejection)",
+            "Antibody Structure: H₂L₂ held by disulfide bonds (IgG, IgM, IgA colostrum, IgE allergy, IgD)",
+            "Active vs Passive immunity (colostrum IgA, anti-tetanus serum, anti-venom)",
+            "Allergy (IgE mediated, mast cells release histamine/serotonin) & Autoimmunity (Rheumatoid arthritis)",
+            "Lymphoid Organs: Primary (Bone marrow & Thymus) vs Secondary (Spleen, Lymph nodes, MALT ~50% of lymphoid tissue)"
+          ]
+        },
+        {
+          "id": "bio_12_ch07_t3",
+          "topicName": "AIDS and Cancer",
+          "ncertSection": "7.3",
+          "highYield": true,
+          "subtopics": [
+            "AIDS: HIV retrovirus, ssRNA genome, reverse transcriptase; infects macrophages (\"HIV factory\") and attacks TH helper T-cells; ELISA diagnosis",
+            "Cancer: Loss of contact inhibition; Benign vs Malignant tumors (Metastasis); Carcinogens (physical UV/X-rays, chemical tobacco, oncogenic viruses); α-interferon immunotherapy"
+          ]
+        },
+        {
+          "id": "bio_12_ch07_t4",
+          "topicName": "Drug and Alcohol Abuse",
+          "ncertSection": "7.4",
+          "highYield": true,
+          "subtopics": [
+            "Opioids: Morphine (sedative/analgesic from Papaver somniferum latex) and Heroin (\"smack\", diacetylmorphine depressant)",
+            "Cannabinoids: Cannabis sativa inflorescence (marijuana, hashish, charas, ganja; cardiovascular receptors)",
+            "Coca alkaloids / Cocaine: Erythroxylum coca, dopamine transport interference, euphoria/hallucinations",
+            "Hallucinogens: Atropa belladonna, Datura; Dependence and withdrawal syndrome"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch08",
+      "grade": "12",
+      "discipline": "BOTANY",
+      "unit": "Unit VIII: Biology in Human Welfare (12 Marks)",
+      "chapterNumber": 8,
+      "chapterName": "Microbes in Human Welfare",
+      "boardExamFocus": {
+        "highYield": "Match-the-following bioactive molecules (Statins, Cyclosporin A, Streptokinase, Citric acid); Steps of Sewage Treatment Plant (aeration tank, flocs, BOD concept, anaerobic sludge digester); Biocontrol agents and Mycorrhiza.",
+        "standardTrap": "Confusing Cyclosporin A (immunosuppressant from fungus Trichoderma polysporum) with Statins (blood cholesterol lowering from yeast Monascus purpureus); assuming primary sewage treatment uses microbes (it is purely physical filtration & sedimentation).",
+        "questionType": "3-mark microbe and commercial product matching; 3-mark STP primary vs secondary biological treatment flow; 2-mark Biogas plant working."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch08_t1",
+          "topicName": "Microbes in Household, Industrial & Energy Production",
+          "ncertSection": "8.1",
+          "highYield": true,
+          "subtopics": [
+            "Household: Curd (Lactobacillus / LAB, Vitamin B₁₂ enrichment), Baker's yeast (Saccharomyces cerevisiae), Toddy, Swiss cheese (Propionibacterium sharmanii CO₂ holes), Roquefort cheese (Penicillium roqueforti)",
+            "Industrial: Brewer's yeast (ethanol fermentation), Penicillin (Alexander Fleming, Penicillium notatum)",
+            "Bioactive molecules: Aspergillus niger (Citric acid), Acetobacter aceti (Acetic acid), Clostridium butylicum (Butyric acid), Lactobacillus (Lactic acid)",
+            "Streptococcus → Streptokinase (clot buster for myocardial infarction)",
+            "Trichoderma polysporum → Cyclosporin A (immunosuppressant in organ transplant)",
+            "Monascus purpureus → Statins (blood cholesterol lowering competitive inhibitor)",
+            "Biogas: Methanogens (Methanobacterium), cattle dung (Gobar gas: CH₄ 50-70%, CO₂ 30-40%, H₂S); IARI and KVIC digester tank"
+          ]
+        },
+        {
+          "id": "bio_12_ch08_t2",
+          "topicName": "Sewage Treatment & Biocontrol Agents",
+          "ncertSection": "8.2",
+          "highYield": true,
+          "subtopics": [
+            "STP Primary Treatment (Physical): Sequential filtration and sedimentation → primary sludge and primary effluent",
+            "STP Secondary Treatment (Biological): Aeration tanks, aerobic microbes form Flocs (bacteria + fungal filaments), BOD reduction",
+            "Settling tank: Activated sludge; part as inoculum, major part to Anaerobic Sludge Digesters (produces biogas CH₄, CO₂, H₂S)",
+            "Biocontrol agents: Ladybird (aphids), Dragonflies (mosquitoes), Bacillus thuringiensis Bt (caterpillars), Trichoderma (root pathogens), Baculoviruses (Nucleopolyhedrovirus, narrow-spectrum IPM)",
+            "Biofertilizers: Rhizobium, Azotobacter, Azospirillum; Mycorrhiza (Glomus absorbs phosphorus); Cyanobacteria (Anabaena, Nostoc, Oscillatoria in paddy)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch09",
+      "grade": "12",
+      "discipline": "BOTANY",
+      "unit": "Unit IX: Biotechnology (12 Marks)",
+      "chapterNumber": 9,
+      "chapterName": "Biotechnology: Principles and Processes",
+      "boardExamFocus": {
+        "highYield": "Vector pBR322 diagram with restriction sites, ori, rop, ampR, tetR; Insertional inactivation vs Blue-white selection; Steps of PCR (Denaturation, Annealing, Extension with Taq polymerase); Gel electrophoresis with Ethidium bromide and elution.",
+        "standardTrap": "Forgetting that Taq polymerase is isolated from thermophilic bacterium Thermus aquaticus and functions at 72°C; misplacing BamHI/SalI in ampR instead of tetR.",
+        "questionType": "5-mark recombinant DNA technology workflow; 3-mark pBR322 vector diagram with insertional inactivation; 3-mark PCR cycle diagram."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch09_t1",
+          "topicName": "Core Principles and Tools",
+          "ncertSection": "9.1",
+          "highYield": true,
+          "subtopics": [
+            "Core techniques: Genetic Engineering and Bioprocess Engineering",
+            "Restriction Enzymes (Molecular scissors): Palindromic recognition sequences, EcoRI (5'-GAATTC-3') sticky ends, nomenclature rules",
+            "Cloning Vectors: Origin of replication (ori controls copy number), Selectable markers (ampR, tetR in E. coli), Cloning sites",
+            "Vector pBR322: ori, rop, ampR (PstI, PvuI), tetR (BamHI, SalI)",
+            "Insertional inactivation: Insertion at BamHI site in tetR gene inactivates tetracycline resistance",
+            "Blue-White screening: Insertional inactivation of β-galactosidase (lacZ gene); recombinants remain white on X-gal",
+            "Plant and animal vectors: Agrobacterium tumefaciens Ti-plasmid, disarmed Retroviruses"
+          ]
+        },
+        {
+          "id": "bio_12_ch09_t2",
+          "topicName": "Competent Hosts & Processes of r-DNA Technology",
+          "ncertSection": "9.2",
+          "highYield": true,
+          "subtopics": [
+            "Competent host transformation: Divalent cation (Ca²⁺) + heat shock at 42°C; Micro-injection (animals) and Biolistics / Gene gun (gold/tungsten for plants)",
+            "Isolation of DNA: Lysozyme, Cellulase, Chitinase; Protease and RNase; chilled ethanol precipitation (spooling)",
+            "Gel Electrophoresis: Agarose gel, migration toward anode by size, Ethidium bromide UV staining (orange bands), Elution",
+            "Polymerase Chain Reaction (PCR): Denaturation (94°C), Annealing (54°C), Extension (72°C via Taq polymerase from Thermus aquaticus)",
+            "Bioreactors: Simple stirred-tank vs Sparged stirred-tank (air bubbles increase oxygen transfer area)",
+            "Downstream processing: Separation, purification, quality testing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch10",
+      "grade": "12",
+      "discipline": "BOTANY",
+      "unit": "Unit IX: Biotechnology (12 Marks)",
+      "chapterNumber": 10,
+      "chapterName": "Biotechnology and its Applications",
+      "boardExamFocus": {
+        "highYield": "Manufacturing of genetically engineered Insulin (Humulin by Eli Lilly); RNA interference (RNAi) mechanism against Meloidogyne incognita in tobacco; Bt Cotton mode of action and specific cry genes; ADA deficiency gene therapy.",
+        "standardTrap": "Confusing proinsulin (contains C-peptide) with mature active insulin (A and B chains linked by disulfide bonds, C-peptide removed); mixing cryIAc/cryIIAb (cotton bollworm) with cryIAb (corn borer).",
+        "questionType": "5-mark Recombinant insulin processing or RNAi mechanism; 3-mark ADA deficiency permanent vs temporary cure; 2-mark Transgenic animal Rosie the cow."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch10_t1",
+          "topicName": "Applications in Agriculture",
+          "ncertSection": "10.1",
+          "highYield": true,
+          "subtopics": [
+            "Bt Cotton: Bacillus thuringiensis produces inactive protoxin crystals; alkaline gut pH of insect solubilizes crystals, creates epithelial pores, lysis and death",
+            "Bt genes: cryIAc and cryIIAb control cotton bollworms; cryIAb controls corn borer",
+            "RNA Interference (RNAi): Cellular defense in eukaryotes; nematode Meloidogyne incognita attacks tobacco roots; Agrobacterium vector introduces sense and anti-sense RNA forming dsRNA to silence nematode mRNA"
+          ]
+        },
+        {
+          "id": "bio_12_ch10_t2",
+          "topicName": "Applications in Medicine & Transgenic Animals",
+          "ncertSection": "10.2",
+          "highYield": true,
+          "subtopics": [
+            "Genetically Engineered Insulin (Humulin, Eli Lilly 1983): Pro-insulin has extra C-peptide (33 amino acids); A and B chains synthesized separately in E. coli and combined via disulfide bonds",
+            "Gene Therapy for ADA deficiency: Severe Combined Immunodeficiency (SCID); retroviral transfer of ADA cDNA into lymphocytes (temporary) vs bone marrow stem cells at early embryonic stages (permanent cure)",
+            "Molecular Diagnostics: PCR, ELISA, DNA probes for early detection",
+            "Transgenic Animals: Rosie the cow (1997, produces human α-lactalbumin enriched milk 2.4 g/L); α-1-antitrypsin for emphysema; vaccine safety testing (polio mice)"
+          ]
+        },
+        {
+          "id": "bio_12_ch10_t3",
+          "topicName": "Ethical Issues and Biopiracy",
+          "ncertSection": "10.3",
+          "highYield": true,
+          "subtopics": [
+            "GEAC (Genetic Engineering Appraisal Committee): Validates safety of GM research and commercial release",
+            "Biopiracy: Unauthorized exploitation of bioresources and traditional knowledge (patenting of Basmati rice, neem, turmeric)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch11",
+      "grade": "12",
+      "discipline": "ZOOLOGY",
+      "unit": "Unit X: Ecology and Environment (10 Marks)",
+      "chapterNumber": 11,
+      "chapterName": "Organisms and Populations",
+      "boardExamFocus": {
+        "highYield": "Verhulst-Pearl Logistic Growth equation and sigmoid curve (dN/dt = rN(K-N)/K); Population interaction table (+, -, 0) with real-world examples (Brood parasitism, sexual deceit in Ophrys, Gause exclusion principle); Adaptations (Kangaroo rat, Allen's rule, altitude sickness).",
+        "standardTrap": "Assuming exponential growth is realistic in nature (logistic growth with carrying capacity K is realistic); confusing commensalism (+, 0) with amensalism (-, 0).",
+        "questionType": "5-mark Logistic vs Exponential growth curves derivation; 3-mark Population interaction identification; 2-mark High altitude adaptation physiological mechanisms."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch011_t1",
+          "topicName": "Responses to Abiotic Factors & Adaptations",
+          "ncertSection": "11.1",
+          "highYield": true,
+          "subtopics": [
+            "Major Abiotic Factors: Temperature (eurythermal vs stenothermal), Water (euryhaline vs stenohaline), Light, Soil",
+            "Responses: Regulate (homeostasis in birds/mammals), Conform (99% animals, heat loss in shrews/hummingbirds due to large surface-to-volume ratio), Migrate (Keoladeo Ghana National Park), Suspend (dormancy, hibernation in bears, aestivation in snails, diapause in zooplankton)",
+            "Adaptations: Desert Opuntia (sunken stomata, spines, CAM pathway); Kangaroo rat (internal fat oxidation, concentrated urine); Allen's Rule (shorter limbs/ears in cold); Blubber in seals; Altitude sickness (compensates by increasing RBCs, reducing Hb binding affinity, increasing breathing rate)"
+          ]
+        },
+        {
+          "id": "bio_12_ch11_t2",
+          "topicName": "Population Attributes & Growth Models",
+          "ncertSection": "11.2",
+          "highYield": true,
+          "subtopics": [
+            "Population Attributes: Natality, Mortality, Sex ratio, Age pyramids (Expanding broad base, Stable bell-shaped, Declining urn-shaped)",
+            "Population Density formula: N_(t+1) = N_t + [(B + I) - (D + E)]",
+            "Exponential Growth: dN/dt = rN, N_t = N₀ e^(rt) (J-shaped curve in unlimited resources)",
+            "Logistic Growth (Verhulst-Pearl): dN/dt = rN((K-N)/K) (Sigmoid S-shaped curve with carrying capacity K)"
+          ]
+        },
+        {
+          "id": "bio_12_ch11_t3",
+          "topicName": "Population Interactions",
+          "ncertSection": "11.3",
+          "highYield": true,
+          "subtopics": [
+            "Mutualism (+/+): Lichen, Mycorrhizae, Fig tree & wasp, Mediterranean orchid Ophrys sexual deceit with Colpa bee",
+            "Competition (-/-): Abingdon tortoise extinction in Galapagos due to goats, Gause's Competitive Exclusion Principle, MacArthur resource partitioning in warblers",
+            "Predation (+/-): Conduit for energy transfer, keeps prey in check (Prickly pear cactus & moth, starfish Pisaster removal led to 10 extinctions); Monarch butterfly unpalatable toxin",
+            "Parasitism (+/-): Ectoparasites vs Endoparasites, Brood parasitism (Cuckoo/Koel in Crow nest)",
+            "Commensalism (+/0): Orchid on mango tree, Barnacles on whale, Cattle egret and grazing cattle, Clownfish and sea anemone",
+            "Amensalism (-/0): Penicillium inhibiting bacteria"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch12",
+      "grade": "12",
+      "discipline": "BOTANY",
+      "unit": "Unit X: Ecology and Environment (10 Marks)",
+      "chapterNumber": 12,
+      "chapterName": "Ecosystem",
+      "boardExamFocus": {
+        "highYield": "Lindeman’s 10% law of energy transfer; Ecological Pyramids (always upright pyramid of energy vs inverted pyramid of biomass in aquatic ecosystem); Five steps of decomposition; NPP = GPP - R.",
+        "standardTrap": "Drawing an inverted pyramid of energy (pyramid of energy is ALWAYS upright according to 2nd law of thermodynamics); confusing humification with mineralization.",
+        "questionType": "3-mark Inverted biomass pyramid in sea explanation; 3-mark Decomposition steps; 2-mark GPP vs NPP."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch12_t1",
+          "topicName": "Productivity, Decomposition & Energy Flow",
+          "ncertSection": "12.1",
+          "highYield": true,
+          "subtopics": [
+            "Ecosystem structure: Stratification (vertical layers: trees, shrubs, herbs)",
+            "Productivity: Gross Primary Productivity (GPP) vs Net Primary Productivity (NPP = GPP - R); Biosphere NPP is 170 billion tons, oceans contribute only 55 billion tons",
+            "Decomposition steps: Fragmentation (earthworms), Leaching (water-soluble nutrients percolate), Catabolism (fungal/bacterial enzymes), Humification (dark amorphous humus reservoir), Mineralization",
+            "Energy Flow: Unidirectional, plants capture 2-10% PAR; Lindeman's 10% Law (90% lost as heat); Grazing Food Chain (GFC, major in aquatic) vs Detritus Food Chain (DFC, major in terrestrial)"
+          ]
+        },
+        {
+          "id": "bio_12_ch12_t2",
+          "topicName": "Ecological Pyramids",
+          "ncertSection": "12.2",
+          "highYield": true,
+          "subtopics": [
+            "Pyramid of Numbers: Upright in grassland, Inverted in single tree supporting birds and parasites",
+            "Pyramid of Biomass: Upright in terrestrial, Inverted in aquatic ecosystem (small biomass of phytoplankton supports large biomass of fish)",
+            "Pyramid of Energy: Always upright without exception (energy lost as heat at each trophic step)",
+            "Limitations: Does not accommodate species functioning at two trophic levels, ignores food web, excludes saprophytes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bio_12_ch13",
+      "grade": "12",
+      "discipline": "BOTANY",
+      "unit": "Unit X: Ecology and Environment (10 Marks)",
+      "chapterNumber": 13,
+      "chapterName": "Biodiversity and Conservation",
+      "boardExamFocus": {
+        "highYield": "Species-Area Relationship derivation and plot (log S = log C + Z log A); The Evil Quartet (four major drivers of biodiversity loss); In-situ (National parks, Biosphere reserves, Sacred groves) vs Ex-situ (Cryopreservation, Botanical gardens).",
+        "standardTrap": "Using slope Z = 0.1-0.2 for continents (for massive continental areas Z is steeper: 0.6-1.2, e.g. frugivorous birds Z=1.15); placing Botanical gardens under in-situ conservation (they are ex-situ).",
+        "questionType": "3-mark Species-Area relationship graph and formula; 3-mark The Evil Quartet with examples; 2-mark In-situ vs Ex-situ conservation."
+      },
+      "topics": [
+        {
+          "id": "bio_12_ch13_t1",
+          "topicName": "Biodiversity Patterns and Loss",
+          "ncertSection": "13.1",
+          "highYield": true,
+          "subtopics": [
+            "Levels of Biodiversity (Edward Wilson): Genetic (Rauwolfia vomitoria reserpine, 50,000 rice strains), Species (Western Ghats amphibians), Ecological (India vs Norway)",
+            "Global species richness (Robert May estimate: ~7 million): Animals >70%, plants ≤22%, insects >70% of animals; India has 2.4% land area and 8.1% species diversity",
+            "Latitudinal gradients: Equator to poles decline; Amazon rainforest richest (>40,000 plants, 3,000 fish, 1,300 birds)",
+            "Species-Area Relationship (Alexander von Humboldt): log S = log C + Z log A (Z = 0.1-0.2 for regions; Z = 0.6-1.2 for continents)",
+            "The Evil Quartet: 1. Habitat loss & fragmentation (Amazon cleared for soybeans); 2. Over-exploitation (Steller sea cow, Passenger pigeon); 3. Alien species invasions (Nile perch in Lake Victoria, Parthenium, Eichhornia, Clarias gariepinus); 4. Co-extinctions (plant-pollinator mutualisms)"
+          ]
+        },
+        {
+          "id": "bio_12_ch13_t2",
+          "topicName": "Conservation Strategies",
+          "ncertSection": "13.2",
+          "highYield": true,
+          "subtopics": [
+            "Why Conserve: Narrowly utilitarian (food, medicine >25%), Broadly utilitarian (Amazon 20% oxygen, pollination), Ethical obligation",
+            "In-situ Conservation (On-site): National Parks, Wildlife Sanctuaries, Biosphere Reserves (14 in India); Biodiversity Hotspots (high endemism, 34 worldwide, 3 in India: Western Ghats/Sri Lanka, Indo-Burma, Himalayas); Sacred Groves (Khasi/Jaintia hills Meghalaya, Aravalli Rajasthan)",
+            "Ex-situ Conservation (Off-site): Zoological Parks, Botanical Gardens, Wildlife Safari Parks",
+            "Advanced Ex-situ: Cryopreservation (-196°C in liquid nitrogen), in vitro tissue culture, Seed Banks"
+          ]
+        }
+      ]
+    }
+  ]
+},
 
   // ==========================================================================
   // 2. SENIOR PHYSICS (Class 11 & Class 12) - JEE Main / Advanced / Boards

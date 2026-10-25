@@ -1224,36 +1224,93 @@ function getOfflineCurriculumFallback(subjectKey, grade) {
 
   return {
     subjectKey: subjectKey || 'BIOLOGY',
-    subjectName: subjectKey === 'BIOLOGY' ? 'Biology' : (subjectKey === 'CHEMISTRY' ? 'Chemistry' : 'Science'),
+    subjectName: subjectKey === 'BIOLOGY' ? 'Class 12 Biology' : (subjectKey === 'CHEMISTRY' ? 'Class 12 Chemistry' : 'Science'),
     stream: subjectKey === 'BIOLOGY' ? 'MEDICAL' : 'COMMON_SENIOR',
-    targetExams: ['NEET_UG', 'CBSE_CLASS_12', 'HP_BOARD_CLASS_12'],
-    totalChapters: 2,
+    targetExams: ['CBSE_CLASS_12', 'HP_BOARD_CLASS_12', 'NEET_UG'],
+    totalChapters: 13,
+    units: [
+      { unitNumber: 'Unit VI', unitName: 'Reproduction (Chapters 1 to 3)', weightageMarks: 16, chapters: [1, 2, 3] },
+      { unitNumber: 'Unit VII', unitName: 'Genetics and Evolution (Chapters 4 to 6)', weightageMarks: 20, chapters: [4, 5, 6] },
+      { unitNumber: 'Unit VIII', unitName: 'Biology in Human Welfare (Chapters 7 & 8)', weightageMarks: 12, chapters: [7, 8] },
+      { unitNumber: 'Unit IX', unitName: 'Biotechnology: Principles & Applications (Chapters 9 & 10)', weightageMarks: 12, chapters: [9, 10] },
+      { unitNumber: 'Unit X', unitName: 'Ecology and Environment (Chapters 11 to 13)', weightageMarks: 10, chapters: [11, 12, 13] }
+    ],
+    boardHighYieldSummary: {
+      fiveMarkGuarantees: [
+        'Menstrual Cycle: Hormonal tracking plots (FSH, LH, Estrogen, Progesterone) across 28 days with ovulation and corpus luteum.',
+        'Molecular Pathways: DNA replication fork mechanisms, transcription split-gene processing (splicing, capping, tailing), and Lac Operon regulation.',
+        'Recombinant DNA Technology: Vector pBR322 architecture with selectable markers, PCR cycle, and Humulin / ADA gene therapy.'
+      ],
+      fourMarkCaseStudies: [
+        'Genetics: Pedigree analysis charts deducing Autosomal Recessive vs Dominant vs X-linked traits (Sickle-cell anemia, Thalassemia).',
+        'Ecology: Verhulst-Pearl Logistic Growth (dN/dt = rN(K-N)/K) vs Exponential growth curves and Alexander von Humboldt\'s Species-Area Relationship.'
+      ],
+      threeMarkCorePool: [
+        'Outbreeding Devices & Double Fertilization (syngamy + triple fusion producing 3n PEN).',
+        'Hardy-Weinberg equilibrium calculation (p² + 2pq + q² = 1) and Homologous vs Analogous organs.',
+        'Life cycle of Plasmodium (liver stage, RBC haemozoin release, mosquito gut) and HIV retrovirus replication.',
+        'Microbes match-the-following (Statins, Cyclosporin A, Streptokinase) and Sewage Treatment BOD reduction.'
+      ]
+    },
     chapters: [
+      {
+        id: 'bio_12_ch01',
+        grade: '12',
+        discipline: 'BOTANY',
+        unit: 'Unit VI: Reproduction (16 Marks)',
+        chapterNumber: 1,
+        chapterName: 'Sexual Reproduction in Flowering Plants',
+        totalQuestionsInChapter: 1,
+        boardExamFocus: {
+          highYield: '7-celled, 8-nucleate female gametophyte; L.S. of anatropous ovule; Double fertilization; Outbreeding devices.',
+          standardTrap: 'Confusing perisperm (persistent nucellus) with pericarp (fruit wall).',
+          questionType: '5-mark embryo sac development; 3-mark outbreeding devices.'
+        },
+        topics: [
+          { id: 't1', topicName: 'Pre-Fertilization: Structures and Events', ncertSection: '1.1', highYield: true, questionCount: 1 },
+          { id: 't2', topicName: 'Pollination Mechanisms & Adaptations', ncertSection: '1.2', highYield: true, questionCount: 0 },
+          { id: 't3', topicName: 'Double Fertilization & Post-Fertilization Events', ncertSection: '1.3', highYield: true, questionCount: 0 }
+        ]
+      },
+      {
+        id: 'bio_12_ch02',
+        grade: '12',
+        discipline: 'ZOOLOGY',
+        unit: 'Unit VI: Reproduction (16 Marks)',
+        chapterNumber: 2,
+        chapterName: 'Human Reproduction',
+        totalQuestionsInChapter: 1,
+        boardExamFocus: {
+          highYield: 'Menstrual cycle hormone tracking graphs; Spermatogenesis vs Oogenesis ploidy; Blastocyst implantation.',
+          standardTrap: 'Confusing primary oocyte (Prophase-I) with secondary oocyte (Metaphase-II).',
+          questionType: '5-mark menstrual cycle with graphs; 3-mark gametogenesis.'
+        },
+        topics: [
+          { id: 't4', topicName: 'The Male and Female Reproductive Systems', ncertSection: '2.1', highYield: true, questionCount: 0 },
+          { id: 't5', topicName: 'Gametogenesis', ncertSection: '2.2', highYield: true, questionCount: 0 },
+          { id: 't6', topicName: 'The Menstrual Cycle', ncertSection: '2.3', highYield: true, questionCount: 1 },
+          { id: 't7', topicName: 'Fertilization, Pregnancy & Parturition', ncertSection: '2.4', highYield: true, questionCount: 0 }
+        ]
+      },
       {
         id: 'bio_12_ch05',
         grade: '12',
         discipline: 'BOTANY',
-        unit: 'Genetics and Evolution',
+        unit: 'Unit VII: Genetics and Evolution (20 Marks)',
         chapterNumber: 5,
         chapterName: 'Molecular Basis of Inheritance',
-        totalQuestionsInChapter: 2,
-        topics: [
-          { id: 't1', topicName: 'The DNA Double Helix & Packaging of DNA (Nucleosome)', ncertSection: '5.1', highYield: true, questionCount: 0 },
-          { id: 't2', topicName: 'Replication: Semi-Conservative Mode (Meselson & Stahl) & Enzymes', ncertSection: '5.4', highYield: true, questionCount: 1 },
-          { id: 't3', topicName: 'Regulation of Gene Expression (Lac Operon)', ncertSection: '5.8', highYield: true, questionCount: 1 }
-        ]
-      },
-      {
-        id: 'bio_12_ch04',
-        grade: '12',
-        discipline: 'BOTANY',
-        unit: 'Genetics and Evolution',
-        chapterNumber: 4,
-        chapterName: 'Principles of Inheritance and Variation',
         totalQuestionsInChapter: 1,
+        boardExamFocus: {
+          highYield: 'DNA replication fork mechanisms; Transcription in eukaryotes; Lac Operon switched-on vs off states.',
+          standardTrap: 'Writing RNA transcript polarity backwards (mRNA is synthesized 5\'→3\').',
+          questionType: '5-mark Lac operon or Replication fork; 3-mark DNA fingerprinting.'
+        },
         topics: [
-          { id: 't4', topicName: 'Mendels Laws of Inheritance (Dominance & Segregation)', ncertSection: '4.1', highYield: true, questionCount: 0 },
-          { id: 't5', topicName: 'Dihybrid Cross & Law of Independent Assortment', ncertSection: '4.3', highYield: true, questionCount: 1 }
+          { id: 't8', topicName: 'DNA Structure and Packaging', ncertSection: '5.1', highYield: true, questionCount: 0 },
+          { id: 't9', topicName: 'Identifying Genetic Material & Replication', ncertSection: '5.2', highYield: true, questionCount: 0 },
+          { id: 't10', topicName: 'Transcription and Processing', ncertSection: '5.3', highYield: true, questionCount: 0 },
+          { id: 't11', topicName: 'Genetic Code, Translation & Regulation', ncertSection: '5.4', highYield: true, questionCount: 1 },
+          { id: 't12', topicName: 'Human Genome Project (HGP) & DNA Fingerprinting', ncertSection: '5.5', highYield: true, questionCount: 0 }
         ]
       }
     ]
