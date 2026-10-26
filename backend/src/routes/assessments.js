@@ -13,6 +13,7 @@ const { generateWeeklyReport } = require('../services/smartReportService');
 const { getAllClass10Questions } = require('../services/class10PyqBank');
 const { generateLlmQuestion } = require('../services/llmQuestionEngine');
 const { EXAM_BLUEPRINTS, analyzeBankCoverage, generatePatternMatchedExam } = require('../services/examPatternAnalyzer');
+const { generatePersonalizedRemedialAssignment, verifyStudentFormula } = require('../services/remedialAssignmentService');
 
 // 1. GET /api/assessments - List all test assignments
 router.get('/', (req, res) => {
@@ -274,6 +275,19 @@ router.post('/:id/submit', async (req, res) => {
     };
     inMemoryStore.submissions.unshift(submissionRecord);
 
+    // 4. Generate Personalized Remedial Assignment based on exact questions missed & formulas
+    const personalizedAssignment = generatePersonalizedRemedialAssignment({
+      studentId,
+      studentName: studentName || studentUser?.full_name || 'Aryan Sharma',
+      rollNumber: studentUser?.roll_number || '11-S-24',
+      assessmentId: id,
+      assessmentTitle: assessment.title,
+      questionBreakdown
+    });
+
+    if (!inMemoryStore.remedialAssignments) inMemoryStore.remedialAssignments = [];
+    inMemoryStore.remedialAssignments.unshift(personalizedAssignment);
+
     res.json({
       success: true,
       message: 'Test submitted and evaluated with sub-second diagnostic classification.',
@@ -296,9 +310,68 @@ router.post('/:id/submit', async (req, res) => {
           recap: recap.map(m => m.subtopic),
           weak: weak.map(m => m.subtopic)
         },
-        weeklyReportId: updatedReport.id
+        weeklyReportId: updatedReport.id,
+        personalizedAssignment
       }
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4a. GET /api/assessments/remedial/:id - Fetch personalized remedial assignment
+router.get('/remedial/:id', (req, res) => {
+  try {
+    const { id } = req.params;
+    const assignments = inMemoryStore.remedialAssignments || [];
+    const found = assignments.find(a => a.assignmentId === id);
+    if (!found) {
+      // If not found by exact ID, return the latest or generate a default one
+      if (assignments.length > 0) return res.json({ success: true, assignment: assignments[0] });
+      return res.status(404).json({ success: false, error: 'Remedial assignment not found' });
+    }
+    res.json({ success: true, assignment: found });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4b. POST /api/assessments/remedial/verify-formula - Verify student formula input with LaTeX feedback
+router.post('/remedial/verify-formula', (req, res) => {
+  try {
+    const { subtopic = 'Spherical Mirrors', formulaInput = '' } = req.body;
+    const evaluation = verifyStudentFormula(subtopic, formulaInput);
+    res.json({ success: true, ...evaluation });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4c. POST /api/assessments/remedial/generate - Generate on-demand personalized remedial assignment
+router.post('/remedial/generate', (req, res) => {
+  try {
+    const {
+      studentId = 'b0000000-0000-0000-0000-000000000001',
+      studentName = 'Aryan Sharma',
+      rollNumber = '11-S-24',
+      assessmentId = 'asgn_10_sci_01',
+      assessmentTitle = 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      questionBreakdown = []
+    } = req.body;
+
+    const assignment = generatePersonalizedRemedialAssignment({
+      studentId,
+      studentName,
+      rollNumber,
+      assessmentId,
+      assessmentTitle,
+      questionBreakdown
+    });
+
+    if (!inMemoryStore.remedialAssignments) inMemoryStore.remedialAssignments = [];
+    inMemoryStore.remedialAssignments.unshift(assignment);
+
+    res.json({ success: true, assignment });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

@@ -1834,8 +1834,16 @@ function startStudentTimer() {
   const timerEl = document.getElementById('activeQuestionTimer');
   if (!timerEl) return;
 
+  if (state.studentTimer.intervalId) {
+    clearInterval(state.studentTimer.intervalId);
+  }
+
   state.studentTimer.intervalId = setInterval(() => {
     state.studentTimer.secondsElapsed += 1;
+    if (typeof examState !== 'undefined' && examState.timeSpentPerQuestion) {
+      const idx = examState.currentQuestionIndex || 0;
+      examState.timeSpentPerQuestion[idx] = (examState.timeSpentPerQuestion[idx] || 0) + 1;
+    }
     const mins = String(Math.floor(state.studentTimer.secondsElapsed / 60)).padStart(2, '0');
     const secs = String(state.studentTimer.secondsElapsed % 60).padStart(2, '0');
     timerEl.innerText = `${mins}:${secs}`;
@@ -2175,6 +2183,9 @@ const examState = {
   answers: Array(30).fill(null),
   reviewStatus: Array(30).fill(false),
   visitedStatus: Array(30).fill(false),
+  timeSpentPerQuestion: Array(30).fill(0),
+  hesitationPerQuestion: Array(30).fill(0),
+  firstInteractionPerQuestion: Array(30).fill(null),
   questions: []
 };
 
@@ -2360,11 +2371,11 @@ function setupNtaExamPaletteEngine() {
             studentId: 'b0000000-0000-0000-0000-000000000001',
             studentName: 'Aryan Sharma',
             answers: examState.questions.map((q, idx) => ({
-              questionId: q.id,
+              questionId: q.id || `q_${idx + 1}`,
               selectedOption: examState.answers[idx],
-              timeSpentSeconds: 45 + (idx * 5),
-              hesitationSeconds: 6 + idx,
-              hintsUsed: state.studentTimer.hintsRevealed
+              timeSpentSeconds: (examState.timeSpentPerQuestion && examState.timeSpentPerQuestion[idx]) > 0 ? examState.timeSpentPerQuestion[idx] : (45 + (idx * 5)),
+              hesitationSeconds: (examState.hesitationPerQuestion && examState.hesitationPerQuestion[idx]) > 0 ? examState.hesitationPerQuestion[idx] : (6 + idx),
+              hintsUsed: state.studentTimer.hintsRevealed || 0
             }))
           })
         });
@@ -2372,6 +2383,9 @@ function setupNtaExamPaletteEngine() {
         if (res.ok) {
           const data = await res.json();
           state.lastSubmittedAssessmentId = data.results?.assessmentId || asgnId;
+          if (data.results?.personalizedAssignment) {
+            state.activeRemedialAssignment = data.results.personalizedAssignment;
+          }
           displayDiagnosticResults(data.results);
         } else {
           throw new Error('Fallback to local calculation');
@@ -2474,6 +2488,10 @@ function renderActiveNtaQuestion() {
         item.style.background = 'rgba(56, 189, 248, 0.12)';
         state.studentTimer.selectedOption = opt.key;
         examState.answers[examState.currentQuestionIndex] = opt.key;
+        if (!examState.firstInteractionPerQuestion[examState.currentQuestionIndex]) {
+          examState.firstInteractionPerQuestion[examState.currentQuestionIndex] = true;
+          examState.hesitationPerQuestion[examState.currentQuestionIndex] = examState.timeSpentPerQuestion[examState.currentQuestionIndex] || 4;
+        }
         renderPaletteButtons();
         updatePaletteCounts();
       });
@@ -2941,6 +2959,305 @@ function closeDiagnosticResultsModal() {
     modal.style.display = 'none';
   }
 }
+
+// =============================================================================
+// PERSONALIZED REMEDIAL ASSIGNMENT ENGINE: FORMULA RECALL & TARGETED REMEDIATION
+// =============================================================================
+
+async function openPersonalizedRemedialModal() {
+  const modal = document.getElementById('modalPersonalizedRemedial');
+  if (!modal) return;
+
+  // If no active assignment exists yet, fetch or generate one from the backend
+  if (!state.activeRemedialAssignment) {
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/api/assessments/remedial/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId: 'b0000000-0000-0000-0000-000000000001',
+          studentName: 'Aryan Sharma',
+          rollNumber: '11-S-24',
+          assessmentId: state.lastSubmittedAssessmentId || 'asgn_10_sci_01',
+          assessmentTitle: state.activeAssessment?.title || 'Class 10 Science: Light & Electricity Assessment',
+          questionBreakdown: [
+            {
+              questionIndex: 1,
+              topic: 'Light – Reflection and Refraction',
+              subtopic: 'Spherical Mirrors',
+              selectedOption: 'C',
+              correctAnswer: 'B',
+              isCorrect: false,
+              timeSpentSeconds: 110,
+              benchmarkSeconds: 90,
+              mistakeClassification: { explanation: 'Sign convention error: took real image as positive' }
+            },
+            {
+              questionIndex: 3,
+              topic: 'Electricity',
+              subtopic: 'Joule Heating & Resistance',
+              selectedOption: 'B',
+              correctAnswer: 'A',
+              isCorrect: false,
+              timeSpentSeconds: 125,
+              benchmarkSeconds: 90,
+              mistakeClassification: { explanation: 'Forgot to convert 2 hours to seconds (7200s)' }
+            }
+          ]
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        state.activeRemedialAssignment = data.assignment;
+      }
+    } catch (err) {
+      console.warn('Failed to generate remedial assignment from server:', err);
+    }
+  }
+
+  if (state.activeRemedialAssignment) {
+    renderPersonalizedRemedialAssignment(state.activeRemedialAssignment);
+  }
+
+  modal.style.display = 'flex';
+  modal.classList.add('active');
+  initLucideIcons();
+}
+
+function closePersonalizedRemedialModal() {
+  const modal = document.getElementById('modalPersonalizedRemedial');
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none';
+  }
+}
+
+function renderPersonalizedRemedialAssignment(assignment) {
+  if (!assignment) return;
+
+  const titleEl = document.getElementById('remStudentTitle');
+  const badgeEl = document.getElementById('remBadgeStudent');
+  const summaryEl = document.getElementById('remSummaryText');
+  const formulaContainer = document.getElementById('remFormulaDrillsContainer');
+  const targetContainer = document.getElementById('remTargetQuestionsContainer');
+  const hostelEl = document.getElementById('remHostelDirective');
+  const parentEl = document.getElementById('remParentDirective');
+
+  if (titleEl) titleEl.innerText = assignment.title || 'Personalized Remedial Assignment';
+  if (badgeEl && assignment.student) {
+    badgeEl.innerText = `${assignment.student.name || 'Aryan Sharma'} • Roll: ${assignment.student.rollNumber || '11-S-24'}`;
+  }
+
+  if (summaryEl && assignment.performanceSummary) {
+    const s = assignment.performanceSummary;
+    summaryEl.innerHTML = `Diagnostic telemetry analyzed <strong>${s.totalQuestions || 3} questions</strong> (${s.correctCount || 1} correct, <strong>${s.wrongCount || 2} wrong</strong>). Identified <strong>${assignment.formulaDrills?.length || 1} core formula gap(s)</strong> and distractor traps. Complete the formula write-in drills and targeted questions below to achieve 100% mastery.`;
+  }
+
+  // 1. Render Part 1: Interactive "Write That Formula" Drills
+  if (formulaContainer && assignment.formulaDrills) {
+    formulaContainer.innerHTML = assignment.formulaDrills.map((drill, idx) => `
+      <div class="glass-card" style="padding: 14px 18px; border-left: 4px solid #a855f7; background: rgba(168, 85, 247, 0.04); border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+          <strong style="color: #c084fc; font-size: 0.9rem;">${drill.subtopic}: ${drill.formulaName}</strong>
+          <span class="pilot-tag" style="background: rgba(236, 72, 153, 0.15); color: #ec4899; font-size: 0.72rem;">Formula Write-In Recall</span>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0 0 10px 0;">${drill.prompt}</p>
+
+        <!-- Quick Symbol Palette -->
+        <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
+          <span style="font-size: 0.72rem; color: var(--text-muted); align-self: center;">Quick Insert:</span>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, '1/f')">1/f</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, '1/v')">1/v</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, '1/u')">1/u</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, ' = ')">=</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, ' + ')">+</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, 'n = c/v')">n = c/v</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, 'H = V^2/R * t')">H = V^2/R * t</button>
+          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, 'H = I^2 R t')">H = I^2 R t</button>
+        </div>
+
+        <!-- Formula Text Input & Check Button -->
+        <div style="display: flex; gap: 8px; align-items: stretch;">
+          <input type="text" id="formulaInput_${idx}" class="form-input" style="flex: 1; font-family: monospace; font-size: 0.88rem; padding: 8px 12px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(168, 85, 247, 0.4);" placeholder="Write formula here, e.g. 1/f = 1/v + 1/u or n = c/v">
+          <button type="button" class="btn-primary" onclick="handleVerifyFormula(${idx}, '${drill.subtopic}')" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.82rem; padding: 8px 16px; white-space: nowrap; cursor: pointer;">
+            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Verify Formula
+          </button>
+        </div>
+
+        <!-- Real-time Verification Feedback Box -->
+        <div id="formulaFeedback_${idx}" style="display: none; margin-top: 10px; padding: 10px 14px; border-radius: 6px; font-size: 0.82rem;"></div>
+      </div>
+    `).join('');
+  }
+
+  // 2. Render Part 2: Targeted Practice Questions
+  if (targetContainer && assignment.remedialQuestions) {
+    targetContainer.innerHTML = assignment.remedialQuestions.map((q, qIdx) => `
+      <div class="glass-card" id="remQCard_${qIdx}" style="padding: 14px 18px; border-left: 4px solid #10b981; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+          <strong style="color: #10b981; font-size: 0.88rem;">Targeted Question #${qIdx + 1}: ${q.subtopic || 'Concept Remediation'}</strong>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">${q.drillOrigin || 'Practice on that formula'}</span>
+        </div>
+        <div class="remedial-q-text" style="font-size: 0.88rem; line-height: 1.5; margin-bottom: 12px; color: var(--text-primary);">
+          ${renderLatexString(q.questionLatex)}
+        </div>
+        <div class="remedial-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          ${(q.options || []).map(opt => `
+            <button type="button" class="btn-secondary rem-opt-btn" onclick="handleRemedialOptionSelect('remQCard_${qIdx}', '${opt.key}', ${opt.isCorrect ? 'true' : 'false'}, '${encodeURIComponent(q.solutionLatex || '')}', '${encodeURIComponent(opt.trap || '')}')" style="text-align: left; padding: 8px 12px; font-size: 0.82rem; display: flex; align-items: center; gap: 8px; cursor: pointer; border-radius: 6px; transition: all 0.2s ease;">
+              <span style="font-weight: 700; color: var(--accent-cyan); font-size: 0.85rem;">${opt.key}.</span>
+              <span style="flex: 1;">${renderLatexString(opt.latex)}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div id="remQFeedback_remQCard_${qIdx}" style="display: none; margin-top: 10px; padding: 10px 14px; border-radius: 6px; font-size: 0.82rem;"></div>
+      </div>
+    `).join('');
+  }
+
+  // 3. Render Pedagogical Action Directives
+  if (hostelEl && assignment.dualActionPlan?.hostelPrepAction) {
+    const h = assignment.dualActionPlan.hostelPrepAction;
+    hostelEl.innerHTML = `${h.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">⏰ Slot: ${h.timeSlot || '7:30 PM Prep'} &bull; Priority: ${h.priority || 'HIGH'}</span>`;
+  }
+
+  if (parentEl && assignment.dualActionPlan?.parentHomeAction) {
+    const p = assignment.dualActionPlan.parentHomeAction;
+    parentEl.innerHTML = `${p.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">🎯 Focus Topic: ${p.focusConcept || 'Formulas & Sign Conventions'}</span>`;
+  }
+
+  // Render LaTeX math inside modal cards
+  const modalEl = document.getElementById('modalPersonalizedRemedial');
+  if (modalEl) {
+    renderMathInElement(modalEl);
+  }
+  initLucideIcons();
+}
+
+function insertFormulaSymbol(drillIdx, symbol) {
+  const input = document.getElementById(`formulaInput_${drillIdx}`);
+  if (!input) return;
+  input.value = (input.value ? input.value + ' ' : '') + symbol;
+  input.focus();
+}
+
+async function handleVerifyFormula(drillIdx, subtopic) {
+  const input = document.getElementById(`formulaInput_${drillIdx}`);
+  const feedbackEl = document.getElementById(`formulaFeedback_${drillIdx}`);
+  if (!input || !feedbackEl) return;
+
+  const val = input.value.trim();
+  if (!val) {
+    feedbackEl.style.display = 'block';
+    feedbackEl.style.background = 'rgba(239, 68, 68, 0.12)';
+    feedbackEl.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+    feedbackEl.style.color = '#ef4444';
+    feedbackEl.innerHTML = '⚠️ Please write the formula in the input box first before verifying.';
+    return;
+  }
+
+  feedbackEl.style.display = 'block';
+  feedbackEl.style.background = 'rgba(56, 189, 248, 0.1)';
+  feedbackEl.style.border = '1px solid rgba(56, 189, 248, 0.3)';
+  feedbackEl.style.color = 'var(--text-primary)';
+  feedbackEl.innerHTML = '<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;vertical-align:middle;"></i> Evaluating formula precision...';
+  initLucideIcons();
+
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/assessments/remedial/verify-formula`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subtopic, formulaInput: val })
+    });
+
+    const data = await res.json();
+    if (data.isValid) {
+      feedbackEl.style.background = 'rgba(16, 185, 129, 0.12)';
+      feedbackEl.style.border = '1px solid rgba(16, 185, 129, 0.35)';
+      feedbackEl.style.color = '#10b981';
+      feedbackEl.innerHTML = `
+        <div style="font-weight: 700; margin-bottom: 4px;">🎉 Flawless! Formula Verified Correctly.</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Model Formula: <code>${data.modelFormulaLatex || ''}</code></div>
+        <div style="font-size: 0.76rem; color: #34d399; background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 4px;">
+          ${data.signRules || 'Sign rules mastered.'}
+        </div>
+      `;
+    } else {
+      feedbackEl.style.background = 'rgba(245, 158, 11, 0.12)';
+      feedbackEl.style.border = '1px solid rgba(245, 158, 11, 0.35)';
+      feedbackEl.style.color = '#f59e0b';
+      feedbackEl.innerHTML = `
+        <div style="font-weight: 700; margin-bottom: 4px;">⚠️ Check Formula Precision</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">${data.message || 'Incorrect variable placement or missing reciprocal.'}</div>
+        <div style="font-size: 0.78rem; color: var(--accent-cyan); background: rgba(56, 189, 248, 0.08); padding: 6px 10px; border-radius: 4px;">
+          <strong>Target Structure:</strong> ${renderLatexString('$' + (data.modelFormulaLatex || '') + '$')}
+          <br><span style="font-size:0.74rem; color:var(--text-muted);">${data.signRules || ''}</span>
+        </div>
+      `;
+    }
+    renderMathInElement(feedbackEl);
+  } catch (err) {
+    feedbackEl.innerHTML = '✅ Formula recorded. Remember to verify Cartesian sign conventions.';
+  }
+}
+
+function handleRemedialOptionSelect(cardId, selectedKey, isCorrect, solutionEncoded, trapEncoded) {
+  const card = document.getElementById(cardId);
+  const feedbackEl = document.getElementById(`remQFeedback_${cardId}`);
+  if (!card || !feedbackEl) return;
+
+  const solutionLatex = decodeURIComponent(solutionEncoded || '');
+  const trapDesc = decodeURIComponent(trapEncoded || '');
+
+  // Reset option button styles inside this card
+  card.querySelectorAll('.rem-opt-btn').forEach(btn => {
+    btn.style.borderColor = 'var(--border-subtle)';
+    btn.style.background = 'rgba(255, 255, 255, 0.03)';
+  });
+
+  feedbackEl.style.display = 'block';
+
+  if (isCorrect) {
+    feedbackEl.style.background = 'rgba(16, 185, 129, 0.12)';
+    feedbackEl.style.border = '1px solid rgba(16, 185, 129, 0.35)';
+    feedbackEl.style.color = '#10b981';
+    feedbackEl.innerHTML = `
+      <div style="font-weight: 700; margin-bottom: 4px;">✅ Option ${selectedKey} is CORRECT!</div>
+      <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.5;">
+        <strong>Step-by-Step Derivation:</strong><br>
+        ${renderLatexString(solutionLatex)}
+      </div>
+    `;
+  } else {
+    feedbackEl.style.background = 'rgba(239, 68, 68, 0.12)';
+    feedbackEl.style.border = '1px solid rgba(239, 68, 68, 0.35)';
+    feedbackEl.style.color = '#ef4444';
+    feedbackEl.innerHTML = `
+      <div style="font-weight: 700; margin-bottom: 4px;">❌ Option ${selectedKey} is INCORRECT</div>
+      <div style="font-size: 0.8rem; color: #fca5a5; margin-bottom: 6px;">
+        <strong>Distractor Trap:</strong> ${trapDesc || 'Formula inversion or sign rule slip.'}
+      </div>
+      <div style="font-size: 0.8rem; color: var(--text-secondary); border-top: 1px solid rgba(239,68,68,0.2); padding-top: 6px;">
+        <strong>Correct Derivation:</strong><br>
+        ${renderLatexString(solutionLatex)}
+      </div>
+    `;
+  }
+
+  renderMathInElement(feedbackEl);
+}
+
+function printPersonalizedRemedialAssignment() {
+  window.print();
+}
+
+// Expose remedial functions globally to window for HTML buttons
+window.openPersonalizedRemedialModal = openPersonalizedRemedialModal;
+window.closePersonalizedRemedialModal = closePersonalizedRemedialModal;
+window.insertFormulaSymbol = insertFormulaSymbol;
+window.handleVerifyFormula = handleVerifyFormula;
+window.handleRemedialOptionSelect = handleRemedialOptionSelect;
+window.printPersonalizedRemedialAssignment = printPersonalizedRemedialAssignment;
 
 async function loadAndRenderSmartReport(studentId = 'b0000000-0000-0000-0000-000000000001') {
   try {

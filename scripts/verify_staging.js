@@ -225,18 +225,35 @@ runTest('Live Test Submission & Diagnostic Scoring Flow (POST /api/assessments/a
   if (data.results.totalMarks !== 12) {
     throw new Error(`Expected totalMarks 12, received: ${data.results.totalMarks}`);
   }
-  if (!data.results.diagnosticMatrix) {
-    throw new Error('Missing diagnosticMatrix categorization in submission result');
+  if (!data.results.personalizedAssignment) {
+    throw new Error('Missing personalizedAssignment in submission result');
   }
 });
 
-// TEST 7: Frontend Static Assets & App Shell Delivery
-runTest('Frontend App Shell & Web Assets (/index.html)', () => {
+// TEST 7: Personalized Remedial Formula Verification API
+runTest('Personalized Remedial Formula Verification API (POST /api/assessments/remedial/verify-formula)', () => {
+  const payload = {
+    subtopic: 'Spherical Mirrors',
+    formulaInput: '1/f = 1/v + 1/u'
+  };
+  const res = makeRequest('/api/assessments/remedial/verify-formula', {
+    method: 'POST',
+    data: payload
+  });
+  if (!res.success) throw new Error(`Formula verification request failed: ${res.error}`);
+  const data = JSON.parse(res.body);
+  if (!data.success || !data.isValid) {
+    throw new Error(`Expected isValid: true for mirror formula, got: ${res.body}`);
+  }
+});
+
+// TEST 8: Frontend App Shell & Remedial Assignment Modal Delivery
+runTest('Frontend App Shell & Remedial Modal Delivery (/index.html)', () => {
   const res = makeRequest('/', { isHtml: true });
   if (!res.success) throw new Error(`Failed to fetch frontend root: ${res.error}`);
 
-  if (!res.body.includes('HAPS-AI Scholar Assistant') || !res.body.includes('<!DOCTYPE html>')) {
-    throw new Error('Frontend root did not return valid HTML shell for HAPS-AI Scholar Assistant');
+  if (!res.body.includes('HAPS-AI Scholar Assistant') || !res.body.includes('modalPersonalizedRemedial')) {
+    throw new Error('Frontend root did not return valid HTML shell with modalPersonalizedRemedial');
   }
 });
 

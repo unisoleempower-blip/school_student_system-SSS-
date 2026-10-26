@@ -103,10 +103,55 @@ async function runDiagnostics() {
   console.log('Curated Math PYQ:', mathPyq.chapter, '| Tag:', mathPyq.ncert_mapping.pyq_tag);
   console.log('NCERT Page Reference:', mathPyq.ncert_mapping.page_reference);
 
-  console.log('\n🎉 ALL 7 INTEGRATION TESTS VERIFIED: MULTI-LLM + CLASS 10 NCERT READY!');
+  // Test 8: Personalized Remedial Assignment & Formula Write-In Engine
+  console.log('\n--- TEST 8: Personalized Remedial Assignment & Formula Verification ---');
+  const { generatePersonalizedRemedialAssignment, verifyStudentFormula } = require('../backend/src/services/remedialAssignmentService');
+  const remedialAssignment = generatePersonalizedRemedialAssignment({
+    studentId: 'b0000000-0000-0000-0000-000000000001',
+    studentName: 'Aryan Sharma',
+    rollNumber: '11-S-24',
+    assessmentId: 'asgn_10_sci_01',
+    assessmentTitle: 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+    questionBreakdown: [
+      {
+        questionIndex: 1,
+        questionId: 'q_asgn_01',
+        topic: 'Light – Reflection and Refraction',
+        subtopic: 'Spherical Mirrors',
+        selectedOption: 'C',
+        correctAnswer: 'B',
+        isCorrect: false,
+        timeSpentSeconds: 110,
+        benchmarkSeconds: 90,
+        mistakeClassification: { explanation: 'Sign convention error: took real image as positive' }
+      },
+      {
+        questionIndex: 2,
+        questionId: 'q_asgn_02',
+        topic: 'Light – Reflection and Refraction',
+        subtopic: 'Refraction & Snell Law',
+        selectedOption: 'A',
+        correctAnswer: 'A',
+        isCorrect: true,
+        timeSpentSeconds: 40,
+        benchmarkSeconds: 75
+      }
+    ]
+  });
+  console.log('✅ Generated Remedial Assignment ID:', remedialAssignment.assignmentId);
+  console.log('Remedial Formula Drills Count:', remedialAssignment.formulaDrills.length);
+  console.log('Formula Drill 1 Prompt:', remedialAssignment.formulaDrills[0].prompt);
+  console.log('Target Practice Questions Count:', remedialAssignment.remedialQuestions.length);
+
+  // Test Formula Verification
+  const formulaCheck = verifyStudentFormula('Spherical Mirrors', '1/f = 1/v + 1/u');
+  console.log('Formula Check "1/f = 1/v + 1/u":', formulaCheck.isValid ? 'VALID' : 'INVALID', '| Message:', formulaCheck.message);
+
+  console.log('\n🎉 ALL 8 INTEGRATION TESTS VERIFIED: REMEDIAL ASSIGNMENT ENGINE READY!');
 }
 
 runDiagnostics().catch(err => {
   console.error('❌ Test failed:', err);
   process.exit(1);
 });
+

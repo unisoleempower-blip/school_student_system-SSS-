@@ -1525,15 +1525,118 @@
 
       <div style="padding: 12px 18px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 8px;">
         <span style="font-size: 0.75rem; color: var(--text-muted);">Real-time stream recorded to Kafka Bus</span>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn-primary" id="btnOpenPersonalizedRemedial" onclick="openPersonalizedRemedialModal()" style="font-size: 0.82rem; padding: 7px 16px; background: linear-gradient(135deg, #8b5cf6, #ec4899); font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);">
+            <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Personalized Remedial Assignment
+          </button>
           <button class="btn-primary" id="btnGoToSmartReport" onclick="handleGoToSmartReport()" style="font-size: 0.82rem; padding: 7px 14px; background: linear-gradient(135deg, #3b82f6, #06b6d4); cursor: pointer;">
             <i data-lucide="clipboard-check" style="width: 14px; height: 14px;"></i> Smart Report
           </button>
           <button class="btn-primary" id="btnGoToClassDashboard" onclick="handleGoToClassDashboard()" style="font-size: 0.82rem; padding: 7px 14px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 700; cursor: pointer;">
-            <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i> View Class Progress Dashboard
+            <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i> Class Dashboard
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Personalized Remedial Assignment Modal (Formula Write-In & Targeted Remediation) -->
+  <div class="modal-overlay" id="modalPersonalizedRemedial" style="display: none; z-index: 10000;">
+    <div class="modal-card" style="max-width: 820px; max-height: 90vh; display: flex; flex-direction: column;">
+      
+      <!-- Modal Header -->
+      <div style="background: linear-gradient(135deg, #7c3aed, #db2777); padding: 16px 20px; color: #fff; display: flex; justify-content: space-between; align-items: center; border-radius: var(--radius-md) var(--radius-md) 0 0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 38px; height: 38px; background: rgba(255, 255, 255, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="sparkles" style="width: 22px; height: 22px;"></i>
+          </div>
+          <div>
+            <strong style="font-size: 1.1rem; display: block;" id="remStudentTitle">Personalized Remedial Assignment</strong>
+            <p style="font-size: 0.75rem; margin: 0; opacity: 0.9;">Tailored concept remediation & formula mastery engine based on test mistakes</p>
+          </div>
+        </div>
+        <button id="btnClosePersonalizedRemedial" onclick="closePersonalizedRemedialModal()" style="background: transparent; border: none; color: #fff; cursor: pointer; padding: 4px;">
+          <i data-lucide="x" style="width: 22px; height: 22px;"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div style="padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 18px;">
+        
+        <!-- Diagnostic Summary Banner -->
+        <div style="background: rgba(124, 58, 237, 0.08); border: 1px solid rgba(124, 58, 237, 0.25); border-radius: 8px; padding: 14px 18px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 8px;">
+            <span style="font-size: 0.85rem; font-weight: 700; color: #a855f7; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="target" style="width: 16px; height: 16px;"></i> Telemetry Diagnostic Assessment
+            </span>
+            <span class="pilot-tag" style="background: rgba(124, 58, 237, 0.2); color: #c084fc;" id="remBadgeStudent">Aryan Sharma • Class 11-S-24</span>
+          </div>
+          <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;" id="remSummaryText">
+            Identified misconceptions and distractor traps from your recent attempt. Complete the formula writing drills and targeted practice questions below to remediate your gaps.
+          </p>
+        </div>
+
+        <!-- Section 1: Interactive "Write That Formula" Drills -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="font-size: 0.95rem; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="edit-3" style="width: 16px; height: 16px; color: #ec4899;"></i>
+              Part 1: Formula Recall & Derivation Drills (Write That Formula)
+            </h4>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Self-paced interactive check</span>
+          </div>
+          <div id="remFormulaDrillsContainer" style="display: flex; flex-direction: column; gap: 14px;">
+            <!-- Formula drills injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Section 2: Targeted Practice Questions -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h4 style="font-size: 0.95rem; margin: 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+              <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #10b981;"></i>
+              Part 2: Targeted Remedial Questions (Questions on That Formula)
+            </h4>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Instant Socratic feedback</span>
+          </div>
+          <div id="remTargetQuestionsContainer" style="display: flex; flex-direction: column; gap: 14px;">
+            <!-- Targeted questions injected dynamically -->
+          </div>
+        </div>
+
+        <!-- Section 3: Dual Directives (Hostel Prep & Parent Support) -->
+        <div style="background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 14px 18px;">
+          <h4 style="font-size: 0.88rem; margin: 0 0 10px 0; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="compass" style="width: 16px; height: 16px; color: var(--accent-amber);"></i>
+            Pedagogical Action Directives
+          </h4>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="padding: 10px; background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3b82f6; border-radius: 4px;">
+              <strong style="font-size: 0.78rem; color: #3b82f6;">🏫 Residential Evening Prep (Hostel Faculty):</strong>
+              <div id="remHostelDirective" style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">Review formula on whiteboard with proctor.</div>
+            </div>
+            <div style="padding: 10px; background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 4px;">
+              <strong style="font-size: 0.78rem; color: #10b981;">🏡 Weekend Home Discussion (Parents):</strong>
+              <div id="remParentDirective" style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">Have student explain formula intuitively.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div style="padding: 12px 20px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 10px;">
+        <span style="font-size: 0.75rem; color: var(--text-muted);" id="remStatusFooter">Saved to Student Learning Record</span>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-secondary" onclick="printPersonalizedRemedialAssignment()" style="font-size: 0.82rem; padding: 7px 14px; cursor: pointer;">
+            <i data-lucide="printer" style="width: 14px; height: 14px;"></i> Print / Save Remedial Worksheet
+          </button>
+          <button class="btn-primary" onclick="closePersonalizedRemedialModal()" style="font-size: 0.82rem; padding: 7px 16px; background: linear-gradient(135deg, #7c3aed, #a855f7); font-weight: 700; cursor: pointer;">
+            <i data-lucide="check" style="width: 14px; height: 14px;"></i> Done & Return
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
