@@ -420,76 +420,115 @@ function renderMathInElement(element) {
 // -----------------------------------------------------------------------------
 // 1. ROLE & NAVIGATION SWITCHING
 // -----------------------------------------------------------------------------
-function setupRoleSwitching() {
-  const roleButtons = document.querySelectorAll('.role-btn');
+function switchPortalRole(role) {
+  state.activeRole = role;
   const sections = {
     teacher: document.getElementById('teacherView'),
     student: document.getElementById('studentView'),
     director: document.getElementById('directorView')
   };
 
+  Object.keys(sections).forEach(r => {
+    if (sections[r]) sections[r].classList.toggle('active', r === role);
+  });
+
+  document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-role') === role);
+  });
+
+  document.querySelectorAll('.drawer-nav-item[id^="drawerBtnRole"]').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `drawerBtnRole${role.charAt(0).toUpperCase() + role.slice(1)}`);
+  });
+
+  const headerTitle = document.getElementById('headerNavTitle');
+  if (headerTitle) {
+    if (role === 'student') headerTitle.innerText = 'Student Test Portal';
+    else if (role === 'director') headerTitle.innerText = 'School Overview & Directives';
+    else {
+      const activeProf = teacherBuilderState.activeTeacher;
+      const subjName = activeProf ? activeProf.subjectName : 'Physics';
+      headerTitle.innerText = `Teacher Portal • Department of ${subjName}`;
+    }
+  }
+
+  if (role === 'student') {
+    renderStudentQuestion();
+  }
+
+  closeSidebarDrawer();
+  initLucideIcons();
+}
+
+function switchTeacherTab(targetTabId) {
+  state.activeTeacherTab = targetTabId;
+
+  // Ensure Teacher view is visible
+  switchPortalRole('teacher');
+
+  // Update active state across sub-tab and drawer buttons
+  document.querySelectorAll('.sub-tab-btn, .drawer-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-tab') === targetTabId);
+  });
+
+  // Toggle tab content display
+  document.querySelectorAll('.teacher-tab-content').forEach(tab => {
+    const isTarget = tab.id === targetTabId;
+    tab.style.display = isTarget ? 'block' : 'none';
+    tab.classList.toggle('active', isTarget);
+  });
+
+  // Update header title
+  const headerTitle = document.getElementById('headerNavTitle');
+  const activeProf = teacherBuilderState.activeTeacher;
+  const subjName = activeProf ? activeProf.subjectName : 'Physics';
+  const tabTitles = {
+    'tabGenerator': `Create Tests & Quizzes • ${subjName}`,
+    'tabClassAnalytics': `Class Progress Dashboard • ${subjName}`,
+    'tabStudents': `Students & Smart Cards • ${subjName}`,
+    'tabSmartReports': `Weekly Smart Report • ${subjName}`,
+    'tabHandwritten': `Scan Paper Sheets • ${subjName}`
+  };
+  if (headerTitle && tabTitles[targetTabId]) {
+    headerTitle.innerText = tabTitles[targetTabId];
+  }
+
+  // Load tab-specific context
+  if (targetTabId === 'tabGenerator') {
+    if (!teacherBuilderState.currentTaxonomy) {
+      setupTeacherTestBuilder();
+    }
+  } else if (targetTabId === 'tabClassAnalytics') {
+    const selectAssessment = document.getElementById('selectAnalyticsAssessment');
+    const targetId = state.lastSubmittedAssessmentId || (selectAssessment && selectAssessment.value) || state.activeAssessment?.id;
+    loadClassAnalytics(targetId);
+  } else if (targetTabId === 'tabSmartReports') {
+    loadAndRenderSmartReport('b0000000-0000-0000-0000-000000000001');
+  } else if (targetTabId === 'tabStudents' && currentAnalyticsData) {
+    renderClassAnalytics(currentAnalyticsData);
+  }
+
+  closeSidebarDrawer();
+  initLucideIcons();
+}
+
+function setupRoleSwitching() {
+  const roleButtons = document.querySelectorAll('.role-btn');
   roleButtons.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetRole = btn.getAttribute('data-role');
-      state.activeRole = targetRole;
-
-      roleButtons.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      Object.keys(sections).forEach(role => {
-        if (sections[role]) {
-          sections[role].classList.toggle('active', role === targetRole);
-        }
-      });
-
-      if (targetRole === 'student') {
-        renderStudentQuestion();
-      }
-
-      initLucideIcons();
+      switchPortalRole(targetRole);
     });
   });
 }
 
 function setupTeacherSubTabs() {
-  const tabBtns = document.querySelectorAll('.sub-tab-btn');
-  const tabContents = document.querySelectorAll('.teacher-tab-content');
-
+  const tabBtns = document.querySelectorAll('.sub-tab-btn, .drawer-tab-btn');
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetTabId = btn.getAttribute('data-tab');
-      state.activeTeacherTab = targetTabId;
-
-      tabBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      tabContents.forEach(tab => {
-        const isTarget = tab.id === targetTabId;
-        tab.style.display = isTarget ? 'block' : 'none';
-        tab.classList.toggle('active', isTarget);
-      });
-
-      if (targetTabId === 'tabGenerator') {
-        if (!teacherBuilderState.currentTaxonomy) {
-          setupTeacherTestBuilder();
-        }
+      if (targetTabId) {
+        switchTeacherTab(targetTabId);
       }
-
-      if (targetTabId === 'tabClassAnalytics') {
-        const selectAssessment = document.getElementById('selectAnalyticsAssessment');
-        const targetId = state.lastSubmittedAssessmentId || (selectAssessment && selectAssessment.value) || state.activeAssessment?.id;
-        loadClassAnalytics(targetId);
-      }
-
-      if (targetTabId === 'tabSmartReports') {
-        loadAndRenderSmartReport('b0000000-0000-0000-0000-000000000001');
-      }
-
-      if (targetTabId === 'tabStudents' && currentAnalyticsData) {
-        renderClassAnalytics(currentAnalyticsData);
-      }
-
-      initLucideIcons();
     });
   });
 }
@@ -5611,6 +5650,9 @@ function initTeacherSession() {
   }
 
   applyTeacherProfile(stored, false);
+  if (!state.activeTeacherTab) {
+    switchTeacherTab('tabGenerator');
+  }
 }
 
 function openTeacherSignInModal() {
@@ -5700,6 +5742,21 @@ function applyTeacherProfile(prof, notify = false) {
   if (nameEl) nameEl.innerText = prof.name;
   if (badgeEl) badgeEl.innerHTML = `${prof.designation} &bull; Department of ${prof.subjectName}`;
   if (textEl) textEl.innerHTML = prof.streamText;
+
+  // Header chip & title update
+  const headerFacultyName = document.getElementById('headerFacultyName');
+  if (headerFacultyName) headerFacultyName.innerText = prof.name;
+  const headerTitle = document.getElementById('headerNavTitle');
+  if (headerTitle && (!state.activeRole || state.activeRole === 'teacher')) {
+    const tabTitles = {
+      'tabGenerator': `Create Tests & Quizzes • ${prof.subjectName}`,
+      'tabClassAnalytics': `Class Progress Dashboard • ${prof.subjectName}`,
+      'tabStudents': `Students & Smart Cards • ${prof.subjectName}`,
+      'tabSmartReports': `Weekly Smart Report • ${prof.subjectName}`,
+      'tabHandwritten': `Scan Paper Sheets • ${prof.subjectName}`
+    };
+    headerTitle.innerText = tabTitles[state.activeTeacherTab] || `Teacher Portal • Department of ${prof.subjectName}`;
+  }
 
   // Drawer faculty info update
   const drawerName = document.getElementById('drawerFacultyName');
@@ -5892,8 +5949,14 @@ function toggleSidebarDrawer() {
 function openSidebarDrawer() {
   const drawer = document.getElementById('sidebarNavDrawer');
   const backdrop = document.getElementById('sidebarNavBackdrop');
-  if (drawer) drawer.classList.add('open');
-  if (backdrop) backdrop.classList.add('open');
+  if (drawer) {
+    drawer.classList.add('open');
+    drawer.classList.add('active');
+  }
+  if (backdrop) {
+    backdrop.classList.add('open');
+    backdrop.classList.add('active');
+  }
   document.body.style.overflow = 'hidden';
   initLucideIcons();
 }
@@ -5901,15 +5964,21 @@ function openSidebarDrawer() {
 function closeSidebarDrawer() {
   const drawer = document.getElementById('sidebarNavDrawer');
   const backdrop = document.getElementById('sidebarNavBackdrop');
-  if (drawer) drawer.classList.remove('open');
-  if (backdrop) backdrop.classList.remove('open');
+  if (drawer) {
+    drawer.classList.remove('open');
+    drawer.classList.remove('active');
+  }
+  if (backdrop) {
+    backdrop.classList.remove('open');
+    backdrop.classList.remove('active');
+  }
   document.body.style.overflow = '';
 }
 
 function updateStreamSelectionUI(stream = 'JEE') {
   teacherBuilderState.targetStream = stream;
 
-  // 1. Update compact strip badge in main view
+  // 1. Update compact strip badge in main view if exists
   const badgeStream = document.getElementById('badgeActiveStreamName');
   if (badgeStream) {
     if (stream === 'BOARD') {
@@ -5990,6 +6059,12 @@ function handleTeacherSignOut() {
 
   teacherBuilderState.activeTeacher = null;
 
+  const headerFacultyName = document.getElementById('headerFacultyName');
+  if (headerFacultyName) headerFacultyName.innerText = 'Guest Faculty';
+
+  const headerTitle = document.getElementById('headerNavTitle');
+  if (headerTitle) headerTitle.innerText = 'Teacher Portal • Signed Out';
+
   const nameEl = document.getElementById('teacherFacultyName');
   const badgeEl = document.getElementById('teacherFacultyBadge');
   const textEl = document.getElementById('teacherFacultyStreamText');
@@ -6042,3 +6117,5 @@ window.closeSidebarDrawer = closeSidebarDrawer;
 window.updateStreamSelectionUI = updateStreamSelectionUI;
 window.selectDrawerStream = selectDrawerStream;
 window.handleTeacherSignOut = handleTeacherSignOut;
+window.switchTeacherTab = switchTeacherTab;
+window.switchPortalRole = switchPortalRole;

@@ -24,12 +24,162 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles.css?v=5.0">
+
+  <!-- Critical Header & Drawer Layout CSS to prevent any unstyled layout shift or flash -->
+  <style>
+    /* Critical Drawer Rules */
+    #sidebarNavBackdrop {
+      position: fixed !important;
+      inset: 0 !important;
+      background: rgba(4, 7, 16, 0.75) !important;
+      backdrop-filter: blur(4px) !important;
+      -webkit-backdrop-filter: blur(4px) !important;
+      z-index: 99998 !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.22s ease !important;
+    }
+    #sidebarNavBackdrop.open,
+    #sidebarNavBackdrop.active {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+    #sidebarNavDrawer {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      bottom: 0 !important;
+      width: 320px !important;
+      max-width: 86vw !important;
+      background: #0f172a !important;
+      border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+      z-index: 99999 !important;
+      transform: translateX(-100%) !important;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow-y: auto !important;
+      padding: 1.25rem 1rem !important;
+      box-shadow: 12px 0 35px rgba(0, 0, 0, 0.6) !important;
+      color: #f1f5f9 !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    }
+    #sidebarNavDrawer.open,
+    #sidebarNavDrawer.active {
+      transform: translateX(0) !important;
+    }
+    /* Minimalist Top Navbar */
+    .top-navbar {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 100 !important;
+      background: #111827 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+      padding: 0 1.25rem !important;
+      height: 54px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+    }
+    .header-left {
+      display: flex !important;
+      align-items: center !important;
+      gap: 14px !important;
+    }
+    .btn-hamburger {
+      background: transparent !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      color: #f1f5f9 !important;
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 6px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      padding: 0 !important;
+      transition: all 0.2s ease !important;
+    }
+    .btn-hamburger:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+    .header-main-title {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 1.05rem !important;
+      font-weight: 700 !important;
+      color: #f8fafc !important;
+      letter-spacing: -0.01em !important;
+      margin: 0 !important;
+    }
+    .header-right {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+    }
+    .header-faculty-chip {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 6px 12px !important;
+      background: rgba(255, 255, 255, 0.04) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      border-radius: 6px !important;
+      font-size: 0.8rem !important;
+      color: #e2e8f0 !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+    }
+    .header-faculty-chip:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+    .faculty-indicator-dot {
+      width: 8px !important;
+      height: 8px !important;
+      border-radius: 50% !important;
+      background: #10b981 !important;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
+    }
+    .header-faculty-tag {
+      font-size: 0.7rem !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      color: #38bdf8 !important;
+      background: rgba(56, 189, 248, 0.12) !important;
+      padding: 2px 6px !important;
+      border-radius: 4px !important;
+    }
+    /* Hide cluttered horizontal banners from main view */
+    #teacherSubTabs,
+    #teacherFacultyBanner,
+    #streamCompactStrip,
+    #roleSwitcherNav {
+      display: none !important;
+    }
+    /* Clean workspace card */
+    .teacher-scope-card {
+      background: #111827 !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-radius: 8px !important;
+      padding: 0.9rem 1.25rem !important;
+      margin-bottom: 1.25rem !important;
+      box-shadow: none !important;
+    }
+    .scope-label {
+      color: #94a3b8 !important;
+      font-size: 0.72rem !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.05em !important;
+    }
+  </style>
 </head>
 <body>
 
   <!-- ========================================================================
-       TOP-LEFT 3-LINE SIDEBAR NAVIGATION DRAWER (BOARD, JEE, NEET, SIGN OUT)
+       TOP-LEFT 3-LINE SIDEBAR NAVIGATION DRAWER (BOARD, JEE, NEET, ALL TABS, SIGN OUT)
        ======================================================================== -->
   <div class="sidebar-drawer-backdrop" id="sidebarNavBackdrop" onclick="closeSidebarDrawer()"></div>
   <aside class="sidebar-nav-drawer" id="sidebarNavDrawer" aria-label="Main Navigation Menu">
@@ -65,6 +215,36 @@
       </div>
     </div>
 
+    <!-- ALL WORKSPACE TABS (Moved into 3-line menu as requested) -->
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i data-lucide="layout-grid" style="width:13px; height:13px;"></i>
+        <span>Workspace Tabs</span>
+      </div>
+      <div class="drawer-nav-list">
+        <button type="button" class="drawer-tab-btn active" data-tab="tabGenerator" onclick="switchTeacherTab('tabGenerator')">
+          <i data-lucide="file-plus" style="width:16px; height:16px;"></i>
+          <span>Create Tests &amp; Quizzes</span>
+        </button>
+        <button type="button" class="drawer-tab-btn" data-tab="tabClassAnalytics" onclick="switchTeacherTab('tabClassAnalytics')">
+          <i data-lucide="bar-chart-3" style="width:16px; height:16px;"></i>
+          <span>Class Progress Dashboard</span>
+        </button>
+        <button type="button" class="drawer-tab-btn" data-tab="tabStudents" onclick="switchTeacherTab('tabStudents')">
+          <i data-lucide="users" style="width:16px; height:16px;"></i>
+          <span>Students &amp; Smart Cards</span>
+        </button>
+        <button type="button" class="drawer-tab-btn" data-tab="tabSmartReports" onclick="switchTeacherTab('tabSmartReports')">
+          <i data-lucide="clipboard-check" style="width:16px; height:16px;"></i>
+          <span>Weekly Smart Report</span>
+        </button>
+        <button type="button" class="drawer-tab-btn" data-tab="tabHandwritten" onclick="switchTeacherTab('tabHandwritten')">
+          <i data-lucide="scan" style="width:16px; height:16px;"></i>
+          <span>Scan Paper Sheets</span>
+        </button>
+      </div>
+    </div>
+
     <!-- CURRICULUM STREAMS: BOARD, JEE, NEET (as requested by user) -->
     <div class="drawer-section">
       <div class="drawer-section-title">
@@ -75,11 +255,11 @@
         <!-- Board -->
         <button type="button" class="drawer-stream-btn" id="drawerStreamBoard" onclick="selectDrawerStream('BOARD')">
           <div class="drawer-stream-icon" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24;">
-            <i data-lucide="book-open" style="width:16px; height:16px;"></i>
+            <i data-lucide="book-open" style="width:15px; height:15px;"></i>
           </div>
           <div class="drawer-stream-text">
             <strong>Board (CBSE &amp; HP Board)</strong>
-            <span>Classes 10, 11 &amp; 12 &bull; Step Rubrics &amp; Derivations</span>
+            <span>Classes 10, 11 &amp; 12 &bull; Step Rubrics</span>
           </div>
           <span class="drawer-stream-check" id="checkStreamBoard"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
         </button>
@@ -87,11 +267,11 @@
         <!-- JEE -->
         <button type="button" class="drawer-stream-btn active" id="drawerStreamJee" onclick="selectDrawerStream('JEE')">
           <div class="drawer-stream-icon" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8;">
-            <i data-lucide="compass" style="width:16px; height:16px;"></i>
+            <i data-lucide="compass" style="width:15px; height:15px;"></i>
           </div>
           <div class="drawer-stream-text">
             <strong>JEE (Main &amp; Advanced)</strong>
-            <span>Classes 11 &amp; 12 Non-Med &bull; Analytical Speed Drills</span>
+            <span>Classes 11 &amp; 12 Non-Med &bull; Speed Drills</span>
           </div>
           <span class="drawer-stream-check" id="checkStreamJee"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
         </button>
@@ -99,18 +279,40 @@
         <!-- NEET -->
         <button type="button" class="drawer-stream-btn" id="drawerStreamNeet" onclick="selectDrawerStream('NEET')">
           <div class="drawer-stream-icon" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">
-            <i data-lucide="dna" style="width:16px; height:16px;"></i>
+            <i data-lucide="dna" style="width:15px; height:15px;"></i>
           </div>
           <div class="drawer-stream-text">
             <strong>NEET UG</strong>
-            <span>Classes 11 &amp; 12 Medical &bull; High-Velocity Recall</span>
+            <span>Classes 11 &amp; 12 Medical &bull; Rapid Recall</span>
           </div>
           <span class="drawer-stream-check" id="checkStreamNeet"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
         </button>
       </div>
     </div>
 
-    <!-- CLASS & ROSTER ACTIONS -->
+    <!-- PORTAL MODES (Teacher / Student / Director) -->
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i data-lucide="monitor" style="width:13px; height:13px;"></i>
+        <span>Portal Views</span>
+      </div>
+      <div class="drawer-nav-list">
+        <button type="button" class="drawer-nav-item active" id="drawerBtnRoleTeacher" onclick="switchPortalRole('teacher')">
+          <i data-lucide="layout-dashboard" style="width:15px; height:15px;"></i>
+          <span>Teacher Dashboard</span>
+        </button>
+        <button type="button" class="drawer-nav-item" id="drawerBtnRoleStudent" onclick="switchPortalRole('student')">
+          <i data-lucide="edit-3" style="width:15px; height:15px;"></i>
+          <span>Student Test Portal</span>
+        </button>
+        <button type="button" class="drawer-nav-item" id="drawerBtnRoleDirector" onclick="switchPortalRole('director')">
+          <i data-lucide="line-chart" style="width:15px; height:15px;"></i>
+          <span>School Overview</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CLASS & STUDENT ACTIONS -->
     <div class="drawer-section">
       <div class="drawer-section-title">
         <i data-lucide="sliders" style="width:13px; height:13px;"></i>
@@ -138,43 +340,30 @@
   </aside>
 
   <!-- ========================================================================
-       TOP NAVIGATION BAR
+       TOP NAVIGATION BAR (CLEAN MINIMALIST DESIGN MATCHING USER REFERENCE)
        ======================================================================== -->
   <header class="top-navbar" id="mainHeader">
-    <div class="brand-section">
-      <button type="button" class="btn-hamburger" id="btnNavHamburger" aria-label="Open Navigation Menu" title="Curriculum Tracks &amp; Faculty Menu" onclick="toggleSidebarDrawer()">
-        <i data-lucide="menu" style="width:20px; height:20px;"></i>
+    <div class="header-left">
+      <button type="button" class="btn-hamburger" id="btnNavHamburger" aria-label="Open Navigation Menu" title="Menu" onclick="toggleSidebarDrawer()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
       </button>
-      <div class="brand-logo-badge" id="schoolLogo">HAPS</div>
-      <div class="brand-info">
-        <h1>Teacher Portal</h1>
-        <p>Him Academy Public School &bull; Hamirpur (HP)</p>
+      <div class="header-title-box">
+        <h1 class="header-main-title" id="headerNavTitle">Teacher Portal &bull; Department of Physics</h1>
       </div>
-      <span class="pilot-tag" id="pilotBadge" style="background:rgba(59, 130, 246, 0.15); color:var(--accent-blue); font-weight:700;">Faculty Edition</span>
     </div>
 
-    <!-- Role Switcher: Teacher vs Student vs School Overview -->
-    <nav class="role-switcher-container" aria-label="Portal Role Navigation" id="roleSwitcherNav">
-      <button class="role-btn active" id="btnRoleTeacher" data-role="teacher">
-        <i data-lucide="layout-dashboard" style="width:16px; height:16px;"></i>
-        Teacher Dashboard
-      </button>
-      <button class="role-btn" id="btnRoleStudent" data-role="student">
-        <i data-lucide="edit-3" style="width:16px; height:16px;"></i>
-        Student Test Portal
-      </button>
-      <button class="role-btn" id="btnRoleDirector" data-role="director">
-        <i data-lucide="line-chart" style="width:16px; height:16px;"></i>
-        School Overview
-      </button>
-    </nav>
-
-    <div class="nav-controls">
-      <div class="telemetry-ticker" id="kafkaStatusTicker" style="font-size:0.75rem;">
-        <span style="color:#10b981;">●</span> Active Session: 2026-27
+    <div class="header-right">
+      <div class="header-faculty-chip" onclick="openTeacherSignInModal()" title="Faculty: Dr. Vikram Sharma (Physics). Click to switch.">
+        <span class="faculty-indicator-dot"></span>
+        <span id="headerFacultyName">Dr. Vikram Sharma</span>
+        <span class="header-faculty-tag">Physics</span>
       </div>
       <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Light/Dark Theme">
-        <i data-lucide="sun" id="themeIcon" style="width:18px; height:18px;"></i>
+        <i data-lucide="sun" id="themeIcon" style="width:17px; height:17px;"></i>
       </button>
     </div>
   </header>
@@ -188,57 +377,30 @@
          1. TEACHER CO-PILOT VIEW
          ====================================================================== -->
     <section class="view-section active" id="teacherView">
-      <div class="sub-tabs-bar" id="teacherSubTabs">
-        <button class="sub-tab-btn active" id="tabBtnClassAnalytics" data-tab="tabClassAnalytics">
-          <i data-lucide="bar-chart-3" style="width:16px; height:16px;"></i>
-          Class Progress Dashboard
-        </button>
-        <button class="sub-tab-btn" id="tabBtnStudents" data-tab="tabStudents">
-          <i data-lucide="users" style="width:16px; height:16px;"></i>
-          Students & Smart Cards
-        </button>
-        <button class="sub-tab-btn" id="tabBtnSmartReports" data-tab="tabSmartReports">
-          <i data-lucide="clipboard-check" style="width:16px; height:16px;"></i>
-          Weekly Smart Report
-        </button>
-        <button class="sub-tab-btn" id="tabBtnGenerator" data-tab="tabGenerator">
-          <i data-lucide="file-plus" style="width:16px; height:16px;"></i>
-          Create Tests & Quizzes
-        </button>
-        <button class="sub-tab-btn" id="tabBtnHandwritten" data-tab="tabHandwritten">
-          <i data-lucide="scan" style="width:16px; height:16px;"></i>
-          Scan Paper Sheets
-        </button>
+      
+      <!-- Hidden legacy tab buttons kept for DOM selector compatibility -->
+      <div class="sub-tabs-bar" id="teacherSubTabs" style="display:none !important;">
+        <button class="sub-tab-btn" id="tabBtnClassAnalytics" data-tab="tabClassAnalytics">Class Progress Dashboard</button>
+        <button class="sub-tab-btn" id="tabBtnStudents" data-tab="tabStudents">Students &amp; Smart Cards</button>
+        <button class="sub-tab-btn" id="tabBtnSmartReports" data-tab="tabSmartReports">Weekly Smart Report</button>
+        <button class="sub-tab-btn active" id="tabBtnGenerator" data-tab="tabGenerator">Create Tests &amp; Quizzes</button>
+        <button class="sub-tab-btn" id="tabBtnHandwritten" data-tab="tabHandwritten">Scan Paper Sheets</button>
       </div>
 
-      <!-- TEACHER SUBJECT FACULTY IDENTITY & SIGN-IN (STRICT SUBJECT SCOPING) -->
-      <div class="teacher-faculty-banner" id="teacherFacultyBanner">
+      <!-- Hidden legacy faculty banner kept for DOM selector compatibility -->
+      <div class="teacher-faculty-banner" id="teacherFacultyBanner" style="display:none !important;">
         <div class="faculty-profile-info">
-          <div class="faculty-avatar" id="teacherFacultyAvatar">
-            <i data-lucide="user-check" style="width:20px; height:20px; color:var(--accent-blue);"></i>
-          </div>
+          <div class="faculty-avatar" id="teacherFacultyAvatar"></div>
           <div>
-            <div class="faculty-name-row">
-              <strong id="teacherFacultyName">Dr. Vikram Sharma</strong>
-              <span class="faculty-badge" id="teacherFacultyBadge">Senior Physics Faculty &bull; Department of Physics</span>
-            </div>
-            <span class="faculty-subtext" id="teacherFacultyStreamText">Assigned Subject: Physics &bull; Classes 11 &amp; 12 (JEE Main/Adv, NEET &amp; CBSE Boards)</span>
+            <strong id="teacherFacultyName">Dr. Vikram Sharma</strong>
+            <span class="faculty-badge" id="teacherFacultyBadge">Senior Physics Faculty &bull; Department of Physics</span>
+            <span class="faculty-subtext" id="teacherFacultyStreamText">Assigned Subject: Physics &bull; Classes 11 &amp; 12</span>
           </div>
-        </div>
-        <div class="faculty-switcher-pills" style="gap: 8px;">
-          <button type="button" class="btn-faculty-pill active" id="btnOpenTeacherSignInModal" onclick="openTeacherSignInModal()" title="Switch teacher profile or departmental authentication" style="display:flex; align-items:center; gap:6px;">
-            <i data-lucide="users" style="width:14px;height:14px;"></i>
-            <span>Switch Faculty</span>
-          </button>
-          <button type="button" class="btn-faculty-pill" id="btnOpenCreateClassModalTop" onclick="openCreateClassModal()" title="Create a new class section" style="display:flex; align-items:center; gap:6px;">
-            <i data-lucide="folder-plus" style="width:14px;height:14px;"></i>
-            <span>New Class</span>
-          </button>
         </div>
       </div>
 
-      <!-- TAB: CREATE TEST & QUIZZES (TEACHER SCOPED) -->
-      <div class="teacher-tab-content" id="tabGenerator" style="display:none;">
+      <!-- TAB: CREATE TEST & QUIZZES (TEACHER SCOPED - DEFAULT ACTIVE TAB) -->
+      <div class="teacher-tab-content active" id="tabGenerator">
         
         <!-- COMPACT TRACK STATUS STRIP (REPLACES MESSY HORIZONTAL CARDS) -->
         <div class="stream-compact-strip" id="streamCompactStrip">
@@ -759,7 +921,7 @@
       </div>
 
       <!-- TAB 1: CLASS DASHBOARD & PROGRESS CHARTS -->
-      <div class="teacher-tab-content active" id="tabClassAnalytics">
+      <div class="teacher-tab-content" id="tabClassAnalytics" style="display:none;">
         <!-- Header Banner with Assessment Selector -->
         <div class="glass-card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, rgba(30, 58, 138, 0.3), rgba(15, 23, 42, 0.6)); border: 1px solid rgba(59, 130, 246, 0.4);">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
