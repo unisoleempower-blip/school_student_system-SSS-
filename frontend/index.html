@@ -24,7 +24,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/styles.css?v=7.0">
+  <link rel="stylesheet" href="css/styles.css?v=8.0">
 
   <!-- Critical Header & Drawer Layout CSS to prevent any unstyled layout shift or click-blocking -->
   <style>
@@ -263,12 +263,20 @@
 
       // 4. Header title
       var headerTitle = document.getElementById('headerNavTitle');
+      var curSubject = 'Physics';
+      try {
+        var raw = localStorage.getItem('haps_active_teacher');
+        if (raw) {
+          var t = JSON.parse(raw);
+          if (t && (t.subjectName || t.subject)) curSubject = t.subjectName || t.subject;
+        }
+      } catch (e) {}
       var titles = {
-        'tabGenerator': 'Create Tests & Quizzes • Department of Physics',
-        'tabClassAnalytics': 'Class Progress Dashboard • Department of Physics',
-        'tabStudents': 'Students & Smart Cards • Department of Physics',
-        'tabSmartReports': 'Weekly Smart Report • Department of Physics',
-        'tabHandwritten': 'Scan Paper Sheets • Department of Physics'
+        'tabGenerator': 'Create Tests & Quizzes • Department of ' + curSubject,
+        'tabClassAnalytics': 'Class Progress Dashboard • Department of ' + curSubject,
+        'tabStudents': 'Students & Smart Cards • Department of ' + curSubject,
+        'tabSmartReports': 'Weekly Smart Report • Department of ' + curSubject,
+        'tabHandwritten': 'Scan Paper Sheets • Department of ' + curSubject
       };
       if (headerTitle && titles[targetTabId]) {
         headerTitle.innerText = titles[targetTabId];
@@ -317,6 +325,7 @@
         <div style="flex:1; min-width:0;">
           <strong id="drawerFacultyName" style="font-size:0.88rem; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Dr. Vikram Sharma</strong>
           <span id="drawerFacultyRole" style="font-size:0.72rem; color:var(--text-secondary); display:block;">Senior Physics Faculty</span>
+          <span id="drawerFacultyPhone" style="font-size:0.7rem; color:var(--text-muted); display:block; margin-top:2px;">Phone: 98160 10001</span>
         </div>
       </div>
       <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.06); font-size:0.74rem;">
@@ -472,7 +481,7 @@
       <div class="header-faculty-chip" onclick="openTeacherSignInModal()" title="Faculty: Dr. Vikram Sharma (Physics). Click to switch.">
         <span class="faculty-indicator-dot"></span>
         <span id="headerFacultyName">Dr. Vikram Sharma</span>
-        <span class="header-faculty-tag">Physics</span>
+        <span class="header-faculty-tag" id="headerFacultyTag">Physics</span>
       </div>
       <button class="btn-icon" id="themeToggleBtn" title="Toggle Theme" aria-label="Toggle Light/Dark Theme">
         <i data-lucide="sun" id="themeIcon" style="width:17px; height:17px;"></i>
@@ -2062,99 +2071,98 @@
 
   <!-- Modal: Teacher Sign-In & Department Authentication -->
   <div class="modal-overlay" id="modalTeacherSignIn" style="display: none; z-index: 10000;">
-    <div class="modal-card" style="max-width: 580px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+    <div class="modal-card" style="max-width: 540px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
       <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb); padding: 16px 20px; color:#fff; display:flex; justify-content:space-between; align-items:center; border-radius: var(--radius-md) var(--radius-md) 0 0;">
         <div style="display:flex; align-items:center; gap:10px;">
           <i data-lucide="shield-check" style="width:22px; height:22px;"></i>
           <div>
-            <strong style="font-size:1.1rem; display:block;">Faculty Authentication &amp; Department Sign-In</strong>
-            <p style="font-size:0.75rem; margin:0; opacity:0.9;">Him Academy Public School &bull; Academic Portal</p>
+            <strong style="font-size:1.05rem; display:block;">Faculty Sign-In &amp; Department Portal</strong>
+            <p style="font-size:0.74rem; margin:0; opacity:0.9;">Him Academy Public School &bull; Academic Portal</p>
           </div>
         </div>
-        <button type="button" onclick="closeTeacherSignInModal()" style="background:transparent; border:none; color:#fff; cursor:pointer; padding:4px;">
+        <button type="button" onclick="closeTeacherSignInModal()" style="background:transparent; border:none; color:#fff; cursor:pointer; padding:4px;" aria-label="Close">
           <i data-lucide="x" style="width:20px; height:20px;"></i>
         </button>
       </div>
 
       <div style="padding: 20px; background: var(--bg-card); display:flex; flex-direction:column; gap:16px;">
-        <div>
-          <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:8px;">
-            Departmental Faculty Profiles (1-Click Switch)
-          </label>
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <!-- Physics Faculty -->
-            <button type="button" class="btn-faculty-card" onclick="authenticateTeacher('PHYSICS', 'Dr. Vikram Sharma', 'vikram.phy@haps.edu.in')" style="padding:12px; background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.3); border-radius:8px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                <i data-lucide="zap" style="width:16px; height:16px; color:#3b82f6;"></i>
-                <strong style="font-size:0.88rem; color:var(--text-primary);">Dr. Vikram Sharma</strong>
-              </div>
-              <span style="font-size:0.74rem; color:var(--text-muted); display:block;">Senior Physics Faculty &bull; HOD</span>
-              <span style="font-size:0.7rem; color:#3b82f6; font-weight:700; margin-top:4px; display:inline-block;">Subjects: Physics Only</span>
-            </button>
+        <p style="font-size:0.8rem; color:var(--text-secondary); margin:0; line-height:1.4;">
+          Enter your mobile number, full name, and subject expertise. The portal will automatically load your department's NCERT curriculum, authentic question bank, PYQs, and enrolled students.
+        </p>
 
-            <!-- Chemistry Faculty -->
-            <button type="button" class="btn-faculty-card" onclick="authenticateTeacher('CHEMISTRY', 'Prof. Sunita Rao', 'sunita.chem@haps.edu.in')" style="padding:12px; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3); border-radius:8px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                <i data-lucide="flask-conical" style="width:16px; height:16px; color:#10b981;"></i>
-                <strong style="font-size:0.88rem; color:var(--text-primary);">Prof. Sunita Rao</strong>
-              </div>
-              <span style="font-size:0.74rem; color:var(--text-muted); display:block;">Senior Chemistry Faculty</span>
-              <span style="font-size:0.7rem; color:#10b981; font-weight:700; margin-top:4px; display:inline-block;">Subjects: Chemistry Only</span>
-            </button>
+        <!-- Main Login Form -->
+        <form id="formTeacherLogin" onsubmit="submitTeacherLoginForm(event)" style="display:flex; flex-direction:column; gap:12px;">
+          <div>
+            <label for="inputTeacherPhone" style="font-size:0.78rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">
+              Mobile Number *
+            </label>
+            <input type="tel" id="inputTeacherPhone" name="phone" placeholder="Enter 10-digit mobile number (e.g., 98160 10003)" required pattern="[0-9]{10}" maxlength="15" oninput="handlePhoneInputLookup(this.value)" class="form-control" style="width:100%; padding:9px 12px; font-size:0.88rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
+            <div id="phoneLookupStatus" style="font-size:0.72rem; color:var(--accent-blue); margin-top:3px; display:none;"></div>
+          </div>
 
-            <!-- Biology Faculty -->
-            <button type="button" class="btn-faculty-card" onclick="authenticateTeacher('BIOLOGY', 'Dr. Ananya Mukherjee', 'ananya.bio@haps.edu.in')" style="padding:12px; background:rgba(236, 72, 153, 0.08); border:1px solid rgba(236, 72, 153, 0.3); border-radius:8px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                <i data-lucide="dna" style="width:16px; height:16px; color:#ec4899;"></i>
-                <strong style="font-size:0.88rem; color:var(--text-primary);">Dr. Ananya Mukherjee</strong>
-              </div>
-              <span style="font-size:0.74rem; color:var(--text-muted); display:block;">Senior Biology Faculty &bull; NEET</span>
-              <span style="font-size:0.7rem; color:#ec4899; font-weight:700; margin-top:4px; display:inline-block;">Subjects: Biology Only</span>
-            </button>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+            <div>
+              <label for="inputTeacherFullName" style="font-size:0.78rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">
+                Faculty Full Name *
+              </label>
+              <input type="text" id="inputTeacherFullName" name="name" placeholder="e.g. Dr. Ananya Mukherjee" required class="form-control" style="width:100%; padding:9px 12px; font-size:0.88rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
+            </div>
 
-            <!-- Mathematics Faculty -->
-            <button type="button" class="btn-faculty-card" onclick="authenticateTeacher('MATHEMATICS', 'Er. Rajesh Gupta', 'rajesh.math@haps.edu.in')" style="padding:12px; background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.3); border-radius:8px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
-              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-                <i data-lucide="calculator" style="width:16px; height:16px; color:#f59e0b;"></i>
-                <strong style="font-size:0.88rem; color:var(--text-primary);">Er. Rajesh Gupta</strong>
-              </div>
-              <span style="font-size:0.74rem; color:var(--text-muted); display:block;">Senior Mathematics Faculty</span>
-              <span style="font-size:0.7rem; color:#f59e0b; font-weight:700; margin-top:4px; display:inline-block;">Subjects: Mathematics Only</span>
+            <div>
+              <label for="selectTeacherExpertise" style="font-size:0.78rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:4px;">
+                Subject Expertise *
+              </label>
+              <select id="selectTeacherExpertise" name="subjectKey" required class="form-select" style="width:100%; padding:9px 12px; font-size:0.88rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
+                <option value="BIOLOGY" selected>Biology (NEET UG &amp; Boards)</option>
+                <option value="PHYSICS">Physics (JEE &amp; Boards)</option>
+                <option value="CHEMISTRY">Chemistry (NEET / JEE &amp; Boards)</option>
+                <option value="MATHEMATICS">Mathematics (JEE &amp; Boards)</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+            <button type="button" class="btn-secondary" onclick="closeTeacherSignInModal()" style="font-size:0.84rem; padding:8px 16px;">Cancel</button>
+            <button type="submit" id="btnSubmitTeacherLogin" class="btn-primary" style="font-size:0.84rem; padding:8px 20px; background:linear-gradient(135deg, #2563eb, #1d4ed8); font-weight:700;">
+              <i data-lucide="log-in" style="width:15px; height:15px;"></i> Sign In &amp; Enter Portal
             </button>
           </div>
-        </div>
+        </form>
 
-        <div style="border-top:1px solid var(--border-subtle); padding-top:14px;">
-          <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:8px;">
-            Or Custom Faculty Login
+        <!-- Quick 1-Click Select Faculty -->
+        <div style="border-top:1px solid var(--border-subtle); padding-top:12px;">
+          <label style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:8px;">
+            Or Quick-Select Registered Institutional Faculty:
           </label>
-          <form id="formCustomTeacherLogin" onsubmit="submitCustomTeacherLogin(event)" style="display:flex; flex-direction:column; gap:10px;">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-              <div>
-                <label style="font-size:0.78rem; color:var(--text-secondary); display:block; margin-bottom:3px;">Teacher Name</label>
-                <input type="text" id="inputCustomTeacherName" placeholder="e.g. Dr. K. S. Thakur" class="form-control" style="width:100%; padding:7px 10px; font-size:0.84rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
-              </div>
-              <div>
-                <label style="font-size:0.78rem; color:var(--text-secondary); display:block; margin-bottom:3px;">Department Subject *</label>
-                <select id="selectCustomTeacherSubject" class="form-select" required style="width:100%; padding:7px 10px; font-size:0.84rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
-                  <option value="PHYSICS" selected>Physics</option>
-                  <option value="CHEMISTRY">Chemistry</option>
-                  <option value="BIOLOGY">Biology</option>
-                  <option value="MATHEMATICS">Mathematics</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label style="font-size:0.78rem; color:var(--text-secondary); display:block; margin-bottom:3px;">Institutional Email</label>
-              <input type="email" id="inputCustomTeacherEmail" placeholder="faculty@haps.edu.in" class="form-control" style="width:100%; padding:7px 10px; font-size:0.84rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
-            </div>
-            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
-              <button type="button" class="btn-secondary" onclick="closeTeacherSignInModal()" style="font-size:0.82rem; padding:6px 14px;">Cancel</button>
-              <button type="submit" class="btn-primary" style="font-size:0.82rem; padding:6px 16px; background:linear-gradient(135deg, #2563eb, #1d4ed8); font-weight:700;">
-                <i data-lucide="log-in" style="width:14px; height:14px;"></i> Sign In as Faculty
-              </button>
-            </div>
-          </form>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <!-- Biology -->
+            <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('BIOLOGY', 'Dr. Ananya Mukherjee', '9816010003')" style="padding:10px; background:rgba(236, 72, 153, 0.08); border:1px solid rgba(236, 72, 153, 0.3); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Dr. Ananya Mukherjee</strong>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Biology &bull; NEET UG</span>
+              <span style="font-size:0.7rem; color:#ec4899; font-weight:600;">98160 10003</span>
+            </button>
+
+            <!-- Physics -->
+            <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('PHYSICS', 'Dr. Vikram Sharma', '9816010001')" style="padding:10px; background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.3); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Dr. Vikram Sharma</strong>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Physics &bull; JEE / HOD</span>
+              <span style="font-size:0.7rem; color:#3b82f6; font-weight:600;">98160 10001</span>
+            </button>
+
+            <!-- Chemistry -->
+            <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('CHEMISTRY', 'Prof. Sunita Rao', '9816010002')" style="padding:10px; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Prof. Sunita Rao</strong>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Chemistry &bull; NEET / JEE</span>
+              <span style="font-size:0.7rem; color:#10b981; font-weight:600;">98160 10002</span>
+            </button>
+
+            <!-- Mathematics -->
+            <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('MATHEMATICS', 'Er. Rajesh Gupta', '9816010004')" style="padding:10px; background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.3); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Er. Rajesh Gupta</strong>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Mathematics &bull; JEE Main/Adv</span>
+              <span style="font-size:0.7rem; color:#f59e0b; font-weight:600;">98160 10004</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -2282,6 +2290,6 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="js/app.js?v=7.0"></script>
+  <script src="js/app.js?v=8.0"></script>
 </body>
 </html>

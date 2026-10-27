@@ -41,7 +41,10 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
     // Filter chapters by grade if specified
     let chapters = taxonomy.chapters;
     if (grade && grade !== 'ALL') {
-      chapters = chapters.filter(ch => String(ch.grade) === String(grade));
+      const byGrade = chapters.filter(ch => String(ch.grade) === String(grade));
+      if (byGrade.length > 0) {
+        chapters = byGrade;
+      }
     }
 
     // Gather questions strictly for this subject from inMemoryStore
@@ -163,13 +166,33 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
 // 3. GET /api/curriculum/questions - Fetch questions under a specific chapter or topic
 router.get('/questions', (req, res) => {
   try {
-    const { subject, chapter, topic, grade } = req.query;
+    const { subject, chapter, topic, grade, subjectKey, teacherSubjectKey } = req.query;
+    const sKeyUpper = (subjectKey || teacherSubjectKey || subject || '').toUpperCase().trim();
 
     const banks = inMemoryStore.subjectBanks || {};
-    const allQuestions = [...(inMemoryStore.questions || [])];
-    Object.values(banks).forEach(arr => {
-      if (Array.isArray(arr)) allQuestions.push(...arr);
-    });
+    let relevantBank = [];
+
+    if (sKeyUpper === 'BIOLOGY' || sKeyUpper.includes('BIO')) {
+      relevantBank = banks.senior_biology || [];
+    } else if (sKeyUpper === 'PHYSICS' || sKeyUpper.includes('PHYS')) {
+      relevantBank = banks.senior_physics || [];
+    } else if (sKeyUpper === 'CHEMISTRY' || sKeyUpper.includes('CHEM')) {
+      relevantBank = banks.senior_chemistry || [];
+    } else if (sKeyUpper === 'MATHEMATICS' || sKeyUpper.includes('MATH')) {
+      relevantBank = String(grade) === '10' ? (banks.class10_maths || []) : (banks.senior_mathematics || []);
+    } else {
+      relevantBank = Object.values(banks).flat();
+    }
+
+    const allQuestions = [
+      ...relevantBank,
+      ...(inMemoryStore.questions || []).filter(q => {
+        if (!sKeyUpper) return true;
+        const qKey = (q.subjectKey || '').toUpperCase();
+        const qSub = (q.subject || '').toUpperCase();
+        return qKey === sKeyUpper || qSub === sKeyUpper || qSub.includes(sKeyUpper);
+      })
+    ];
 
     // Deduplicate
     const seen = new Set();
@@ -480,47 +503,164 @@ router.get('/faculty', (req, res) => {
   }
 });
 
-// 5d. POST /api/curriculum/faculty/login - Authenticate teacher session
-router.post('/faculty/login', (req, res) => {
+// 5d. POST /api/curriculum/faculty/login & POST /api/curriculum/auth/teacher-login
+// Authenticates or registers teacher session with phone number, full name, and subject expertise
+function handleTeacherLogin(req, res) {
   try {
-    const { facultyId, subjectKey, email, name } = req.body;
+    const { phone, name, subjectKey, facultyId, email } = req.body;
     const users = inMemoryStore.users || [];
 
+    // Sanitize phone (extract digits)
+    const rawPhone = (phone || '').toString().trim();
+    const cleanPhone = rawPhone.replace(/\D/g, '');
+    const sKeyUpper = (subjectKey || 'BIOLOGY').toString().toUpperCase().trim();
+    const sName = sKeyUpper === 'PHYSICS' ? 'Physics' 
+      : sKeyUpper === 'CHEMISTRY' ? 'Chemistry' 
+      : sKeyUpper === 'BIOLOGY' ? 'Biology' 
+      : 'Mathematics';
+
     let teacher = null;
-    if (facultyId) {
+
+    // 1. Look up by phone if provided
+    if (cleanPhone) {
+      teacher = users.find(u => u.role === 'TEACHER' && (u.phone === cleanPhone || (u.phone && u.phone.replace(/\D/g, '') === cleanPhone)));
+    }
+
+    // 2. Look up by facultyId
+    if (!teacher && facultyId) {
       teacher = users.find(u => u.role === 'TEACHER' && u.id === facultyId);
     }
-    if (!teacher && subjectKey) {
-      teacher = users.find(u => u.role === 'TEACHER' && (u.subjectKey === subjectKey.toUpperCase() || u.department === subjectKey.toUpperCase()));
-    }
+
+    // 3. Look up by email
     if (!teacher && email) {
       teacher = users.find(u => u.role === 'TEACHER' && u.email?.toLowerCase() === email.toLowerCase());
     }
 
-    if (!teacher) {
-      // Create ad-hoc faculty profile
-      const sKey = (subjectKey || 'PHYSICS').toUpperCase();
-      const sName = sKey === 'PHYSICS' ? 'Physics' : sKey === 'CHEMISTRY' ? 'Chemistry' : sKey === 'BIOLOGY' ? 'Biology' : 'Mathematics';
+    // 4. Look up by subject if no phone specified
+    if (!teacher && !cleanPhone && subjectKey) {
+      teacher = users.find(u => u.role === 'TEACHER' && (u.subjectKey === sKeyUpper || u.department === sKeyUpper));
+    }
+
+    const cleanName = (name && name.trim()) ? name.trim() : (teacher?.full_name || teacher?.name || `Faculty (${sName})`);
+
+    if (teacher) {
+      // Update details if supplied
+      if (name && name.trim()) {
+        teacher.full_name = cleanName;
+        teacher.name = cleanName;
+      }
+      if (cleanPhone) {
+        teacher.phone = cleanPhone;
+      }
+      if (subjectKey) {
+        teacher.subjectKey = sKeyUpper;
+        teacher.subject = sName;
+        teacher.department = sKeyUpper;
+        teacher.subjectName = sName;
+        teacher.defaultClass = sKeyUpper === 'BIOLOGY' ? '11-Med' : '11-NonMed';
+        teacher.targetStream = sKeyUpper === 'BIOLOGY' ? 'NEET' : 'JEE';
+        teacher.designation = sKeyUpper === 'BIOLOGY' 
+          ? 'Senior Biology Faculty & NEET Coordinator' 
+          : sKeyUpper === 'PHYSICS' 
+          ? 'Senior Physics Faculty & HOD' 
+          : `Senior ${sName} Faculty`;
+        teacher.streamText = sKeyUpper === 'BIOLOGY'
+          ? 'Assigned Subject: Biology • Classes 11 & 12 Medical (NEET UG & CBSE Boards)'
+          : `Assigned Subject: ${sName} • Classes 11 & 12 (${sKeyUpper === 'MATHEMATICS' ? 'JEE Main/Adv & CBSE Boards' : 'NEET, JEE Main & CBSE Boards'})`;
+      }
+    } else {
+      // Create new teacher profile
       teacher = {
-        id: `fac_${sKey.toLowerCase()}_${Date.now()}`,
-        full_name: name || `Faculty (${sName})`,
+        id: `fac_${sKeyUpper.toLowerCase()}_${cleanPhone || Date.now()}`,
+        full_name: cleanName,
+        name: cleanName,
         role: 'TEACHER',
-        email: email || `${sKey.toLowerCase()}.faculty@haps.edu.in`,
+        phone: cleanPhone || '9816010000',
+        email: email || `${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '') || sKeyUpper.toLowerCase()}@haps.edu.in`,
         subject: sName,
-        subjectKey: sKey,
-        department: sKey,
-        designation: `Senior ${sName} Faculty`,
-        defaultClass: sKey === 'BIOLOGY' ? '11-Med' : '11-NonMed',
-        targetStream: sKey === 'BIOLOGY' ? 'NEET' : 'JEE'
+        subjectName: sName,
+        subjectKey: sKeyUpper,
+        department: sKeyUpper,
+        designation: sKeyUpper === 'BIOLOGY' 
+          ? 'Senior Biology Faculty & NEET Coordinator' 
+          : sKeyUpper === 'PHYSICS' 
+          ? 'Senior Physics Faculty & HOD' 
+          : `Senior ${sName} Faculty`,
+        defaultClass: sKeyUpper === 'BIOLOGY' ? '11-Med' : '11-NonMed',
+        targetStream: sKeyUpper === 'BIOLOGY' ? 'NEET' : 'JEE',
+        streamText: sKeyUpper === 'BIOLOGY' 
+          ? 'Assigned Subject: Biology • Classes 11 & 12 Medical (NEET UG & CBSE Boards)'
+          : `Assigned Subject: ${sName} • Classes 11 & 12 (${sKeyUpper === 'MATHEMATICS' ? 'JEE Main/Adv & CBSE Boards' : 'NEET, JEE Main & CBSE Boards'})`
       };
       inMemoryStore.users.push(teacher);
     }
+
+    if (!inMemoryStore.teachers) inMemoryStore.teachers = {};
+    if (teacher.phone) inMemoryStore.teachers[teacher.phone] = teacher;
+    inMemoryStore.teachers[teacher.id] = teacher;
 
     res.json({
       success: true,
       teacher,
       faculty: teacher,
-      message: `Authenticated as ${teacher.full_name} (${teacher.designation}).`
+      message: `Signed in as ${teacher.full_name} (${teacher.designation}). Scoped strictly to Department of ${teacher.subjectName}.`
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+}
+
+router.post('/faculty/login', handleTeacherLogin);
+router.post('/auth/teacher-login', handleTeacherLogin);
+
+// 5d-2. GET /api/curriculum/faculty/lookup - Quick lookup by mobile number
+router.get('/faculty/lookup', (req, res) => {
+  try {
+    const { phone } = req.query;
+    const cleanPhone = (phone || '').toString().replace(/\D/g, '');
+    if (!cleanPhone) {
+      return res.status(400).json({ success: false, error: 'Phone number is required.' });
+    }
+    const users = inMemoryStore.users || [];
+    const teacher = users.find(u => u.role === 'TEACHER' && (u.phone === cleanPhone || (u.phone && u.phone.replace(/\D/g, '') === cleanPhone)));
+    if (teacher) {
+      return res.json({ success: true, exists: true, teacher });
+    }
+    return res.json({ success: true, exists: false });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5d-3. GET /api/curriculum/students - List enrolled students filtered by teacher subject & stream
+router.get('/students', (req, res) => {
+  try {
+    const { subjectKey, teacherSubjectKey, grade, section } = req.query;
+    const sKey = (subjectKey || teacherSubjectKey || '').toUpperCase().trim();
+    let students = (inMemoryStore.users || []).filter(u => u.role === 'STUDENT');
+
+    if (grade && grade !== 'ALL') {
+      students = students.filter(s => String(s.grade) === String(grade));
+    }
+
+    if (section && section !== 'ALL') {
+      students = students.filter(s => s.section === section || s.section?.toLowerCase() === section.toLowerCase());
+    }
+
+    if (sKey) {
+      if (sKey === 'BIOLOGY') {
+        // Only students in Medical classes taking Biology
+        students = students.filter(s => (s.section || '').includes('Med') && !(s.section || '').includes('NonMed'));
+      } else if (sKey === 'MATHEMATICS') {
+        // Only students in Non-Medical or Foundation classes taking Mathematics
+        students = students.filter(s => (s.section || '').includes('NonMed') || (s.section || '').includes('Science-A'));
+      }
+    }
+
+    res.json({
+      success: true,
+      count: students.length,
+      students
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

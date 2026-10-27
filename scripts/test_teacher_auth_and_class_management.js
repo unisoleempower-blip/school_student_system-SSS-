@@ -161,8 +161,87 @@ async function runTestSuite() {
   assert(!emojiRegex.test(formulaCheck.data.feedback || ''), 'No emojis in formula feedback response');
   assert(!emojiRegex.test(formulaCheck.data.message || ''), 'No emojis in formula message response');
 
+  // 8. Mobile Number + Name + Subject Expert Authentication
+  console.log('\nStep 8: Authenticating Biology Faculty with Mobile Number, Name & Subject Expertise...');
+  const bioPhoneLogin = await makeRequest('/api/curriculum/auth/teacher-login', 'POST', {
+    phone: '9816010003',
+    name: 'Dr. Ananya Mukherjee',
+    subjectKey: 'BIOLOGY'
+  });
+  assert(bioPhoneLogin.status === 200, 'POST /api/curriculum/auth/teacher-login succeeds with HTTP 200');
+  assert(bioPhoneLogin.data.teacher.phone === '9816010003', 'Teacher mobile number stored & returned');
+  assert(bioPhoneLogin.data.teacher.subjectKey === 'BIOLOGY', 'Teacher subject is strictly BIOLOGY');
+  assert(bioPhoneLogin.data.teacher.targetStream === 'NEET', 'Default target stream is NEET');
+  assert(bioPhoneLogin.data.teacher.defaultClass === '11-Med', 'Default class is 11-Med');
+
+  // Verify Phone Number Lookup
+  console.log('\nStep 8b: Testing Phone Number Lookup Endpoint...');
+  const phoneLookup = await makeRequest('/api/curriculum/faculty/lookup?phone=9816010003');
+  assert(phoneLookup.status === 200, 'GET /api/curriculum/faculty/lookup returns HTTP 200');
+  assert(phoneLookup.data.exists === true, 'Registered faculty recognized by phone');
+  assert(phoneLookup.data.teacher.subjectKey === 'BIOLOGY', 'Recognized faculty subject is BIOLOGY');
+
+  // 9. Dynamic New Teacher Registration via Mobile Number
+  console.log('\nStep 9: Registering New Faculty via Mobile Number...');
+  const newPhone = `98160${Math.floor(10000 + Math.random() * 90000)}`;
+  const newTeacherLogin = await makeRequest('/api/curriculum/auth/teacher-login', 'POST', {
+    phone: newPhone,
+    name: 'Dr. Ritu Dogra',
+    subjectKey: 'BIOLOGY'
+  });
+  assert(newTeacherLogin.status === 200, 'New teacher registration succeeds with HTTP 200');
+  assert(newTeacherLogin.data.teacher.name === 'Dr. Ritu Dogra', 'New teacher full name recorded');
+  assert(newTeacherLogin.data.teacher.phone === newPhone, 'New teacher phone recorded');
+  assert(newTeacherLogin.data.teacher.subjectKey === 'BIOLOGY', 'New teacher scoped to BIOLOGY');
+
+  // 10. Biology Syllabus, Questions & PYQs Isolation
+  console.log('\nStep 10: Verifying Biology Syllabus, Questions & PYQs Scoping...');
+  const bioTaxonomy = await makeRequest('/api/curriculum/taxonomy/BIOLOGY?grade=11');
+  assert(bioTaxonomy.status === 200, 'GET /api/curriculum/taxonomy/BIOLOGY?grade=11 returns HTTP 200');
+  assert(Array.isArray(bioTaxonomy.data.chapters), 'Chapters array returned for Biology');
+  assert(bioTaxonomy.data.chapters.length > 0, `Found ${bioTaxonomy.data.chapters.length} Biology chapters`);
+  // Verify chapters belong to Biology
+  const firstBioChap = bioTaxonomy.data.chapters[0];
+  assert(firstBioChap.chapterName && !firstBioChap.chapterName.includes('Coulomb') && !firstBioChap.chapterName.includes('Gravitation'),
+    `Chapter "${firstBioChap.chapterName}" is authentic Biology chapter`);
+
+  // Verify Biology Questions and PYQs
+  const bioQuestions = await makeRequest('/api/curriculum/questions?subject=Biology&teacherSubjectKey=BIOLOGY');
+  assert(bioQuestions.status === 200, 'GET /api/curriculum/questions for Biology returns HTTP 200');
+  assert(bioQuestions.data.count > 0, `Returned ${bioQuestions.data.count} authentic Biology questions`);
+  for (const q of bioQuestions.data.questions.slice(0, 10)) {
+    const isBio = (q.subject && q.subject.toLowerCase().includes('bio')) || (q.branch && (q.branch === 'BOTANY' || q.branch === 'ZOOLOGY'));
+    assert(isBio, `Question "${q.id}" belongs strictly to Biology discipline (Found: ${q.subject || q.branch})`);
+  }
+
+  // 11. Medical-Only Student Roster Verification for Biology Teacher
+  console.log('\nStep 11: Verifying Medical Students Scoping for Biology Teacher...');
+  const bioStudents = await makeRequest('/api/curriculum/students?subjectKey=BIOLOGY');
+  assert(bioStudents.status === 200, 'GET /api/curriculum/students?subjectKey=BIOLOGY returns HTTP 200');
+  assert(bioStudents.data.count > 0, `Found ${bioStudents.data.count} medical students`);
+  for (const stu of bioStudents.data.students) {
+    const isMed = stu.section.includes('Med') && !stu.section.includes('NonMed');
+    assert(isMed, `Student ${stu.full_name} (${stu.roll_number}) is in Medical class ${stu.section}`);
+  }
+
+  // 12. Biology-Scoped Class Progress Dashboard Analytics
+  console.log('\nStep 12: Verifying Biology Class Progress Dashboard Analytics...');
+  const bioAnalytics = await makeRequest('/api/analytics/class-dashboard?subjectKey=BIOLOGY');
+  assert(bioAnalytics.status === 200, 'GET /api/analytics/class-dashboard?subjectKey=BIOLOGY returns HTTP 200');
+  assert(bioAnalytics.data.assessment && (bioAnalytics.data.assessment.subject === 'Biology' || bioAnalytics.data.assessment.title.includes('Biology')),
+    `Active assessment "${bioAnalytics.data.assessment.title}" is strictly Biology`);
+  assert(Array.isArray(bioAnalytics.data.studentRoster), 'Student performance roster returned');
+  for (const r of bioAnalytics.data.studentRoster) {
+    assert(r.rollNumber.startsWith('11-M') || r.rollNumber.startsWith('12-M'),
+      `Roster student ${r.studentName} (${r.rollNumber}) is Medical student`);
+  }
+  for (const a of bioAnalytics.data.availableAssessments) {
+    const aSub = (a.subject || a.title || '').toLowerCase();
+    assert(aSub.includes('bio') || a.subjectKey === 'BIOLOGY', `Available assessment "${a.title}" is Biology assessment`);
+  }
+
   console.log('\n================================================================');
-  console.log('ALL TEACHER AUTH & CLASS MANAGEMENT VERIFICATIONS PASSED (7/7)');
+  console.log('ALL TEACHER AUTH & CLASS MANAGEMENT VERIFICATIONS PASSED (12/12)');
   console.log('================================================================\n');
 }
 

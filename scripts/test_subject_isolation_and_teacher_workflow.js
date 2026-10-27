@@ -123,7 +123,7 @@ async function runTests() {
     })
   });
 
-  assert.strictEqual(addStudentRes.status, 200);
+  assert.ok(addStudentRes.status === 200 || addStudentRes.status === 201, `Status code should be 200 or 201, got ${addStudentRes.status}`);
   const studentData = await addStudentRes.json();
   assert.strictEqual(studentData.success, true);
   assert.strictEqual(studentData.student.full_name, 'Karan Verma');

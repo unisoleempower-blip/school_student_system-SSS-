@@ -21,17 +21,29 @@ const { inMemoryStore } = require('../config/database');
 // ============================================================================
 router.get('/class-dashboard', (req, res) => {
   try {
-    const { assessmentId, grade, section } = req.query;
+    const { assessmentId, grade, section, subjectKey, teacherSubjectKey, subject } = req.query;
+    const reqSubjKey = (subjectKey || teacherSubjectKey || subject || '').toUpperCase().trim();
 
     const assessmentsList = inMemoryStore.assessments || [];
     if (assessmentsList.length === 0) {
       return res.status(404).json({ success: false, error: 'No assessments found.' });
     }
 
-    // Default to specified assessment, or first available
+    // Filter assessments by teacher's subject if provided
+    let relevantAssessments = assessmentsList;
+    if (reqSubjKey) {
+      relevantAssessments = assessmentsList.filter(a => {
+        const aKey = (a.subjectKey || '').toUpperCase();
+        const aSub = (a.subject || '').toUpperCase();
+        return aKey === reqSubjKey || aSub === reqSubjKey || aSub.includes(reqSubjKey);
+      });
+      if (relevantAssessments.length === 0) relevantAssessments = assessmentsList;
+    }
+
+    // Default to specified assessment, or first available for this teacher's subject
     const assessment = assessmentId
       ? assessmentsList.find(a => a.id === assessmentId)
-      : assessmentsList[0];
+      : relevantAssessments[0];
 
     if (!assessment) {
       return res.status(404).json({ success: false, error: `Assessment "${assessmentId}" not found.` });
@@ -54,7 +66,7 @@ router.get('/class-dashboard', (req, res) => {
           totalMarks: assessment.totalMarks
         },
         hasSubmissions: false,
-        availableAssessments: assessmentsList.map(a => ({ id: a.id, title: a.title }))
+        availableAssessments: relevantAssessments.map(a => ({ id: a.id, title: a.title, grade: a.grade, section: a.section, subject: a.subject, subjectKey: a.subjectKey }))
       });
     }
 
@@ -293,7 +305,7 @@ router.get('/class-dashboard', (req, res) => {
         timeManagementAlerts
       },
       studentRoster,
-      availableAssessments: assessmentsList.map(a => ({ id: a.id, title: a.title, grade: a.grade, section: a.section }))
+      availableAssessments: relevantAssessments.map(a => ({ id: a.id, title: a.title, grade: a.grade, section: a.section, subject: a.subject, subjectKey: a.subjectKey }))
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

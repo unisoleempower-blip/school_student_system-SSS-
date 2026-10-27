@@ -3770,9 +3770,10 @@ function generateFallbackClassAnalytics(assessmentId) {
 
 async function loadClassAnalytics(assessmentId) {
   try {
+    const sKey = teacherBuilderState.teacherSubjectKey || teacherBuilderState.selectedSubjectKey || 'PHYSICS';
     const url = assessmentId 
-      ? `${getApiBaseUrl()}/api/analytics/class-dashboard?assessmentId=${assessmentId}`
-      : `${getApiBaseUrl()}/api/analytics/class-dashboard`;
+      ? `${getApiBaseUrl()}/api/analytics/class-dashboard?assessmentId=${encodeURIComponent(assessmentId)}&subjectKey=${encodeURIComponent(sKey)}`
+      : `${getApiBaseUrl()}/api/analytics/class-dashboard?subjectKey=${encodeURIComponent(sKey)}`;
 
     let data = null;
     try {
@@ -5639,6 +5640,7 @@ function initTeacherSession() {
     stored = {
       id: 'fac_phy_01',
       name: 'Dr. Vikram Sharma',
+      phone: '9816010001',
       email: 'vikram.phy@haps.edu.in',
       subjectKey: 'PHYSICS',
       subjectName: 'Physics',
@@ -5658,6 +5660,18 @@ function initTeacherSession() {
 function openTeacherSignInModal() {
   const modal = document.getElementById('modalTeacherSignIn');
   if (modal) modal.style.display = 'flex';
+  const phoneInput = document.getElementById('inputTeacherPhone');
+  if (phoneInput && !phoneInput.value && teacherBuilderState.activeTeacher?.phone) {
+    phoneInput.value = teacherBuilderState.activeTeacher.phone;
+  }
+  const nameInput = document.getElementById('inputTeacherFullName');
+  if (nameInput && !nameInput.value && teacherBuilderState.activeTeacher?.name) {
+    nameInput.value = teacherBuilderState.activeTeacher.name;
+  }
+  const subjSelect = document.getElementById('selectTeacherExpertise');
+  if (subjSelect && teacherBuilderState.activeTeacher?.subjectKey) {
+    subjSelect.value = teacherBuilderState.activeTeacher.subjectKey;
+  }
   initLucideIcons();
 }
 
@@ -5666,69 +5680,132 @@ function closeTeacherSignInModal() {
   if (modal) modal.style.display = 'none';
 }
 
-function authenticateTeacher(subjectKey, teacherName, email) {
-  const profiles = {
-    'PHYSICS': {
-      name: teacherName || 'Dr. Vikram Sharma',
-      email: email || 'vikram.phy@haps.edu.in',
-      subjectKey: 'PHYSICS',
-      subjectName: 'Physics',
-      designation: 'Senior Physics Faculty & HOD',
-      streamText: 'Assigned Subject: Physics &bull; Classes 11 &amp; 12 (JEE Main/Adv, NEET &amp; CBSE Boards)',
-      defaultClass: '11-NonMed',
-      targetStream: 'JEE'
-    },
-    'CHEMISTRY': {
-      name: teacherName || 'Prof. Sunita Rao',
-      email: email || 'sunita.chem@haps.edu.in',
-      subjectKey: 'CHEMISTRY',
-      subjectName: 'Chemistry',
-      designation: 'Senior Chemistry Faculty',
-      streamText: 'Assigned Subject: Chemistry &bull; Classes 11 &amp; 12 (NEET, JEE Main &amp; CBSE Boards)',
-      defaultClass: '11-NonMed',
-      targetStream: 'JEE'
-    },
-    'BIOLOGY': {
-      name: teacherName || 'Dr. Ananya Mukherjee',
-      email: email || 'ananya.bio@haps.edu.in',
-      subjectKey: 'BIOLOGY',
-      subjectName: 'Biology',
-      designation: 'Senior Biology Faculty & NEET Coordinator',
-      streamText: 'Assigned Subject: Biology &bull; Classes 11 &amp; 12 Medical (NEET UG &amp; CBSE Boards)',
-      defaultClass: '11-Med',
-      targetStream: 'NEET'
-    },
-    'MATHEMATICS': {
-      name: teacherName || 'Er. Rajesh Gupta',
-      email: email || 'rajesh.math@haps.edu.in',
-      subjectKey: 'MATHEMATICS',
-      subjectName: 'Mathematics',
-      designation: 'Senior Mathematics Faculty',
-      streamText: 'Assigned Subject: Mathematics &bull; Classes 11 &amp; 12 Non-Med (JEE Main/Adv &amp; CBSE Boards)',
-      defaultClass: '11-NonMed',
-      targetStream: 'JEE'
+async function handlePhoneInputLookup(val) {
+  const clean = (val || '').toString().replace(/\D/g, '');
+  const statusEl = document.getElementById('phoneLookupStatus');
+  if (clean.length === 10) {
+    try {
+      const res = await fetch(`${getApiBaseUrl()}/api/curriculum/faculty/lookup?phone=${encodeURIComponent(clean)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.exists && data.teacher) {
+          const t = data.teacher;
+          const nameInput = document.getElementById('inputTeacherFullName');
+          if (nameInput) nameInput.value = t.full_name || t.name;
+          const subjSelect = document.getElementById('selectTeacherExpertise');
+          if (subjSelect && t.subjectKey) subjSelect.value = t.subjectKey;
+          if (statusEl) {
+            statusEl.innerText = `Recognized Faculty: ${t.full_name || t.name} (${t.designation || t.subjectName})`;
+            statusEl.style.display = 'block';
+          }
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Phone lookup notice:', e);
     }
-  };
+  }
+  if (statusEl) {
+    statusEl.style.display = 'none';
+  }
+}
 
-  const prof = profiles[subjectKey] || profiles['PHYSICS'];
-  applyTeacherProfile(prof, true);
-  closeTeacherSignInModal();
+async function submitTeacherLoginForm(event) {
+  if (event) event.preventDefault();
+  const phone = document.getElementById('inputTeacherPhone')?.value?.trim() || '';
+  const name = document.getElementById('inputTeacherFullName')?.value?.trim() || '';
+  const subjectKey = document.getElementById('selectTeacherExpertise')?.value || 'BIOLOGY';
+
+  const cleanPhone = phone.replace(/\D/g, '');
+  if (!cleanPhone || cleanPhone.length < 10) {
+    alert('Please enter a valid 10-digit mobile number.');
+    return;
+  }
+  if (!name || name.length < 2) {
+    alert('Please enter the faculty member\'s full name.');
+    return;
+  }
+
+  const btnSubmit = document.getElementById('btnSubmitTeacherLogin');
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:15px;height:15px;"></i> Signing In...`;
+    initLucideIcons();
+  }
+
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/curriculum/auth/teacher-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: cleanPhone, name, subjectKey })
+    });
+    const data = await res.json();
+    if (res.ok && data.success && data.teacher) {
+      applyTeacherProfile(data.teacher, true);
+      closeTeacherSignInModal();
+    } else {
+      throw new Error(data.error || 'Authentication failed');
+    }
+  } catch (err) {
+    console.warn('Backend login fallback:', err.message);
+    const sName = subjectKey === 'BIOLOGY' ? 'Biology' : (subjectKey === 'PHYSICS' ? 'Physics' : (subjectKey === 'CHEMISTRY' ? 'Chemistry' : 'Mathematics'));
+    const localTeacher = {
+      id: `fac_${subjectKey.toLowerCase()}_${cleanPhone}`,
+      name: name,
+      full_name: name,
+      phone: cleanPhone,
+      email: `${name.toLowerCase().replace(/[^a-z0-9]/g, '') || subjectKey.toLowerCase()}@haps.edu.in`,
+      subjectKey: subjectKey,
+      subjectName: sName,
+      designation: subjectKey === 'BIOLOGY' ? 'Senior Biology Faculty & NEET Coordinator' : `Senior ${sName} Faculty`,
+      defaultClass: subjectKey === 'BIOLOGY' ? '11-Med' : '11-NonMed',
+      targetStream: subjectKey === 'BIOLOGY' ? 'NEET' : 'JEE',
+      streamText: subjectKey === 'BIOLOGY'
+        ? 'Assigned Subject: Biology &bull; Classes 11 &amp; 12 Medical (NEET UG &amp; CBSE Boards)'
+        : `Assigned Subject: ${sName} &bull; Classes 11 &amp; 12 (${subjectKey === 'MATHEMATICS' ? 'JEE Main/Adv &amp; CBSE Boards' : 'NEET, JEE Main &amp; CBSE Boards'})`
+    };
+    applyTeacherProfile(localTeacher, true);
+    closeTeacherSignInModal();
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = `<i data-lucide="log-in" style="width:15px;height:15px;"></i> Sign In &amp; Enter Portal`;
+      initLucideIcons();
+    }
+  }
+}
+
+function quickSelectFaculty(subjectKey, name, phone) {
+  const phoneEl = document.getElementById('inputTeacherPhone');
+  const nameEl = document.getElementById('inputTeacherFullName');
+  const subjEl = document.getElementById('selectTeacherExpertise');
+
+  if (phoneEl) phoneEl.value = phone || '';
+  if (nameEl) nameEl.value = name || '';
+  if (subjEl) subjEl.value = subjectKey || 'BIOLOGY';
+
+  submitTeacherLoginForm();
+}
+
+function authenticateTeacher(subjectKey, teacherName, email) {
+  const defaultPhones = {
+    'PHYSICS': '9816010001',
+    'CHEMISTRY': '9816010002',
+    'BIOLOGY': '9816010003',
+    'MATHEMATICS': '9816010004'
+  };
+  quickSelectFaculty(subjectKey, teacherName, defaultPhones[subjectKey] || '9816010000');
 }
 
 function submitCustomTeacherLogin(event) {
-  if (event) event.preventDefault();
-  const name = document.getElementById('inputCustomTeacherName')?.value?.trim() || 'Faculty Educator';
-  const subjectKey = document.getElementById('selectCustomTeacherSubject')?.value || 'PHYSICS';
-  const email = document.getElementById('inputCustomTeacherEmail')?.value?.trim() || `${subjectKey.toLowerCase()}.faculty@haps.edu.in`;
-
-  authenticateTeacher(subjectKey, name, email);
+  submitTeacherLoginForm(event);
 }
 
 function applyTeacherProfile(prof, notify = false) {
   teacherBuilderState.teacherSubjectKey = prof.subjectKey;
   teacherBuilderState.selectedSubjectKey = prof.subjectKey;
-  teacherBuilderState.selectedClassId = prof.defaultClass;
-  teacherBuilderState.targetStream = prof.targetStream;
+  teacherBuilderState.selectedClassId = prof.defaultClass || (prof.subjectKey === 'BIOLOGY' ? '11-Med' : '11-NonMed');
+  teacherBuilderState.targetStream = prof.targetStream || (prof.subjectKey === 'BIOLOGY' ? 'NEET' : 'JEE');
   teacherBuilderState.activeTeacher = prof;
 
   try {
@@ -5739,21 +5816,24 @@ function applyTeacherProfile(prof, notify = false) {
   const badgeEl = document.getElementById('teacherFacultyBadge');
   const textEl = document.getElementById('teacherFacultyStreamText');
 
-  if (nameEl) nameEl.innerText = prof.name;
+  if (nameEl) nameEl.innerText = prof.name || prof.full_name;
   if (badgeEl) badgeEl.innerHTML = `${prof.designation} &bull; Department of ${prof.subjectName}`;
   if (textEl) textEl.innerHTML = prof.streamText;
 
   // Header chip & title update
   const headerFacultyName = document.getElementById('headerFacultyName');
-  if (headerFacultyName) headerFacultyName.innerText = prof.name;
+  if (headerFacultyName) headerFacultyName.innerText = prof.name || prof.full_name;
+  const headerFacultyTag = document.getElementById('headerFacultyTag');
+  if (headerFacultyTag) headerFacultyTag.innerText = prof.subjectName;
+
   const headerTitle = document.getElementById('headerNavTitle');
   if (headerTitle && (!state.activeRole || state.activeRole === 'teacher')) {
     const tabTitles = {
-      'tabGenerator': `Create Tests & Quizzes • ${prof.subjectName}`,
-      'tabClassAnalytics': `Class Progress Dashboard • ${prof.subjectName}`,
-      'tabStudents': `Students & Smart Cards • ${prof.subjectName}`,
-      'tabSmartReports': `Weekly Smart Report • ${prof.subjectName}`,
-      'tabHandwritten': `Scan Paper Sheets • ${prof.subjectName}`
+      'tabGenerator': `Create Tests & Quizzes • Department of ${prof.subjectName}`,
+      'tabClassAnalytics': `Class Progress Dashboard • Department of ${prof.subjectName}`,
+      'tabStudents': `Students & Smart Cards • Department of ${prof.subjectName}`,
+      'tabSmartReports': `Weekly Smart Report • Department of ${prof.subjectName}`,
+      'tabHandwritten': `Scan Paper Sheets • Department of ${prof.subjectName}`
     };
     headerTitle.innerText = tabTitles[state.activeTeacherTab] || `Teacher Portal • Department of ${prof.subjectName}`;
   }
@@ -5762,17 +5842,26 @@ function applyTeacherProfile(prof, notify = false) {
   const drawerName = document.getElementById('drawerFacultyName');
   const drawerRole = document.getElementById('drawerFacultyRole');
   const drawerSubj = document.getElementById('drawerFacultySubject');
-  if (drawerName) drawerName.innerText = prof.name;
+  const drawerPhone = document.getElementById('drawerFacultyPhone');
+  if (drawerName) drawerName.innerText = prof.name || prof.full_name;
   if (drawerRole) drawerRole.innerText = prof.designation;
   if (drawerSubj) drawerSubj.innerText = `Department: ${prof.subjectName}`;
+  if (drawerPhone) drawerPhone.innerText = prof.phone ? `Phone: ${prof.phone}` : '';
 
-  updateStreamSelectionUI(prof.targetStream || 'JEE');
+  updateStreamSelectionUI(prof.targetStream || (prof.subjectKey === 'BIOLOGY' ? 'NEET' : 'JEE'));
 
-  // Reload classes filtered strictly by teacher subject
+  // 1. Reload classes filtered strictly by teacher subject
   loadTeacherClassesList();
 
+  // 2. Reload class analytics strictly scoped to teacher subject
+  loadClassAnalytics();
+
+  // 3. Reload curriculum chapters strictly for teacher subject
+  const defaultGrade = prof.defaultClass?.startsWith('11') ? '11' : '12';
+  loadCurriculumForClassAndSubject(prof.subjectKey, defaultGrade);
+
   if (notify) {
-    alert(`Signed in as ${prof.name} (${prof.designation}). Dashboard scoped strictly to ${prof.subjectName}.`);
+    alert(`Signed in as ${prof.name || prof.full_name} (${prof.designation}). Dashboard scoped strictly to Department of ${prof.subjectName}.`);
   }
 }
 
@@ -6135,3 +6224,6 @@ window.selectDrawerStream = selectDrawerStream;
 window.handleTeacherSignOut = handleTeacherSignOut;
 window.switchTeacherTab = switchTeacherTab;
 window.switchPortalRole = switchPortalRole;
+window.submitTeacherLoginForm = submitTeacherLoginForm;
+window.quickSelectFaculty = quickSelectFaculty;
+window.handlePhoneInputLookup = handlePhoneInputLookup;

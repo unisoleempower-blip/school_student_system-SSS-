@@ -21,7 +21,16 @@ const { quizTool, testTool, assignmentTool } = require('../services/pipelineTool
 // 1. GET /api/assessments - List all test assignments
 router.get('/', (req, res) => {
   try {
-    const list = inMemoryStore.assessments || [];
+    let list = inMemoryStore.assessments || [];
+    const { subject, subjectKey } = req.query;
+    const sKey = (subjectKey || subject || '').toUpperCase().trim();
+    if (sKey) {
+      list = list.filter(a => {
+        const aKey = (a.subjectKey || '').toUpperCase();
+        const aSub = (a.subject || '').toUpperCase();
+        return aKey === sKey || aSub === sKey || aSub.includes(sKey);
+      });
+    }
     res.json({
       success: true,
       count: list.length,

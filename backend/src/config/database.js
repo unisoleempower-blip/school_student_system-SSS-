@@ -52,10 +52,10 @@ const inMemoryStore = {
     { id: 'b0000000-0000-0000-0000-000000000044', full_name: 'Kriti Dogra', roll_number: '11-M-04', grade: '11', section: '11-Med', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT', hostel_resident: true },
 
     // Departmental Faculty (HAPS Senior Faculty Profiles)
-    { id: 'fac_phy_01', full_name: 'Dr. Vikram Sharma', role: 'TEACHER', email: 'vikram.phy@haps.edu.in', subject: 'Physics', subjectKey: 'PHYSICS', department: 'PHYSICS', designation: 'Senior Physics Faculty & HOD', defaultClass: '11-NonMed', targetStream: 'JEE' },
-    { id: 'fac_chem_01', full_name: 'Prof. Sunita Rao', role: 'TEACHER', email: 'sunita.chem@haps.edu.in', subject: 'Chemistry', subjectKey: 'CHEMISTRY', department: 'CHEMISTRY', designation: 'Senior Chemistry Faculty', defaultClass: '11-NonMed', targetStream: 'JEE' },
-    { id: 'fac_bio_01', full_name: 'Dr. Ananya Mukherjee', role: 'TEACHER', email: 'ananya.bio@haps.edu.in', subject: 'Biology', subjectKey: 'BIOLOGY', department: 'BIOLOGY', designation: 'Senior Biology Faculty & NEET Coordinator', defaultClass: '11-Med', targetStream: 'NEET' },
-    { id: 'fac_math_01', full_name: 'Er. Rajesh Gupta', role: 'TEACHER', email: 'rajesh.math@haps.edu.in', subject: 'Mathematics', subjectKey: 'MATHEMATICS', department: 'MATHEMATICS', designation: 'Senior Mathematics Faculty', defaultClass: '11-NonMed', targetStream: 'JEE' }
+    { id: 'fac_phy_01', full_name: 'Dr. Vikram Sharma', role: 'TEACHER', phone: '9816010001', email: 'vikram.phy@haps.edu.in', subject: 'Physics', subjectKey: 'PHYSICS', department: 'PHYSICS', designation: 'Senior Physics Faculty & HOD', defaultClass: '11-NonMed', targetStream: 'JEE' },
+    { id: 'fac_chem_01', full_name: 'Prof. Sunita Rao', role: 'TEACHER', phone: '9816010002', email: 'sunita.chem@haps.edu.in', subject: 'Chemistry', subjectKey: 'CHEMISTRY', department: 'CHEMISTRY', designation: 'Senior Chemistry Faculty', defaultClass: '11-NonMed', targetStream: 'JEE' },
+    { id: 'fac_bio_01', full_name: 'Dr. Ananya Mukherjee', role: 'TEACHER', phone: '9816010003', email: 'ananya.bio@haps.edu.in', subject: 'Biology', subjectKey: 'BIOLOGY', department: 'BIOLOGY', designation: 'Senior Biology Faculty & NEET Coordinator', defaultClass: '11-Med', targetStream: 'NEET' },
+    { id: 'fac_math_01', full_name: 'Er. Rajesh Gupta', role: 'TEACHER', phone: '9816010004', email: 'rajesh.math@haps.edu.in', subject: 'Mathematics', subjectKey: 'MATHEMATICS', department: 'MATHEMATICS', designation: 'Senior Mathematics Faculty', defaultClass: '11-NonMed', targetStream: 'JEE' }
   ],
   // Standard Institutional Classes
   classes: [
@@ -1665,6 +1665,163 @@ const inMemoryStore = {
         }
       ],
       createdAt: new Date().toISOString()
+    },
+    {
+      id: 'asgn_11_bio_01',
+      title: 'Class 11 Medical Biology: Cell Biology & Biomolecules - NEET Diagnostic Test',
+      description: 'NEET UG and CBSE Board diagnostic assessment covering Cell Theory, Organelles, and Enzyme Kinetics.',
+      teacherName: 'Dr. Ananya Mukherjee',
+      grade: '11',
+      section: '11-Med',
+      board: 'NEET',
+      subject: 'Biology',
+      subjectKey: 'BIOLOGY',
+      durationMinutes: 20,
+      totalMarks: 16,
+      questions: [
+        {
+          id: 'q_bio_01',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Mitochondria & Chloroplast Semi-Autonomy',
+          grade: '11',
+          board: 'NEET',
+          subject: 'Biology',
+          subjectKey: 'BIOLOGY',
+          question_type: 'MCQ_SINGLE',
+          difficulty: 'MEDIUM',
+          benchmark_time_seconds: 45,
+          question_latex: 'Which of the following cellular organelles is semi-autonomous and possesses its own circular dsDNA and $70\\text{S}$ ribosomes?',
+          options_latex: [
+            { key: 'A', latex: 'Mitochondria', is_correct: true, distractor_trap: null },
+            { key: 'B', latex: 'Golgi Apparatus', is_correct: false, distractor_trap: 'Golgi lacks autonomous DNA and protein translation apparatus.' },
+            { key: 'C', latex: 'Lysosome', is_correct: false, distractor_trap: 'Lysosomes are single-membrane hydrolytic vesicles.' },
+            { key: 'D', latex: 'Endoplasmic Reticulum', is_correct: false, distractor_trap: 'Lacks circular extranuclear genome.' }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'Mitochondria and chloroplasts are semi-autonomous organelles originating from endosymbiotic prokaryotes. They possess their own circular double-stranded DNA, RNA molecules, and $70\\text{S}$ ribosomes.',
+          socratic_hints: [
+            "Consider the endosymbiotic theory of eukaryotic organelle origin.",
+            "Recall which organelles synthesize a fraction of their own respiratory enzymes."
+          ]
+        },
+        {
+          id: 'q_bio_02',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Fluid Mosaic Model & Membrane Dynamics',
+          grade: '11',
+          board: 'NEET',
+          subject: 'Biology',
+          subjectKey: 'BIOLOGY',
+          question_type: 'MCQ_SINGLE',
+          difficulty: 'EASY',
+          benchmark_time_seconds: 40,
+          question_latex: 'In the fluid mosaic model proposed by Singer and Nicolson, the quasi-fluid nature of lipids enables lateral movement of proteins within the overall bilayer. This ability to move within the membrane is measured as its:',
+          options_latex: [
+            { key: 'A', latex: 'Fluidity', is_correct: true, distractor_trap: null },
+            { key: 'B', latex: 'Permeability', is_correct: false, distractor_trap: 'Permeability describes solute transit across the bilayer, not lateral protein mobility.' },
+            { key: 'C', latex: 'Elasticity', is_correct: false, distractor_trap: 'Elasticity refers to mechanical deformation resistance.' },
+            { key: 'D', latex: 'Viscosity', is_correct: false, distractor_trap: 'Viscosity is resistance to shear, inversely proportional to fluidity.' }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'According to NCERT Chapter 8, the quasi-fluid nature of lipid enables lateral movement of proteins within the overall bilayer. This ability to move within the membrane is measured as its fluidity.',
+          socratic_hints: [
+            "What term is directly used in NCERT for the ease of lateral motion in biological membranes?",
+            "Singer and Nicolson emphasized the quasi-fluid dynamic state of the lipid bilayer."
+          ]
+        },
+        {
+          id: 'q_bio_03',
+          topic: 'Cell Cycle and Cell Division',
+          subtopic: 'Meiotic Prophase I & Crossing Over',
+          grade: '11',
+          board: 'NEET',
+          subject: 'Biology',
+          subjectKey: 'BIOLOGY',
+          question_type: 'MCQ_SINGLE',
+          difficulty: 'MEDIUM',
+          benchmark_time_seconds: 50,
+          question_latex: 'During which specific substage of prophase I in meiosis does crossing over between non-sister chromatids of homologous chromosomes take place via recombinase?',
+          options_latex: [
+            { key: 'A', latex: 'Pachytene', is_correct: true, distractor_trap: null },
+            { key: 'B', latex: 'Zygotene', is_correct: false, distractor_trap: 'Zygotene is characterized by synapsis and synaptonemal complex assembly.' },
+            { key: 'C', latex: 'Diplotene', is_correct: false, distractor_trap: 'Diplotene is dissolution of synaptonemal complex and chiasmata visibility.' },
+            { key: 'D', latex: 'Leptotene', is_correct: false, distractor_trap: 'Leptotene features chromatin compaction into visible threads.' }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'Crossing over is an enzyme-mediated process catalyzed by recombinase, occurring specifically in Pachytene stage between non-sister chromatids of homologous chromosomes.',
+          socratic_hints: [
+            "Synapsis occurs in zygotene; what follows immediately?",
+            "Recombination nodules appear and cross-over takes place during pachytene."
+          ]
+        },
+        {
+          id: 'q_bio_04',
+          topic: 'Biomolecules',
+          subtopic: 'Enzyme Kinetics & Competitive Inhibition',
+          grade: '11',
+          board: 'NEET',
+          subject: 'Biology',
+          subjectKey: 'BIOLOGY',
+          question_type: 'MCQ_SINGLE',
+          difficulty: 'HARD',
+          benchmark_time_seconds: 60,
+          question_latex: 'Competitive inhibitors of enzymes resemble the substrate in chemical structure and compete for the catalytic active site. Which molecule serves as the classic competitive inhibitor of succinate dehydrogenase?',
+          options_latex: [
+            { key: 'A', latex: 'Malonate', is_correct: true, distractor_trap: null },
+            { key: 'B', latex: 'Oxaloacetate', is_correct: false, distractor_trap: 'Oxaloacetate is an intermediate in Krebs cycle, not the classic inhibitor textbook example.' },
+            { key: 'C', latex: 'Malate', is_correct: false, distractor_trap: 'Malate is hydrated fumarate product.' },
+            { key: 'D', latex: 'Citrate', is_correct: false, distractor_trap: 'Citrate is an allosteric regulator of phosphofructokinase.' }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'Malonate closely resembles succinate in chemical structure and inhibits succinate dehydrogenase competitively, leading to an increase in Km with unchanged Vmax.',
+          socratic_hints: [
+            "Which dicarboxylic acid competitor closely resembles succinic acid?",
+            "Recall the classic competitive inhibition example in NCERT Biomolecules chapter."
+          ]
+        }
+      ],
+      createdAt: new Date().toISOString()
+    },
+    {
+      id: 'asgn_12_phy_01',
+      title: 'Class 12 Physics: Electrostatics & Fields - JEE Main Diagnostic Test',
+      description: 'JEE Main and CBSE Board diagnostic assessment covering Coulombs Law, Gauss Law, and Electric Dipoles.',
+      teacherName: 'Dr. Vikram Sharma',
+      grade: '12',
+      section: '12-NonMed',
+      board: 'JEE_MAIN',
+      subject: 'Physics',
+      subjectKey: 'PHYSICS',
+      durationMinutes: 25,
+      totalMarks: 16,
+      questions: [
+        {
+          id: 'q_phy_01',
+          topic: 'Electric Charges and Fields',
+          subtopic: 'Gauss Law & Symmetric Field Calculations',
+          grade: '12',
+          board: 'JEE_MAIN',
+          subject: 'Physics',
+          subjectKey: 'PHYSICS',
+          question_type: 'MCQ_SINGLE',
+          difficulty: 'MEDIUM',
+          benchmark_time_seconds: 75,
+          question_latex: 'A point charge $q$ is placed at the center of an imaginary cube of edge length $a$. The electric flux emerging through one face of the cube is:',
+          options_latex: [
+            { key: 'A', latex: '$\\Phi = \\frac{q}{6\\varepsilon_0}$', is_correct: true, distractor_trap: null },
+            { key: 'B', latex: '$\\Phi = \\frac{q}{\\varepsilon_0}$', is_correct: false, distractor_trap: 'Gave total flux through all 6 faces instead of one face.' },
+            { key: 'C', latex: '$\\Phi = \\frac{q}{24\\varepsilon_0}$', is_correct: false, distractor_trap: 'Confused with charge placed at corner.' },
+            { key: 'D', latex: '$\\Phi = 0$', is_correct: false, distractor_trap: 'Zero flux only applies if net enclosed charge is zero.' }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'By Gauss Law, total flux through the closed cube is $\\Phi_{\\text{total}} = \\frac{q}{\\varepsilon_0}$. By cubic symmetry, each of the 6 identical faces receives an equal share: $\\Phi_{\\text{face}} = \\frac{q}{6\\varepsilon_0}$.',
+          socratic_hints: [
+            "What is the total electric flux through the entire closed Gaussian cube?",
+            "Divide by the number of symmetrical square faces."
+          ]
+        }
+      ],
+      createdAt: new Date().toISOString()
     }
   ],
   submissions: [
@@ -2026,6 +2183,270 @@ const inMemoryStore = {
         }
       ],
       submittedAt: new Date(Date.now() - 3600000 * 4.5).toISOString()
+    },
+    {
+      submissionId: 'sub_bio_01_riya',
+      assessmentId: 'asgn_11_bio_01',
+      assessmentTitle: 'Class 11 Medical Biology: Cell Biology & Biomolecules - NEET Diagnostic Test',
+      studentId: 'b0000000-0000-0000-0000-000000000041',
+      studentName: 'Riya Thakur',
+      rollNumber: '11-M-01',
+      grade: '11',
+      section: '11-Med',
+      totalScore: 16,
+      totalMarks: 16,
+      percentage: 100,
+      totalTimeSpentSeconds: 140,
+      smartCardSummary: 'Mastered cell biology and biomolecules at NEET speed. Flawless knowledge of organelle autonomy and meiotic crossing over.',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_bio_01',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Mitochondria & Chloroplast Semi-Autonomy',
+          timeSpentSeconds: 32,
+          benchmarkSeconds: 45,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Accurately recognized circular dsDNA in mitochondria.' }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_bio_02',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Fluid Mosaic Model & Membrane Dynamics',
+          timeSpentSeconds: 28,
+          benchmarkSeconds: 40,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Correctly identified membrane fluidity parameter.' }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_bio_03',
+          topic: 'Cell Cycle and Cell Division',
+          subtopic: 'Meiotic Prophase I & Crossing Over',
+          timeSpentSeconds: 38,
+          benchmarkSeconds: 50,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Correctly identified pachytene recombinase action.' }
+        },
+        {
+          questionIndex: 4,
+          questionId: 'q_bio_04',
+          topic: 'Biomolecules',
+          subtopic: 'Enzyme Kinetics & Competitive Inhibition',
+          timeSpentSeconds: 42,
+          benchmarkSeconds: 60,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Identified malonate competitive inhibition.' }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 1.5).toISOString()
+    },
+    {
+      submissionId: 'sub_bio_01_ayush',
+      assessmentId: 'asgn_11_bio_01',
+      assessmentTitle: 'Class 11 Medical Biology: Cell Biology & Biomolecules - NEET Diagnostic Test',
+      studentId: 'b0000000-0000-0000-0000-000000000042',
+      studentName: 'Ayush Banyal',
+      rollNumber: '11-M-02',
+      grade: '11',
+      section: '11-Med',
+      totalScore: 12,
+      totalMarks: 16,
+      percentage: 75,
+      totalTimeSpentSeconds: 175,
+      smartCardSummary: 'Strong cell biology recall. Confused malonate competitive inhibitor with oxaloacetate Krebs intermediate.',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_bio_01',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Mitochondria & Chloroplast Semi-Autonomy',
+          timeSpentSeconds: 40,
+          benchmarkSeconds: 45,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Accurate organelle identification.' }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_bio_02',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Fluid Mosaic Model & Membrane Dynamics',
+          timeSpentSeconds: 35,
+          benchmarkSeconds: 40,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Correct membrane fluidity.' }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_bio_03',
+          topic: 'Cell Cycle and Cell Division',
+          subtopic: 'Meiotic Prophase I & Crossing Over',
+          timeSpentSeconds: 45,
+          benchmarkSeconds: 50,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Identified pachytene crossing over.' }
+        },
+        {
+          questionIndex: 4,
+          questionId: 'q_bio_04',
+          topic: 'Biomolecules',
+          subtopic: 'Enzyme Kinetics & Competitive Inhibition',
+          timeSpentSeconds: 55,
+          benchmarkSeconds: 60,
+          isCorrect: false,
+          selectedOption: 'B',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'CONCEPTUAL', label: 'Conceptual Error', explanation: 'Selected oxaloacetate instead of textbook competitive inhibitor malonate.' }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 2.2).toISOString()
+    },
+    {
+      submissionId: 'sub_bio_01_deepak',
+      assessmentId: 'asgn_11_bio_01',
+      assessmentTitle: 'Class 11 Medical Biology: Cell Biology & Biomolecules - NEET Diagnostic Test',
+      studentId: 'b0000000-0000-0000-0000-000000000043',
+      studentName: 'Deepak Soni',
+      rollNumber: '11-M-03',
+      grade: '11',
+      section: '11-Med',
+      totalScore: 8,
+      totalMarks: 16,
+      percentage: 50,
+      totalTimeSpentSeconds: 210,
+      smartCardSummary: 'Needs conceptual reinforcement on meiotic prophase stages and enzyme kinetic inhibitors.',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_bio_01',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Mitochondria & Chloroplast Semi-Autonomy',
+          timeSpentSeconds: 44,
+          benchmarkSeconds: 45,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Accurate organelle identification.' }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_bio_02',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Fluid Mosaic Model & Membrane Dynamics',
+          timeSpentSeconds: 38,
+          benchmarkSeconds: 40,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Correctly chose fluidity.' }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_bio_03',
+          topic: 'Cell Cycle and Cell Division',
+          subtopic: 'Meiotic Prophase I & Crossing Over',
+          timeSpentSeconds: 62,
+          benchmarkSeconds: 50,
+          isCorrect: false,
+          selectedOption: 'B',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'CONCEPTUAL', label: 'Conceptual Error', explanation: 'Confused zygotene synapsis with pachytene crossing over.' }
+        },
+        {
+          questionIndex: 4,
+          questionId: 'q_bio_04',
+          topic: 'Biomolecules',
+          subtopic: 'Enzyme Kinetics & Competitive Inhibition',
+          timeSpentSeconds: 66,
+          benchmarkSeconds: 60,
+          isCorrect: false,
+          selectedOption: 'C',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'CONCEPTUAL', label: 'Conceptual Error', explanation: 'Confused product malate with inhibitor malonate.' }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 3.1).toISOString()
+    },
+    {
+      submissionId: 'sub_bio_01_kriti',
+      assessmentId: 'asgn_11_bio_01',
+      assessmentTitle: 'Class 11 Medical Biology: Cell Biology & Biomolecules - NEET Diagnostic Test',
+      studentId: 'b0000000-0000-0000-0000-000000000044',
+      studentName: 'Kriti Dogra',
+      rollNumber: '11-M-04',
+      grade: '11',
+      section: '11-Med',
+      totalScore: 12,
+      totalMarks: 16,
+      percentage: 75,
+      totalTimeSpentSeconds: 160,
+      smartCardSummary: 'Quick and accurate recall in cell structures and enzymes. Stumbled on prophase I meiotic substages.',
+      questionBreakdown: [
+        {
+          questionIndex: 1,
+          questionId: 'q_bio_01',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Mitochondria & Chloroplast Semi-Autonomy',
+          timeSpentSeconds: 30,
+          benchmarkSeconds: 45,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Accurate organelle choice.' }
+        },
+        {
+          questionIndex: 2,
+          questionId: 'q_bio_02',
+          topic: 'Cell: The Unit of Life',
+          subtopic: 'Fluid Mosaic Model & Membrane Dynamics',
+          timeSpentSeconds: 32,
+          benchmarkSeconds: 40,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Accurate membrane dynamics.' }
+        },
+        {
+          questionIndex: 3,
+          questionId: 'q_bio_03',
+          topic: 'Cell Cycle and Cell Division',
+          subtopic: 'Meiotic Prophase I & Crossing Over',
+          timeSpentSeconds: 52,
+          benchmarkSeconds: 50,
+          isCorrect: false,
+          selectedOption: 'C',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'CONCEPTUAL', label: 'Conceptual Error', explanation: 'Confused diplotene chiasmata with pachytene crossing over.' }
+        },
+        {
+          questionIndex: 4,
+          questionId: 'q_bio_04',
+          topic: 'Biomolecules',
+          subtopic: 'Enzyme Kinetics & Competitive Inhibition',
+          timeSpentSeconds: 46,
+          benchmarkSeconds: 60,
+          isCorrect: true,
+          selectedOption: 'A',
+          correctAnswer: 'A',
+          mistakeClassification: { type: 'NONE', label: 'Correct', explanation: 'Correctly identified malonate.' }
+        }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 2.8).toISOString()
     }
   ]
 };
