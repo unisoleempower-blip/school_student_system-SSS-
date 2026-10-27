@@ -5934,11 +5934,14 @@ async function submitAddStudentToClass(event) {
 // TOP-LEFT 3-LINE SIDEBAR DRAWER & STREAM SWITCHER CONTROLS
 // -----------------------------------------------------------------------------
 
-function toggleSidebarDrawer() {
+function toggleSidebarDrawer(e) {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
   const drawer = document.getElementById('sidebarNavDrawer');
-  const backdrop = document.getElementById('sidebarNavBackdrop');
-  if (!drawer || !backdrop) return;
-  const isOpen = drawer.classList.contains('open');
+  if (!drawer) return;
+  const isOpen = drawer.classList.contains('open') || drawer.classList.contains('active');
   if (isOpen) {
     closeSidebarDrawer();
   } else {
@@ -5950,10 +5953,15 @@ function openSidebarDrawer() {
   const drawer = document.getElementById('sidebarNavDrawer');
   const backdrop = document.getElementById('sidebarNavBackdrop');
   if (drawer) {
+    drawer.style.display = 'flex';
+    drawer.style.transform = 'translateX(0)';
     drawer.classList.add('open');
     drawer.classList.add('active');
   }
   if (backdrop) {
+    backdrop.style.display = 'block';
+    backdrop.style.opacity = '1';
+    backdrop.style.pointerEvents = 'auto';
     backdrop.classList.add('open');
     backdrop.classList.add('active');
   }
@@ -5965,12 +5973,20 @@ function closeSidebarDrawer() {
   const drawer = document.getElementById('sidebarNavDrawer');
   const backdrop = document.getElementById('sidebarNavBackdrop');
   if (drawer) {
+    drawer.style.transform = 'translateX(-100%)';
     drawer.classList.remove('open');
     drawer.classList.remove('active');
   }
   if (backdrop) {
+    backdrop.style.opacity = '0';
+    backdrop.style.pointerEvents = 'none';
     backdrop.classList.remove('open');
     backdrop.classList.remove('active');
+    setTimeout(() => {
+      if (!backdrop.classList.contains('open')) {
+        backdrop.style.display = 'none';
+      }
+    }, 220);
   }
   document.body.style.overflow = '';
 }
