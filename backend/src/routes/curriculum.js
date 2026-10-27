@@ -270,71 +270,274 @@ router.post('/generate-topic-question', async (req, res) => {
 // 5. GET /api/curriculum/classes - Get list of classes, streams, permitted subjects, and enrolled students
 router.get('/classes', (req, res) => {
   try {
+    const { teacherSubject, teacherSubjectKey } = req.query;
+    const reqSubjKey = (teacherSubjectKey || teacherSubject || '').toUpperCase().trim();
+
     const users = inMemoryStore.users || [];
-    const getStudents = (grade, sec) => users.filter(u => u.role === 'STUDENT' && u.grade === grade && u.section === sec);
+    const getStudents = (grade, sec) => users.filter(u => u.role === 'STUDENT' && String(u.grade) === String(grade) && (u.section === sec || u.section?.toLowerCase() === sec?.toLowerCase()));
 
-    const classes = [
-      {
-        key: '12-NonMed',
-        name: 'Class 12th (Non-Medical)',
-        grade: '12',
-        section: '12-NonMed',
-        stream: 'NON_MEDICAL',
-        defaultSubject: 'PHYSICS',
-        subjects: [
-          { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
-          { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
-          { key: 'MATHEMATICS', name: 'Mathematics', totalChapters: 13, icon: 'calculator' }
-        ],
-        students: getStudents('12', '12-NonMed')
-      },
-      {
-        key: '12-Med',
-        name: 'Class 12th (Medical)',
-        grade: '12',
-        section: '12-Med',
-        stream: 'MEDICAL',
-        defaultSubject: 'BIOLOGY',
-        subjects: [
-          { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
-          { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
-          { key: 'BIOLOGY', name: 'Biology', totalChapters: 13, icon: 'dna' }
-        ],
-        students: getStudents('12', '12-Med')
-      },
-      {
-        key: '10-Science-A',
-        name: 'Class 10th (Section A)',
-        grade: '10',
-        section: '10-Science-A',
-        stream: 'FOUNDATION',
-        defaultSubject: 'CLASS10_SCIENCE',
-        subjects: [
-          { key: 'CLASS10_SCIENCE', name: 'Science', totalChapters: 13, icon: 'atom' },
-          { key: 'CLASS10_MATHEMATICS', name: 'Mathematics', totalChapters: 14, icon: 'calculator' }
-        ],
-        students: getStudents('10', '10-Science-A')
-      }
-    ];
+    // Base institutional classes
+    let rawClasses = inMemoryStore.classes;
+    if (!rawClasses || rawClasses.length === 0) {
+      rawClasses = [
+        {
+          key: '11-NonMed',
+          id: '11-NonMed',
+          name: 'Class 11th (Non-Medical)',
+          grade: '11',
+          section: '11-NonMed',
+          stream: 'NON_MEDICAL',
+          defaultSubject: 'PHYSICS',
+          subjects: [
+            { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+            { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+            { key: 'MATHEMATICS', name: 'Mathematics', totalChapters: 13, icon: 'calculator' }
+          ]
+        },
+        {
+          key: '11-Med',
+          id: '11-Med',
+          name: 'Class 11th (Medical)',
+          grade: '11',
+          section: '11-Med',
+          stream: 'MEDICAL',
+          defaultSubject: 'BIOLOGY',
+          subjects: [
+            { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+            { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+            { key: 'BIOLOGY', name: 'Biology', totalChapters: 13, icon: 'dna' }
+          ]
+        },
+        {
+          key: '12-NonMed',
+          id: '12-NonMed',
+          name: 'Class 12th (Non-Medical)',
+          grade: '12',
+          section: '12-NonMed',
+          stream: 'NON_MEDICAL',
+          defaultSubject: 'PHYSICS',
+          subjects: [
+            { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+            { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+            { key: 'MATHEMATICS', name: 'Mathematics', totalChapters: 13, icon: 'calculator' }
+          ]
+        },
+        {
+          key: '12-Med',
+          id: '12-Med',
+          name: 'Class 12th (Medical)',
+          grade: '12',
+          section: '12-Med',
+          stream: 'MEDICAL',
+          defaultSubject: 'BIOLOGY',
+          subjects: [
+            { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+            { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+            { key: 'BIOLOGY', name: 'Biology', totalChapters: 13, icon: 'dna' }
+          ]
+        },
+        {
+          key: '10-Science-A',
+          id: '10-Science-A',
+          name: 'Class 10th (Section A)',
+          grade: '10',
+          section: '10-Science-A',
+          stream: 'FOUNDATION',
+          defaultSubject: 'CLASS10_SCIENCE',
+          subjects: [
+            { key: 'CLASS10_SCIENCE', name: 'Science', totalChapters: 13, icon: 'atom' },
+            { key: 'CLASS10_MATHEMATICS', name: 'Mathematics', totalChapters: 14, icon: 'calculator' }
+          ]
+        }
+      ];
+      inMemoryStore.classes = rawClasses;
+    }
 
-    res.json({ success: true, count: classes.length, classes });
+    // Attach real-time enrolled students from inMemoryStore.users
+    let enrichedClasses = rawClasses.map(cls => ({
+      ...cls,
+      students: getStudents(cls.grade, cls.section || cls.key)
+    }));
+
+    // If a teacher's subject is specified (e.g. PHYSICS, BIOLOGY, CHEMISTRY, MATHEMATICS),
+    // strictly scope each class's subjects to ONLY that subject, and omit classes that don't teach it!
+    if (reqSubjKey) {
+      enrichedClasses = enrichedClasses
+        .filter(cls => cls.subjects && cls.subjects.some(s => {
+          const sKey = (s.key || s.name || s || '').toString().toUpperCase();
+          return sKey === reqSubjKey || (reqSubjKey === 'PHYSICS' && sKey === 'PHYSICS') || (reqSubjKey === 'CHEMISTRY' && sKey === 'CHEMISTRY') || (reqSubjKey === 'BIOLOGY' && sKey === 'BIOLOGY') || (reqSubjKey === 'MATHEMATICS' && sKey === 'MATHEMATICS');
+        }))
+        .map(cls => {
+          const scopedSubjects = cls.subjects
+            .filter(s => {
+              const sKey = (s.key || s.name || s || '').toString().toUpperCase();
+              return sKey === reqSubjKey;
+            })
+            .map(s => {
+              if (typeof s === 'string') {
+                const sU = s.toUpperCase();
+                return {
+                  key: sU,
+                  name: sU === 'PHYSICS' ? 'Physics' : sU === 'CHEMISTRY' ? 'Chemistry' : sU === 'BIOLOGY' ? 'Biology' : 'Mathematics',
+                  totalChapters: sU === 'PHYSICS' ? 14 : sU === 'CHEMISTRY' ? 10 : 13,
+                  icon: sU === 'PHYSICS' ? 'zap' : sU === 'CHEMISTRY' ? 'flask-conical' : sU === 'BIOLOGY' ? 'dna' : 'calculator'
+                };
+              }
+              return s;
+            });
+
+          return {
+            ...cls,
+            defaultSubject: scopedSubjects[0]?.key || reqSubjKey,
+            subjects: scopedSubjects
+          };
+        });
+    }
+
+    res.json({ success: true, count: enrichedClasses.length, classes: enrichedClasses });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// 5. POST /api/curriculum/students - Add/enroll a new student into class roster
+// 5b. POST /api/curriculum/classes - Dynamically create/add a new class
+router.post('/classes', (req, res) => {
+  try {
+    const { name, grade, section, stream = 'NON_MEDICAL', subjects = [] } = req.body;
+    if (!name || !section) {
+      return res.status(400).json({ success: false, error: 'Class name and section code are required.' });
+    }
+
+    if (!inMemoryStore.classes) inMemoryStore.classes = [];
+    const secTrimmed = section.trim();
+
+    const existing = inMemoryStore.classes.find(c => c.section === secTrimmed || c.key === secTrimmed);
+    if (existing) {
+      return res.status(400).json({ success: false, error: `Class with section "${secTrimmed}" already exists.` });
+    }
+
+    // Determine subjects list
+    let classSubjects = [];
+    if (Array.isArray(subjects) && subjects.length > 0) {
+      classSubjects = subjects.map(s => {
+        if (typeof s === 'object') return s;
+        const sUpper = String(s).toUpperCase();
+        if (sUpper === 'PHYSICS') return { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' };
+        if (sUpper === 'CHEMISTRY') return { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' };
+        if (sUpper === 'BIOLOGY') return { key: 'BIOLOGY', name: 'Biology', totalChapters: 13, icon: 'dna' };
+        if (sUpper === 'MATHEMATICS') return { key: 'MATHEMATICS', name: 'Mathematics', totalChapters: 13, icon: 'calculator' };
+        return { key: sUpper, name: s, totalChapters: 10, icon: 'book' };
+      });
+    } else {
+      // Default based on stream
+      if (stream === 'MEDICAL') {
+        classSubjects = [
+          { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+          { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+          { key: 'BIOLOGY', name: 'Biology', totalChapters: 13, icon: 'dna' }
+        ];
+      } else {
+        classSubjects = [
+          { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+          { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+          { key: 'MATHEMATICS', name: 'Mathematics', totalChapters: 13, icon: 'calculator' }
+        ];
+      }
+    }
+
+    const classId = req.body.id || secTrimmed;
+    const newClass = {
+      key: classId,
+      id: classId,
+      name: name.trim(),
+      grade: String(grade || (classId.includes('11') ? '11' : (classId.includes('10') ? '10' : '12'))),
+      section: secTrimmed,
+      stream: stream,
+      defaultSubject: classSubjects[0]?.key || 'PHYSICS',
+      subjects: classSubjects,
+      students: []
+    };
+
+    inMemoryStore.classes.push(newClass);
+
+    res.status(201).json({
+      success: true,
+      class: newClass,
+      message: `Class "${newClass.name}" (${newClass.section}) created successfully.`
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5c. GET /api/curriculum/faculty - List all institutional departmental faculty profiles
+router.get('/faculty', (req, res) => {
+  try {
+    const faculty = (inMemoryStore.users || []).filter(u => u.role === 'TEACHER');
+    res.json({ success: true, count: faculty.length, faculty });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5d. POST /api/curriculum/faculty/login - Authenticate teacher session
+router.post('/faculty/login', (req, res) => {
+  try {
+    const { facultyId, subjectKey, email, name } = req.body;
+    const users = inMemoryStore.users || [];
+
+    let teacher = null;
+    if (facultyId) {
+      teacher = users.find(u => u.role === 'TEACHER' && u.id === facultyId);
+    }
+    if (!teacher && subjectKey) {
+      teacher = users.find(u => u.role === 'TEACHER' && (u.subjectKey === subjectKey.toUpperCase() || u.department === subjectKey.toUpperCase()));
+    }
+    if (!teacher && email) {
+      teacher = users.find(u => u.role === 'TEACHER' && u.email?.toLowerCase() === email.toLowerCase());
+    }
+
+    if (!teacher) {
+      // Create ad-hoc faculty profile
+      const sKey = (subjectKey || 'PHYSICS').toUpperCase();
+      const sName = sKey === 'PHYSICS' ? 'Physics' : sKey === 'CHEMISTRY' ? 'Chemistry' : sKey === 'BIOLOGY' ? 'Biology' : 'Mathematics';
+      teacher = {
+        id: `fac_${sKey.toLowerCase()}_${Date.now()}`,
+        full_name: name || `Faculty (${sName})`,
+        role: 'TEACHER',
+        email: email || `${sKey.toLowerCase()}.faculty@haps.edu.in`,
+        subject: sName,
+        subjectKey: sKey,
+        department: sKey,
+        designation: `Senior ${sName} Faculty`,
+        defaultClass: sKey === 'BIOLOGY' ? '11-Med' : '11-NonMed',
+        targetStream: sKey === 'BIOLOGY' ? 'NEET' : 'JEE'
+      };
+      inMemoryStore.users.push(teacher);
+    }
+
+    res.json({
+      success: true,
+      teacher,
+      faculty: teacher,
+      message: `Authenticated as ${teacher.full_name} (${teacher.designation}).`
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5e. POST /api/curriculum/students - Add/enroll a new student into class roster
 router.post('/students', (req, res) => {
   try {
-    const {
-      name,
-      rollNumber,
-      grade = '12',
-      section = '12-NonMed',
-      targetExam = 'JEE_MAIN',
-      parentPhone = '+91 98160-XXXXX',
-      board = 'CBSE'
-    } = req.body;
+    const name = req.body.name || req.body.fullName;
+    const rollNumber = req.body.rollNumber || req.body.roll_number;
+    const section = req.body.section || req.body.classId || '11-NonMed';
+    const grade = req.body.grade;
+    const targetExam = req.body.targetExam || req.body.target_exam || 'JEE_MAIN';
+    const parentPhone = req.body.parentPhone || req.body.parent_phone || '+91 98160-XXXXX';
+    const board = req.body.board || 'CBSE';
+    const hostelResident = req.body.hostelResident !== undefined ? req.body.hostelResident : (req.body.hostel_resident !== undefined ? req.body.hostel_resident : true);
 
     if (!name || !rollNumber) {
       return res.status(400).json({ success: false, error: 'Student full name and roll number are required.' });
@@ -342,7 +545,7 @@ router.post('/students', (req, res) => {
 
     if (!inMemoryStore.users) inMemoryStore.users = [];
 
-    const existing = inMemoryStore.users.find(u => u.roll_number === rollNumber.trim());
+    const existing = inMemoryStore.users.find(u => u.roll_number?.toLowerCase() === rollNumber.trim().toLowerCase());
     if (existing) {
       return res.status(400).json({
         success: false,
@@ -350,24 +553,39 @@ router.post('/students', (req, res) => {
       });
     }
 
+    // Auto-infer grade if not explicitly supplied
+    let inferredGrade = grade;
+    if (!inferredGrade) {
+      if (section.includes('11')) inferredGrade = '11';
+      else if (section.includes('10')) inferredGrade = '10';
+      else inferredGrade = '12';
+    }
+
     const newStudent = {
       id: `stu_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
       full_name: name.trim(),
       roll_number: rollNumber.trim(),
-      grade: String(grade),
+      grade: String(inferredGrade),
       section: section,
       board: board,
       target_exam: targetExam,
       parent_phone: parentPhone,
+      hostel_resident: Boolean(hostelResident),
       role: 'STUDENT',
       created_at: new Date().toISOString()
     };
 
     inMemoryStore.users.push(newStudent);
 
-    res.json({
+    // Get updated total students in this section
+    const currentClassStudents = inMemoryStore.users.filter(u => u.role === 'STUDENT' && u.section === section);
+
+    res.status(201).json({
       success: true,
       student: newStudent,
+      enrolledCount: currentClassStudents.length,
+      totalStudentsInClass: currentClassStudents.length,
+      classStudents: currentClassStudents.map(s => ({ id: s.id, name: s.full_name, roll: s.roll_number })),
       message: `Enrolled student ${newStudent.full_name} (${newStudent.roll_number}) into ${section} successfully.`
     });
   } catch (err) {

@@ -185,7 +185,7 @@ runTest('Assessment Question Retrieval with LaTeX Formulas (/api/assessments/asg
 
 // TEST 4: Class Telemetry Analytics & Pedagogical Dashboard
 runTest('Class Telemetry & Pedagogical Action Plan (/api/analytics/class-dashboard)', () => {
-  const res = makeRequest('/api/analytics/class-dashboard');
+  const res = makeRequest('/api/analytics/class-dashboard?assessmentId=asgn_10_sci_01');
   if (!res.success) throw new Error(`Request failed: ${res.error}`);
 
   const data = JSON.parse(res.body);
@@ -277,6 +277,43 @@ runTest('Frontend App Shell & Remedial Modal Delivery (/index.html)', () => {
 
   if (!res.body.includes('HAPS-AI Scholar Assistant') || !res.body.includes('modalPersonalizedRemedial')) {
     throw new Error('Frontend root did not return valid HTML shell with modalPersonalizedRemedial');
+  }
+});
+
+// TEST 9: Teacher Departmental Faculty Directory & Authentication
+runTest('Teacher Departmental Faculty Directory & Auth (/api/curriculum/faculty)', () => {
+  const res = makeRequest('/api/curriculum/faculty');
+  if (!res.success) throw new Error(`Faculty request failed: ${res.error}`);
+  const data = JSON.parse(res.body);
+  if (!data.success || !Array.isArray(data.faculty) || data.faculty.length < 4) {
+    throw new Error('Expected 4 departmental faculty profiles');
+  }
+  
+  // Test login for Physics faculty
+  const loginRes = makeRequest('/api/curriculum/faculty/login', {
+    method: 'POST',
+    data: { facultyId: 'fac_phy_01' }
+  });
+  if (!loginRes.success) throw new Error(`Login request failed: ${loginRes.error}`);
+  const loginData = JSON.parse(loginRes.body);
+  if (!loginData.success || loginData.teacher.subjectKey !== 'PHYSICS') {
+    throw new Error('Expected teacher.subjectKey to be PHYSICS');
+  }
+});
+
+// TEST 10: Strict Subject Isolation for Signed-in Teacher
+runTest('Strict Subject Isolation for Teacher Scope (/api/curriculum/classes?teacherSubjectKey=PHYSICS)', () => {
+  const res = makeRequest('/api/curriculum/classes?teacherSubjectKey=PHYSICS');
+  if (!res.success) throw new Error(`Classes request failed: ${res.error}`);
+  const data = JSON.parse(res.body);
+  if (!data.success || !Array.isArray(data.classes)) {
+    throw new Error('Expected classes array for Physics faculty');
+  }
+  for (const cls of data.classes) {
+    const isOnlyPhy = cls.subjects.length === 1 && (cls.subjects[0]?.name === 'Physics' || cls.subjects[0]?.key === 'PHYSICS');
+    if (!isOnlyPhy) {
+      throw new Error(`Class ${cls.id} has non-physics subjects: ${JSON.stringify(cls.subjects)}`);
+    }
   }
 });
 

@@ -16,16 +16,16 @@ router.post(['/whatsapp-dispatch', '/dispatch-whatsapp'], async (req, res) => {
       roll_number: '11-S-24'
     };
 
-    const formattedMessage = `🎓 *Him Academy Public School, Hamirpur*\n*Weekly Academic Dossier for ${student.full_name} (Roll: ${student.roll_number})*\n\n` +
-      `📊 *Performance Summary:*\n` +
+    const formattedMessage = `*Him Academy Public School, Hamirpur*\n*Weekly Academic Dossier for ${student.full_name} (Roll: ${student.roll_number})*\n\n` +
+      `*Performance Summary:*\n` +
       `• Weekly Accuracy: 78.4%\n` +
       `• Study Time: 15.2 hrs\n` +
       `• Mastered: Moment of Inertia (95% accuracy)\n` +
       `• Focus Need: Damped Oscillations\n\n` +
-      `🏡 *Recommended Parent Action for this Weekend:*\n` +
+      `*Recommended Parent Action for this Weekend:*\n` +
       `1. Ask Aryan: _"How do car shock absorbers stop a car from bouncing?"_ (5-min Feynman check)\n` +
       `2. Ensure 45 mins quiet time Sunday morning for the speed recap drill.\n\n` +
-      `🔗 View full report: https://scholar.himacademy.ac.in/report/${studentId}\n` +
+      `Official Portal: https://scholar.himacademy.ac.in/report/${studentId}\n` +
       `_HAPS-AI Scholar Assistant_`;
 
     // Stream event to Kafka

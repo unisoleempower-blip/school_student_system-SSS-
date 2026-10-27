@@ -87,7 +87,7 @@ function generatePrintableReportHtml(reportData) {
     </div>
   </div>
 
-  <div class="section-title">🏫 Directives for School & Residential Hostel Faculty (Evening Prep)</div>
+  <div class="section-title">Directives for School & Residential Hostel Faculty (Evening Prep)</div>
   ${schoolHostelActions.map(a => `
     <div class="directive-card school">
       <strong>${a.directive || a.action}</strong><br>
@@ -95,7 +95,7 @@ function generatePrintableReportHtml(reportData) {
     </div>
   `).join('')}
 
-  <div class="section-title">🏡 Directives for Parents at Home (Weekend Support)</div>
+  <div class="section-title">Directives for Parents at Home (Weekend Support)</div>
   ${parentActions.map(a => `
     <div class="directive-card">
       <strong>${a.directive || a.action}</strong><br>

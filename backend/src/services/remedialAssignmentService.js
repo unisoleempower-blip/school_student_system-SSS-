@@ -780,7 +780,7 @@ function verifyStudentFormula(subtopic, studentInput, subject = 'Biology') {
   if (isMatch) {
     return {
       isValid: true,
-      message: `🎉 Flawless! You have accurately stated the ${repoEntry.name}.`,
+      message: `Verified: Correct. You have accurately stated the ${repoEntry.name}.`,
       modelFormulaLatex: repoEntry.latex,
       signRules: repoEntry.signRules
     };

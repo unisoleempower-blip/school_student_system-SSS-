@@ -325,7 +325,7 @@ async function generateAssignmentDocxBuffer(data = {}) {
           new Paragraph({
             spacing: { after: 100 },
             children: [
-              new TextRun({ text: `⚠️ Common Traps & Sign Rules: `, bold: true, color: 'DC2626' }),
+              new TextRun({ text: `Common Traps & Sign Rules: `, bold: true, color: 'DC2626' }),
               new TextRun({ text: cleanLatexForWord(f.rulesAndTraps || f.signRules), italics: true })
             ]
           })
@@ -443,14 +443,14 @@ async function generateAssignmentDocxBuffer(data = {}) {
       new Paragraph({
         spacing: { after: 60 },
         children: [
-          new TextRun({ text: '🏠 School Hostel Prep Directive (7:30 PM Study Hall): ', bold: true, color: '1E40AF' }),
+          new TextRun({ text: 'School Hostel Prep Directive (7:30 PM Study Hall): ', bold: true, color: '1E40AF' }),
           new TextRun({ text: dualActionPlan.hostelPrepAction?.directive || 'Conduct 15-minute 1-on-1 pedagogical review.' })
         ]
       }),
       new Paragraph({
         spacing: { after: 140 },
         children: [
-          new TextRun({ text: '👨‍👩‍👧 Parent Home Discussion Directive (Weekend Feynman Review): ', bold: true, color: '059669' }),
+          new TextRun({ text: 'Parent Home Discussion Directive (Weekend Feynman Review): ', bold: true, color: '059669' }),
           new TextRun({ text: dualActionPlan.parentHomeAction?.directive || 'Ask student to explain core concept for 5 minutes during weekend call.' })
         ]
       })

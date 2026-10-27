@@ -99,31 +99,28 @@
         </button>
       </div>
 
-      <!-- TEACHER SUBJECT FACULTY IDENTITY & SWITCHER (STRICT SUBJECT SCOPING) -->
+      <!-- TEACHER SUBJECT FACULTY IDENTITY & SIGN-IN (STRICT SUBJECT SCOPING) -->
       <div class="teacher-faculty-banner" id="teacherFacultyBanner">
         <div class="faculty-profile-info">
-          <div class="faculty-avatar" id="teacherFacultyAvatar">⚡</div>
+          <div class="faculty-avatar" id="teacherFacultyAvatar">
+            <i data-lucide="user-check" style="width:20px; height:20px; color:var(--accent-blue);"></i>
+          </div>
           <div>
             <div class="faculty-name-row">
-              <strong id="teacherFacultyName">Er. Rajesh Kumar</strong>
-              <span class="faculty-badge" id="teacherFacultyBadge">Senior Physics Faculty</span>
+              <strong id="teacherFacultyName">Dr. Vikram Sharma</strong>
+              <span class="faculty-badge" id="teacherFacultyBadge">Senior Physics Faculty &bull; Department of Physics</span>
             </div>
-            <span class="faculty-subtext" id="teacherFacultyStreamText">Class 12 Non-Med &bull; JEE Main, Advanced &amp; CBSE Boards</span>
+            <span class="faculty-subtext" id="teacherFacultyStreamText">Assigned Subject: Physics &bull; Classes 11 &amp; 12 (JEE Main/Adv, NEET &amp; CBSE Boards)</span>
           </div>
         </div>
-        <div class="faculty-switcher-pills">
-          <span class="switcher-label">Faculty Subject:</span>
-          <button type="button" class="btn-faculty-pill active" id="btnFacultyPhysics" data-subject-faculty="PHYSICS" onclick="setTeacherSubjectFaculty('PHYSICS')">
-            <i data-lucide="zap" style="width:13px;height:13px;"></i> Physics
+        <div class="faculty-switcher-pills" style="gap: 8px;">
+          <button type="button" class="btn-faculty-pill active" id="btnOpenTeacherSignInModal" onclick="openTeacherSignInModal()" title="Switch teacher profile or departmental authentication" style="display:flex; align-items:center; gap:6px;">
+            <i data-lucide="log-in" style="width:14px;height:14px;"></i>
+            <span>Switch Faculty / Sign In</span>
           </button>
-          <button type="button" class="btn-faculty-pill" id="btnFacultyChemistry" data-subject-faculty="CHEMISTRY" onclick="setTeacherSubjectFaculty('CHEMISTRY')">
-            <i data-lucide="flask-conical" style="width:13px;height:13px;"></i> Chemistry
-          </button>
-          <button type="button" class="btn-faculty-pill" id="btnFacultyMaths" data-subject-faculty="MATHEMATICS" onclick="setTeacherSubjectFaculty('MATHEMATICS')">
-            <i data-lucide="calculator" style="width:13px;height:13px;"></i> Mathematics
-          </button>
-          <button type="button" class="btn-faculty-pill" id="btnFacultyBiology" data-subject-faculty="BIOLOGY" onclick="setTeacherSubjectFaculty('BIOLOGY')">
-            <i data-lucide="dna" style="width:13px;height:13px;"></i> Biology
+          <button type="button" class="btn-faculty-pill" id="btnOpenCreateClassModalTop" onclick="openCreateClassModal()" title="Create a new class / grade" style="display:flex; align-items:center; gap:6px;">
+            <i data-lucide="plus-circle" style="width:14px;height:14px;"></i>
+            <span>+ New Class</span>
           </button>
         </div>
       </div>
@@ -136,10 +133,12 @@
           <div class="target-stream-card active active-jee" data-target-stream="JEE" id="cardStreamJee">
             <div>
               <div class="stream-card-header">
-                <span class="stream-title">⚡ JEE (Main & Advanced)</span>
-                <span class="stream-icon-badge" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8;">⚙️</span>
+                <span class="stream-title">JEE (Main &amp; Advanced)</span>
+                <span class="stream-icon-badge" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8;">
+                  <i data-lucide="compass" style="width:16px;height:16px;"></i>
+                </span>
               </div>
-              <p class="stream-subtitle">Class 11 & 12 Non-Med &bull; Physics, Chemistry & Mathematics</p>
+              <p class="stream-subtitle">Class 11 &amp; 12 Non-Med &bull; Physics, Chemistry &amp; Mathematics</p>
             </div>
             <span class="stream-pill-badge" style="background:rgba(56, 189, 248, 0.2); color:#38bdf8;">
               +4 / -1 Marking &bull; 90s Speed Benchmark
@@ -149,10 +148,12 @@
           <div class="target-stream-card" data-target-stream="NEET" id="cardStreamNeet">
             <div>
               <div class="stream-card-header">
-                <span class="stream-title">🩺 NEET UG</span>
-                <span class="stream-icon-badge" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">🧬</span>
+                <span class="stream-title">NEET UG</span>
+                <span class="stream-icon-badge" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">
+                  <i data-lucide="dna" style="width:16px;height:16px;"></i>
+                </span>
               </div>
-              <p class="stream-subtitle">Class 11 & 12 Medical &bull; Biology (Botany & Zoology), Chemistry, Physics</p>
+              <p class="stream-subtitle">Class 11 &amp; 12 Medical &bull; Biology (Botany &amp; Zoology), Chemistry, Physics</p>
             </div>
             <span class="stream-pill-badge" style="background:rgba(16, 185, 129, 0.2); color:#34d399;">
               NCERT Line-by-Line &bull; 60s High Velocity
@@ -162,23 +163,27 @@
           <div class="target-stream-card" data-target-stream="BOARD" id="cardStreamBoard">
             <div>
               <div class="stream-card-header">
-                <span class="stream-title">📘 CBSE & HP Board</span>
-                <span class="stream-icon-badge" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24;">📜</span>
+                <span class="stream-title">CBSE &amp; HP Board</span>
+                <span class="stream-icon-badge" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24;">
+                  <i data-lucide="book-open" style="width:16px;height:16px;"></i>
+                </span>
               </div>
-              <p class="stream-subtitle">Senior & Secondary Boards &bull; Class 10 & 12 Board Blueprints</p>
+              <p class="stream-subtitle">Senior &amp; Secondary Boards &bull; Class 10, 11 &amp; 12 Board Blueprints</p>
             </div>
             <span class="stream-pill-badge" style="background:rgba(245, 158, 11, 0.2); color:#fbbf24;">
-              Step Rubrics &bull; Derivations & Diagrams
+              Step Rubrics &bull; Derivations &amp; Diagrams
             </span>
           </div>
 
           <div class="target-stream-card" data-target-stream="OLYMPIAD" id="cardStreamOlympiad">
             <div>
               <div class="stream-card-header">
-                <span class="stream-title">🏆 Olympiad & NTSE</span>
-                <span class="stream-icon-badge" style="background:rgba(192, 132, 252, 0.15); color:#c084fc;">🥇</span>
+                <span class="stream-title">Olympiad &amp; NTSE</span>
+                <span class="stream-icon-badge" style="background:rgba(192, 132, 252, 0.15); color:#c084fc;">
+                  <i data-lucide="award" style="width:16px;height:16px;"></i>
+                </span>
               </div>
-              <p class="stream-subtitle">Foundation & Competitive Excellence &bull; Class 9, 10 & 11</p>
+              <p class="stream-subtitle">Foundation &amp; Competitive Excellence &bull; Class 9, 10 &amp; 11</p>
             </div>
             <span class="stream-pill-badge" style="background:rgba(192, 132, 252, 0.2); color:#c084fc;">
               Higher-Order Thinking (HOTS) &bull; Multi-Tier Logic
@@ -194,8 +199,10 @@
               <div class="scope-field-group">
                 <span class="scope-label"><i data-lucide="graduation-cap" style="width:13px; height:13px; vertical-align:middle;"></i> My Teaching Class</span>
                 <select class="form-select" id="selectTeacherClassScope" style="min-width: 250px; font-weight: 700; font-size: 0.9rem; padding: 7px 12px;">
-                  <option value="12-NonMed" selected>Class 12th (Non-Medical) &bull; JEE & Boards</option>
-                  <option value="12-Med">Class 12th (Medical) &bull; NEET & Boards</option>
+                  <option value="11-NonMed">Class 11th (Non-Medical) &bull; JEE &amp; Boards</option>
+                  <option value="11-Med">Class 11th (Medical) &bull; NEET &amp; Boards</option>
+                  <option value="12-NonMed" selected>Class 12th (Non-Medical) &bull; JEE &amp; Boards</option>
+                  <option value="12-Med">Class 12th (Medical) &bull; NEET &amp; Boards</option>
                   <option value="10-Science-A">Class 10th (Section A) &bull; Secondary</option>
                 </select>
               </div>
@@ -204,20 +211,24 @@
               <div class="scope-field-group">
                 <span class="scope-label"><i data-lucide="book" style="width:13px; height:13px; vertical-align:middle;"></i> Select Subject</span>
                 <div class="subject-pills-container" id="containerSubjectPills">
-                  <!-- Injected dynamically: Physics, Chemistry, Mathematics -->
+                  <!-- Injected dynamically: Strictly scoped to the signed-in teacher's subject -->
                 </div>
               </div>
             </div>
 
             <!-- Enrolled Students Counter, Add Student Button & Drawer Trigger -->
             <div style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" class="btn-add-student-pill" id="btnOpenCreateClassModal" onclick="openCreateClassModal()" title="Create or add a new class section">
+                <i data-lucide="plus" style="width:14px; height:14px;"></i>
+                <span>+ New Class</span>
+              </button>
               <button type="button" class="btn-add-student-pill" id="btnOpenAddStudentModal" onclick="openAddStudentModal()" title="Add / Enroll a new student into this class">
                 <i data-lucide="user-plus" style="width:14px; height:14px;"></i>
                 <span>+ Add Student</span>
               </button>
               <button type="button" class="class-roster-preview-pill" id="btnToggleClassRosterPreview" title="Click to view enrolled class students">
                 <i data-lucide="users" style="width:14px; height:14px;"></i>
-                <span id="labelEnrolledStudentsCount">8 Students in Class</span>
+                <span id="labelEnrolledStudentsCount">Enrolled Students</span>
                 <i data-lucide="chevron-down" id="iconRosterDrawerChevron" style="width:13px; height:13px;"></i>
               </button>
             </div>
@@ -227,7 +238,7 @@
           <div class="class-roster-drawer" id="drawerClassRosterPreview">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
               <strong style="font-size:0.8rem; color:var(--text-primary);"><i data-lucide="users" style="width:13px;height:13px;color:#10b981;vertical-align:middle;"></i> Enrolled Class Students:</strong>
-              <span style="font-size:0.72rem; color:var(--text-muted);">💡 Click any student to view detailed progress, charts &amp; personalized assignment</span>
+              <span style="font-size:0.72rem; color:var(--text-muted);">Select any student to view detailed progress, charts &amp; personalized assignment</span>
             </div>
             <div class="students-chips-list" id="listClassEnrolledStudentChips">
               <!-- Dynamically populated chips -->
@@ -285,9 +296,9 @@
                 <div class="form-group">
                   <label class="form-label" style="font-weight: 600;">Format / Mode</label>
                   <select class="form-select" id="selectGenTestMode" style="width: 100%;">
-                    <option value="QUIZ" selected>⏱️ Speed Quiz (15–20 Mins)</option>
-                    <option value="ASSIGNMENT">📝 Homework Assignment (Practice Set)</option>
-                    <option value="TEST">🎯 Chapter Diagnostic Test (Full Marking)</option>
+                    <option value="QUIZ" selected>Speed Quiz (15–20 Mins)</option>
+                    <option value="ASSIGNMENT">Homework Assignment (Practice Set)</option>
+                    <option value="TEST">Chapter Diagnostic Test (Full Marking)</option>
                   </select>
                 </div>
 
@@ -373,8 +384,8 @@
             <!-- TASK-11: Live Classroom Seat Map (32 Desk Pods) -->
             <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-subtle);">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 6px;">
-                <strong style="font-size:0.85rem; color:var(--text-primary);"><i data-lucide="layout-grid" style="width:14px;height:14px;vertical-align:middle;"></i> Class XI Science-A Live Seatmap (Hostel Prep)</strong>
-                <span style="font-size:0.72rem; color:var(--text-muted);">🟢 Solving Fast &bull; 🟡 Hesitating &bull; 🔴 Need Assistance</span>
+                <strong style="font-size:0.85rem; color:var(--text-primary);"><i data-lucide="layout-grid" style="width:14px;height:14px;vertical-align:middle;"></i> Class Live Seatmap (Evening Prep)</strong>
+                <span style="font-size:0.72rem; color:var(--text-muted);"><span style="color:#10b981;">●</span> Fast Solving &bull; <span style="color:#eab308;">●</span> Hesitating &bull; <span style="color:#ef4444;">●</span> Need Assistance</span>
               </div>
               <div class="seatmap-grid" id="classroomSeatmapGrid">
                 <!-- 32 student desk pods dynamically injected -->
@@ -878,7 +889,7 @@
                   <i data-lucide="zap" style="width:18px; height:18px;"></i>
                 </div>
                 <div>
-                  <h3 class="card-title" style="font-size:1.05rem;">⚡ Quick Recap Needed (5–10 Min Review)</h3>
+                  <h3 class="card-title" style="font-size:1.05rem;">Quick Recap Recommended (5–10 Min Review)</h3>
                   <p class="card-subtitle">Moderate accuracy (50%–75%). Reinforce key definitions & Cartesian sign rules.</p>
                 </div>
               </div>
@@ -896,7 +907,7 @@
                   <i data-lucide="alert-octagon" style="width:18px; height:18px;"></i>
                 </div>
                 <div>
-                  <h3 class="card-title" style="font-size:1.05rem;">🔄 Teach Once Again (Re-Teach Needed)</h3>
+                  <h3 class="card-title" style="font-size:1.05rem;">Concept Re-Teaching Required (Deep Review)</h3>
                   <p class="card-subtitle">Critical failure (<50% accuracy). Re-derive step formulas in evening hostel prep.</p>
                 </div>
               </div>
@@ -1449,17 +1460,17 @@
 
       <div class="whatsapp-chat-preview">
         <div class="wa-bubble">
-          <strong>🎓 Him Academy Public School, Hamirpur</strong><br>
+          <strong>Him Academy Public School, Hamirpur</strong><br>
           <em>Weekly Academic Dossier for Aryan Sharma (Roll: 11-S-24)</em><br><br>
-          📊 <strong>Performance Summary:</strong><br>
+          <strong>Performance Summary:</strong><br>
           • Weekly Accuracy: 78.4%<br>
           • Study Time: 15.2 hrs<br>
           • Mastered: Moment of Inertia (95%)<br>
           • Focus Needed: Damped Oscillations (30%)<br><br>
-          🏡 <strong>Recommended Parent Action for this Weekend:</strong><br>
+          <strong>Recommended Parent Action for this Weekend:</strong><br>
           1. Ask Aryan: <em>"How do car shock absorbers stop a car from bouncing?"</em> (5-min Feynman check)<br>
           2. Ensure 45 mins quiet time Sunday morning for the speed recap drill.<br><br>
-          🔗 <em>View full verified report: https://scholar.himacademy.ac.in/report/11-S-24</em>
+          <em>View full verified report: https://scholar.himacademy.ac.in/report/11-S-24</em>
           <div style="text-align:right; font-size:0.65rem; color:#8696a0; margin-top:4px;">11:45 AM &bull; Delivered</div>
         </div>
       </div>
@@ -1570,15 +1581,15 @@
         </h4>
         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem;">
           <div style="padding: 10px 14px; background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 4px;">
-            <strong style="color: #10b981; font-size: 0.82rem;">🟢 Mastered Concepts (High Accuracy & Speed):</strong>
+            <strong style="color: #10b981; font-size: 0.82rem;"><span style="color:#10b981;">●</span> Mastered Concepts (High Accuracy & Speed):</strong>
             <div id="diagMasteredList" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">None</div>
           </div>
           <div style="padding: 10px 14px; background: rgba(234, 179, 8, 0.08); border-left: 3px solid #eab308; border-radius: 4px;">
-            <strong style="color: #eab308; font-size: 0.82rem;">🟡 Concepts Needing Recap (Speed Lag or Minor Slip):</strong>
+            <strong style="color: #eab308; font-size: 0.82rem;"><span style="color:#eab308;">●</span> Concepts Needing Recap (Speed Lag or Minor Slip):</strong>
             <div id="diagRecapList" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">None</div>
           </div>
           <div style="padding: 10px 14px; background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; border-radius: 4px;">
-            <strong style="color: #ef4444; font-size: 0.82rem;">🔴 Critical Weaknesses (Conceptual Trap or Hesitation):</strong>
+            <strong style="color: #ef4444; font-size: 0.82rem;"><span style="color:#ef4444;">●</span> Critical Weaknesses (Conceptual Trap or Hesitation):</strong>
             <div id="diagWeakList" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">None</div>
           </div>
         </div>
@@ -1682,11 +1693,11 @@
           </h4>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div style="padding: 10px; background: rgba(59, 130, 246, 0.08); border-left: 3px solid #3b82f6; border-radius: 4px;">
-              <strong style="font-size: 0.78rem; color: #3b82f6;">🏫 Residential Evening Prep (Hostel Faculty):</strong>
+              <strong style="font-size: 0.78rem; color: #3b82f6;">Residential Evening Prep (Hostel Faculty):</strong>
               <div id="remHostelDirective" style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">Review formula on whiteboard with proctor.</div>
             </div>
             <div style="padding: 10px; background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 4px;">
-              <strong style="font-size: 0.78rem; color: #10b981;">🏡 Weekend Home Discussion (Parents):</strong>
+              <strong style="font-size: 0.78rem; color: #10b981;">Weekend Home Discussion (Parents):</strong>
               <div id="remParentDirective" style="font-size: 0.78rem; color: var(--text-secondary); margin-top: 4px;">Have student explain formula intuitively.</div>
             </div>
           </div>
@@ -1713,6 +1724,158 @@
     </div>
   </div>
 
+  <!-- Modal: Teacher Sign-In & Department Authentication -->
+  <div class="modal-overlay" id="modalTeacherSignIn" style="display: none; z-index: 10000;">
+    <div class="modal-card" style="max-width: 580px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+      <div style="background: linear-gradient(135deg, #1e3a8a, #2563eb); padding: 16px 20px; color:#fff; display:flex; justify-content:space-between; align-items:center; border-radius: var(--radius-md) var(--radius-md) 0 0;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i data-lucide="shield-check" style="width:22px; height:22px;"></i>
+          <div>
+            <strong style="font-size:1.1rem; display:block;">Faculty Authentication &amp; Department Sign-In</strong>
+            <p style="font-size:0.75rem; margin:0; opacity:0.9;">Him Academy Public School &bull; Academic Portal</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeTeacherSignInModal()" style="background:transparent; border:none; color:#fff; cursor:pointer; padding:4px;">
+          <i data-lucide="x" style="width:20px; height:20px;"></i>
+        </button>
+      </div>
+
+      <div style="padding: 20px; background: var(--bg-card); display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:8px;">
+            Departmental Faculty Profiles (1-Click Switch)
+          </label>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <!-- Physics Faculty -->
+            <button type="button" class="btn-faculty-card" onclick="authenticateTeacher('PHYSICS', 'Dr. Vikram Sharma', 'vikram.phy@haps.edu.in')" style="padding:12px; background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.3); border-radius:8px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <i data-lucide="zap" style="width:16px; height:16px; color:#3b82f6;"></i>
+                <strong style="font-size:0.88rem; color:var(--text-primary);">Dr. Vikram Sharma</strong>
+              </div>
+              <span style="font-size:0.74rem; color:var(--text-muted); display:block;">Senior Physics Faculty &bull; HOD</span>
+              <span style="font-size:0.7rem; color:#3b82f6; font-weight:700; margin-top:4px; display:inline-block;">Subjects: Physics Only</span>
+            </button>
+
+            <!-- Chemistry Faculty -->
+            <button type="button" class="btn-faculty-card" onclick="authenticateTeacher('CHEMISTRY', 'Prof. Sunita Rao', 'sunita.chem@haps.edu.in')" style="padding:12px; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3); border-radius:8px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <i data-lucide="flask-conical" style="width:16px; height:16px; color:#10b981;"></i>
+                <strong style="font-size:0.88rem; color:var(--text-primary);">Prof. Sunita Rao</strong>
+              </div>
+              <span style="font-size:0.74rem; color:var(--text-muted); display:block;">Senior Chemistry Faculty</span>
+              <span style="font-size:0.7rem; color:#10b981; font-weight:700; margin-top:4px; display:inline-block;">Subjects: Chemistry Only</span>
+            </button>
+
+            <!-- Biology Faculty -->
+            <button type="button" class="btn-faculty-card" onclick="authenticateTeacher('BIOLOGY', 'Dr. Ananya Mukherjee', 'ananya.bio@haps.edu.in')" style="padding:12px; background:rgba(236, 72, 153, 0.08); border:1px solid rgba(236, 72, 153, 0.3); border-radius:8px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <i data-lucide="dna" style="width:16px; height:16px; color:#ec4899;"></i>
+                <strong style="font-size:0.88rem; color:var(--text-primary);">Dr. Ananya Mukherjee</strong>
+              </div>
+              <span style="font-size:0.74rem; color:var(--text-muted); display:block;">Senior Biology Faculty &bull; NEET</span>
+              <span style="font-size:0.7rem; color:#ec4899; font-weight:700; margin-top:4px; display:inline-block;">Subjects: Biology Only</span>
+            </button>
+
+            <!-- Mathematics Faculty -->
+            <button type="button" class="btn-faculty-card" onclick="authenticateTeacher('MATHEMATICS', 'Er. Rajesh Gupta', 'rajesh.math@haps.edu.in')" style="padding:12px; background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.3); border-radius:8px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                <i data-lucide="calculator" style="width:16px; height:16px; color:#f59e0b;"></i>
+                <strong style="font-size:0.88rem; color:var(--text-primary);">Er. Rajesh Gupta</strong>
+              </div>
+              <span style="font-size:0.74rem; color:var(--text-muted); display:block;">Senior Mathematics Faculty</span>
+              <span style="font-size:0.7rem; color:#f59e0b; font-weight:700; margin-top:4px; display:inline-block;">Subjects: Mathematics Only</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border-subtle); padding-top:14px;">
+          <label style="font-size:0.8rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:8px;">
+            Or Custom Faculty Login
+          </label>
+          <form id="formCustomTeacherLogin" onsubmit="submitCustomTeacherLogin(event)" style="display:flex; flex-direction:column; gap:10px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+              <div>
+                <label style="font-size:0.78rem; color:var(--text-secondary); display:block; margin-bottom:3px;">Teacher Name</label>
+                <input type="text" id="inputCustomTeacherName" placeholder="e.g. Dr. K. S. Thakur" class="form-control" style="width:100%; padding:7px 10px; font-size:0.84rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
+              </div>
+              <div>
+                <label style="font-size:0.78rem; color:var(--text-secondary); display:block; margin-bottom:3px;">Department Subject *</label>
+                <select id="selectCustomTeacherSubject" class="form-select" required style="width:100%; padding:7px 10px; font-size:0.84rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
+                  <option value="PHYSICS" selected>Physics</option>
+                  <option value="CHEMISTRY">Chemistry</option>
+                  <option value="BIOLOGY">Biology</option>
+                  <option value="MATHEMATICS">Mathematics</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:0.78rem; color:var(--text-secondary); display:block; margin-bottom:3px;">Institutional Email</label>
+              <input type="email" id="inputCustomTeacherEmail" placeholder="faculty@haps.edu.in" class="form-control" style="width:100%; padding:7px 10px; font-size:0.84rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+              <button type="button" class="btn-secondary" onclick="closeTeacherSignInModal()" style="font-size:0.82rem; padding:6px 14px;">Cancel</button>
+              <button type="submit" class="btn-primary" style="font-size:0.82rem; padding:6px 16px; background:linear-gradient(135deg, #2563eb, #1d4ed8); font-weight:700;">
+                <i data-lucide="log-in" style="width:14px; height:14px;"></i> Sign In as Faculty
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Create / Add New Class -->
+  <div class="modal-overlay" id="modalCreateClass" style="display: none; z-index: 10000;">
+    <div class="modal-card" style="max-width: 500px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+      <div style="background: linear-gradient(135deg, #2563eb, #0284c7); padding: 16px 20px; color:#fff; display:flex; justify-content:space-between; align-items:center; border-radius: var(--radius-md) var(--radius-md) 0 0;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i data-lucide="plus-circle" style="width:22px; height:22px;"></i>
+          <div>
+            <strong style="font-size:1.1rem; display:block;">Create New Class Section</strong>
+            <p style="font-size:0.75rem; margin:0; opacity:0.9;">Add a class section to school curriculum &amp; roster</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeCreateClassModal()" style="background:transparent; border:none; color:#fff; cursor:pointer; padding:4px;">
+          <i data-lucide="x" style="width:20px; height:20px;"></i>
+        </button>
+      </div>
+      <form id="formCreateClass" onsubmit="submitCreateClass(event)" style="padding: 20px; display:flex; flex-direction:column; gap:12px; background: var(--bg-card);">
+        <div>
+          <label style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Class Display Name *</label>
+          <input type="text" class="form-control" id="inputNewClassName" placeholder="e.g. Class 11th (Section C)" required style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div>
+            <label style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Grade / Standard *</label>
+            <select class="form-select" id="selectNewClassGrade" required style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+              <option value="11" selected>Class 11th</option>
+              <option value="12">Class 12th</option>
+              <option value="10">Class 10th</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Section Identifier Code *</label>
+            <input type="text" class="form-control" id="inputNewClassSection" placeholder="e.g. 11-SecC" required style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Stream</label>
+          <select class="form-select" id="selectNewClassStream" style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+            <option value="NON_MEDICAL" selected>Non-Medical (Physics, Chemistry, Mathematics)</option>
+            <option value="MEDICAL">Medical (Physics, Chemistry, Biology)</option>
+            <option value="FOUNDATION">Foundation Secondary (Science, Mathematics)</option>
+          </select>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; padding-top:12px; border-top:1px solid var(--border-subtle);">
+          <button type="button" class="btn-secondary" onclick="closeCreateClassModal()" style="font-size:0.82rem; padding:7px 14px; cursor:pointer;">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnSubmitCreateClass" style="background: linear-gradient(135deg, #2563eb, #0284c7); font-weight:700; font-size:0.82rem; padding:7px 18px; cursor:pointer;">
+            <i data-lucide="plus" style="width:14px; height:14px;"></i> Create Class
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Modal: Enroll / Add Student To Class -->
   <div class="modal-overlay" id="modalAddStudentToClass" style="display: none; z-index: 10000;">
     <div class="modal-card" style="max-width: 520px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
@@ -1721,7 +1884,7 @@
           <i data-lucide="user-plus" style="width:22px; height:22px;"></i>
           <div>
             <strong style="font-size:1.1rem; display:block;">Enroll Student to Class Roster</strong>
-            <p style="font-size:0.75rem; margin:0; opacity:0.9;">Add a student to active class roster and learning records</p>
+            <p style="font-size:0.75rem; margin:0; opacity:0.9;">Add a student to active database and learning records</p>
           </div>
         </div>
         <button type="button" onclick="closeAddStudentModal()" style="background:transparent; border:none; color:#fff; cursor:pointer; padding:4px;">
@@ -1735,8 +1898,8 @@
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
           <div>
-            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Roll Number *</label>
-            <input type="text" class="form-control" id="inputNewStudentRoll" placeholder="e.g. 12-NM-09" required style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Roll Number / Scholar ID *</label>
+            <input type="text" class="form-control" id="inputNewStudentRoll" placeholder="e.g. 11-NM-09" required style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
           </div>
           <div>
             <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Target Exam</label>
@@ -1751,22 +1914,31 @@
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
           <div>
-            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Class / Stream</label>
+            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Target Class Section *</label>
             <select class="form-select" id="selectNewStudentSection" style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+              <option value="11-NonMed" selected>Class 11th (Non-Med)</option>
+              <option value="11-Med">Class 11th (Medical)</option>
               <option value="12-NonMed">Class 12th (Non-Med)</option>
               <option value="12-Med">Class 12th (Medical)</option>
               <option value="10-Science-A">Class 10th (Section A)</option>
             </select>
           </div>
           <div>
-            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Parent WhatsApp Contact</label>
-            <input type="text" class="form-control" id="inputNewStudentPhone" placeholder="+91 98160-XXXXX" style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Residential Status</label>
+            <select class="form-select" id="selectNewStudentCategory" style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+              <option value="true" selected>Hostel Resident (Evening Prep)</option>
+              <option value="false">Day Scholar</option>
+            </select>
           </div>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Parent WhatsApp Contact</label>
+          <input type="text" class="form-control" id="inputNewStudentPhone" placeholder="+91 98160-XXXXX" style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
         </div>
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; padding-top:12px; border-top:1px solid var(--border-subtle);">
           <button type="button" class="btn-secondary" onclick="closeAddStudentModal()" style="font-size:0.82rem; padding:7px 14px; cursor:pointer;">Cancel</button>
           <button type="submit" class="btn-primary" id="btnSubmitAddStudent" style="background: linear-gradient(135deg, #10b981, #059669); font-weight:700; font-size:0.82rem; padding:7px 18px; cursor:pointer;">
-            <i data-lucide="check" style="width:14px; height:14px;"></i> Enroll Student
+            <i data-lucide="check" style="width:14px; height:14px;"></i> Enroll Student to Database
           </button>
         </div>
       </form>

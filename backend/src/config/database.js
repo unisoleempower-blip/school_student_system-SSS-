@@ -39,8 +39,95 @@ const inMemoryStore = {
     { id: 'b0000000-0000-0000-0000-000000000023', full_name: 'Tanvi Sood', roll_number: '10-A-03', grade: '10', section: '10-Science-A', board: 'CBSE', target_exam: 'CBSE', role: 'STUDENT' },
     { id: 'b0000000-0000-0000-0000-000000000024', full_name: 'Nikhil Rana', roll_number: '10-A-04', grade: '10', section: '10-Science-A', board: 'HP_BOARD', target_exam: 'HP_BOARD', role: 'STUDENT' },
 
-    // Faculty
-    { id: 'a0000000-0000-0000-0000-000000000002', full_name: 'Er. Rajesh Kumar (HOD Physics)', role: 'TEACHER', email: 'rajesh.phy@himacademy.com' }
+    // Class 11th Non-Medical (Physics, Chemistry, Maths -> JEE / Boards)
+    { id: 'b0000000-0000-0000-0000-000000000031', full_name: 'Adarsh Katoch', roll_number: '11-NM-01', grade: '11', section: '11-NonMed', board: 'CBSE', target_exam: 'JEE_MAIN', role: 'STUDENT', hostel_resident: true },
+    { id: 'b0000000-0000-0000-0000-000000000032', full_name: 'Pooja Sharma', roll_number: '11-NM-02', grade: '11', section: '11-NonMed', board: 'HP_BOARD', target_exam: 'JEE_MAIN', role: 'STUDENT', hostel_resident: false },
+    { id: 'b0000000-0000-0000-0000-000000000033', full_name: 'Kunal Jamwal', roll_number: '11-NM-03', grade: '11', section: '11-NonMed', board: 'CBSE', target_exam: 'JEE_ADVANCED', role: 'STUDENT', hostel_resident: true },
+    { id: 'b0000000-0000-0000-0000-000000000034', full_name: 'Suhani Rana', roll_number: '11-NM-04', grade: '11', section: '11-NonMed', board: 'HP_BOARD', target_exam: 'HP_BOARD', role: 'STUDENT', hostel_resident: false },
+
+    // Class 11th Medical (Physics, Chemistry, Biology -> NEET / Boards)
+    { id: 'b0000000-0000-0000-0000-000000000041', full_name: 'Riya Thakur', roll_number: '11-M-01', grade: '11', section: '11-Med', board: 'CBSE', target_exam: 'NEET_UG', role: 'STUDENT', hostel_resident: true },
+    { id: 'b0000000-0000-0000-0000-000000000042', full_name: 'Ayush Banyal', roll_number: '11-M-02', grade: '11', section: '11-Med', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT', hostel_resident: true },
+    { id: 'b0000000-0000-0000-0000-000000000043', full_name: 'Deepak Soni', roll_number: '11-M-03', grade: '11', section: '11-Med', board: 'CBSE', target_exam: 'NEET_UG', role: 'STUDENT', hostel_resident: false },
+    { id: 'b0000000-0000-0000-0000-000000000044', full_name: 'Kriti Dogra', roll_number: '11-M-04', grade: '11', section: '11-Med', board: 'HP_BOARD', target_exam: 'NEET_UG', role: 'STUDENT', hostel_resident: true },
+
+    // Departmental Faculty (HAPS Senior Faculty Profiles)
+    { id: 'fac_phy_01', full_name: 'Dr. Vikram Sharma', role: 'TEACHER', email: 'vikram.phy@haps.edu.in', subject: 'Physics', subjectKey: 'PHYSICS', department: 'PHYSICS', designation: 'Senior Physics Faculty & HOD', defaultClass: '11-NonMed', targetStream: 'JEE' },
+    { id: 'fac_chem_01', full_name: 'Prof. Sunita Rao', role: 'TEACHER', email: 'sunita.chem@haps.edu.in', subject: 'Chemistry', subjectKey: 'CHEMISTRY', department: 'CHEMISTRY', designation: 'Senior Chemistry Faculty', defaultClass: '11-NonMed', targetStream: 'JEE' },
+    { id: 'fac_bio_01', full_name: 'Dr. Ananya Mukherjee', role: 'TEACHER', email: 'ananya.bio@haps.edu.in', subject: 'Biology', subjectKey: 'BIOLOGY', department: 'BIOLOGY', designation: 'Senior Biology Faculty & NEET Coordinator', defaultClass: '11-Med', targetStream: 'NEET' },
+    { id: 'fac_math_01', full_name: 'Er. Rajesh Gupta', role: 'TEACHER', email: 'rajesh.math@haps.edu.in', subject: 'Mathematics', subjectKey: 'MATHEMATICS', department: 'MATHEMATICS', designation: 'Senior Mathematics Faculty', defaultClass: '11-NonMed', targetStream: 'JEE' }
+  ],
+  // Standard Institutional Classes
+  classes: [
+    {
+      key: '11-NonMed',
+      id: '11-NonMed',
+      name: 'Class 11th (Non-Medical)',
+      grade: '11',
+      section: '11-NonMed',
+      stream: 'NON_MEDICAL',
+      defaultSubject: 'PHYSICS',
+      subjects: [
+        { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+        { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+        { key: 'MATHEMATICS', name: 'Mathematics', totalChapters: 13, icon: 'calculator' }
+      ]
+    },
+    {
+      key: '11-Med',
+      id: '11-Med',
+      name: 'Class 11th (Medical)',
+      grade: '11',
+      section: '11-Med',
+      stream: 'MEDICAL',
+      defaultSubject: 'BIOLOGY',
+      subjects: [
+        { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+        { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+        { key: 'BIOLOGY', name: 'Biology', totalChapters: 13, icon: 'dna' }
+      ]
+    },
+    {
+      key: '12-NonMed',
+      id: '12-NonMed',
+      name: 'Class 12th (Non-Medical)',
+      grade: '12',
+      section: '12-NonMed',
+      stream: 'NON_MEDICAL',
+      defaultSubject: 'PHYSICS',
+      subjects: [
+        { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+        { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+        { key: 'MATHEMATICS', name: 'Mathematics', totalChapters: 13, icon: 'calculator' }
+      ]
+    },
+    {
+      key: '12-Med',
+      id: '12-Med',
+      name: 'Class 12th (Medical)',
+      grade: '12',
+      section: '12-Med',
+      stream: 'MEDICAL',
+      defaultSubject: 'BIOLOGY',
+      subjects: [
+        { key: 'PHYSICS', name: 'Physics', totalChapters: 14, icon: 'zap' },
+        { key: 'CHEMISTRY', name: 'Chemistry', totalChapters: 10, icon: 'flask-conical' },
+        { key: 'BIOLOGY', name: 'Biology', totalChapters: 13, icon: 'dna' }
+      ]
+    },
+    {
+      key: '10-Science-A',
+      id: '10-Science-A',
+      name: 'Class 10th (Section A)',
+      grade: '10',
+      section: '10-Science-A',
+      stream: 'FOUNDATION',
+      defaultSubject: 'CLASS10_SCIENCE',
+      subjects: [
+        { key: 'CLASS10_SCIENCE', name: 'Science', totalChapters: 13, icon: 'atom' },
+        { key: 'CLASS10_MATHEMATICS', name: 'Mathematics', totalChapters: 14, icon: 'calculator' }
+      ]
+    }
   ],
   // Subject-Wise Specialized Question Banks for:
   // - Class 10 Foundation (Maths, Science)

@@ -634,15 +634,15 @@ async function checkProviderStatus() {
       const data = await res.json();
       const p = data.providers;
       if (p.groq?.configured && p.gemini?.configured) {
-        badge.innerHTML = `⚡ Groq LPU + ♊ Gemini Active`;
+        badge.innerHTML = `Groq LPU + Gemini Active`;
         badge.style.background = 'rgba(16,185,129,0.15)';
         badge.style.color = '#10b981';
       } else if (p.groq?.configured) {
-        badge.innerHTML = `⚡ Groq LPU (${p.speed || '350ms'})`;
+        badge.innerHTML = `Groq LPU (${p.speed || '350ms'})`;
       } else if (p.gemini?.configured) {
-        badge.innerHTML = `♊ Google Gemini (${p.gemini.model})`;
+        badge.innerHTML = `Google Gemini (${p.gemini.model})`;
       } else {
-        badge.innerHTML = `📚 NCERT Offline PYQ Bank`;
+        badge.innerHTML = `NCERT Offline Question Bank`;
       }
     }
   } catch (e) {
@@ -738,7 +738,7 @@ function renderCurrentQuestionInPreview() {
     const m = q.ncert_mapping;
     solutionHtml += `
       <div style="margin-top: 1rem; padding: 10px 12px; background: rgba(59, 130, 246, 0.08); border-left: 3px solid var(--accent-blue); border-radius: 4px; font-size: 0.8rem;">
-        <strong style="color: var(--accent-blue);">📘 NCERT Curriculum Blueprint:</strong> ${m.ncert_section || m.chapter_name || ''}<br/>
+        <strong style="color: var(--accent-blue);">NCERT Curriculum Blueprint:</strong> ${m.ncert_section || m.chapter_name || ''}<br/>
         <span style="color: var(--text-muted);">Reference: ${m.page_reference || ''} &bull; PYQ Alignment: ${m.pyq_similarity || m.pyq_tag || 'Board Exam'} &bull; Marks: ${m.marks || 3}M</span>
       </div>
     `;
@@ -1190,7 +1190,7 @@ async function setupClass10PyqExplorer() {
                         Q${idx + 1} &bull; ${q.curriculum_board || 'NEET'} &bull; ${q.difficulty}
                       </span>
                       <span style="font-size:0.72rem; color:var(--text-muted);">
-                        ⏱ Benchmark: ${q.benchmark_time_seconds || 60}s
+                        Benchmark: ${q.benchmark_time_seconds || 60}s
                       </span>
                     </div>
 
@@ -1773,7 +1773,7 @@ function setupTelemetryControls() {
   const btnEveningDrill = document.getElementById('btnTriggerEveningDrill');
   if (btnEveningDrill) {
     btnEveningDrill.addEventListener('click', () => {
-      alert('🚀 Evening Prep Remedial Drill #SHM-04 dispatched to Aryan Sharma for 7:30 PM hostel self-study.');
+      alert('Evening Prep Remedial Drill #SHM-04 dispatched to Aryan Sharma for 7:30 PM hostel self-study.');
     });
   }
 }
@@ -1787,7 +1787,7 @@ function setupHandwrittenStation() {
 
   if (btnApprove) {
     btnApprove.addEventListener('click', () => {
-      alert('✅ Verified by Teacher: 4.0 / 4.0 marks officially recorded in HAPS Class XI Gradebook.');
+      alert('Verified by Teacher: 4.0 / 4.0 marks officially recorded in HAPS Class XI Gradebook.');
     });
   }
 
@@ -1895,7 +1895,7 @@ function setupStudentMode() {
           feedbackAlert.style.border = '1px solid rgba(16, 185, 129, 0.4)';
           feedbackAlert.style.color = '#34d399';
           feedbackAlert.innerHTML = `
-            <strong>🎉 Accurate Solution! (+4.0 Marks)</strong>
+            <strong>Accurate Solution (+4.0 Marks)</strong>
             <p style="font-size:0.85rem; margin-top:4px;">You solved it in ${timeSpent}s (Benchmark: 90s). Real-time telemetry streamed to Teacher Co-Pilot.</p>
           `;
         } else {
@@ -1903,7 +1903,7 @@ function setupStudentMode() {
           feedbackAlert.style.border = '1px solid rgba(244, 63, 94, 0.4)';
           feedbackAlert.style.color = '#fb7185';
           feedbackAlert.innerHTML = `
-            <strong>⚠️ Incorrect Attempt (-1.0 Mark)</strong>
+            <strong>Incorrect Attempt (-1.0 Mark)</strong>
             <p style="font-size:0.85rem; margin-top:4px;">Option ${state.studentTimer.selectedOption} is a common distractor trap. Review torque formulation!</p>
           `;
         }
@@ -2094,7 +2094,7 @@ function setupHandwrittenUploadAndVisionAi() {
       });
     }
 
-    alert('✨ Vision AI Evaluation Complete!\nScored 4.0/4.0 against official CBSE/HPBOSE marking rubric.');
+    alert('Vision AI Evaluation Complete.\nScored 4.0/4.0 against official CBSE/HPBOSE marking rubric.');
   }
 }
 
@@ -2238,7 +2238,7 @@ function setupWhatsAppNotificationModal() {
       } catch (e) {}
 
       setTimeout(() => {
-        alert('📲 WhatsApp Notification successfully dispatched to Parent via HAPS WhatsApp Webhook Gateway!');
+        alert('WhatsApp Notification successfully dispatched to Parent via HAPS WhatsApp Webhook Gateway.');
         modal.classList.remove('active');
         btnConfirm.innerHTML = `<i data-lucide="send" style="width:14px;height:14px;"></i> Dispatch WhatsApp Webhook`;
         initLucideIcons();
@@ -2745,7 +2745,7 @@ function setupTestAssignmentBuilder() {
 
         if (res.ok) {
           const data = await res.json();
-          alert(`🎉 Test "${title}" successfully published and assigned to ${classSec}!\n\n• Questions: ${state.testDraft.length}\n• Total Marks: ${state.testDraft.length * 4}\n• Target: ${classSec}\n\nStudents can now take this assessment immediately in the Student Portal.`);
+          alert(`Test "${title}" successfully published and assigned to ${classSec}.\n\n• Questions: ${state.testDraft.length}\n• Total Marks: ${state.testDraft.length * 4}\n• Target: ${classSec}\n\nStudents can now take this assessment immediately in the Student Portal.`);
           state.testDraft = [];
           updateTestDraftBadges();
           if (modal) modal.classList.remove('active');
@@ -2772,7 +2772,7 @@ function addQuestionToTestDraft(q) {
     state.testDraft.push(q);
   }
   updateTestDraftBadges();
-  alert(`✅ Question added to Test Assignment Draft!\nTotal: ${state.testDraft.length} Questions drafted.\n\nClick "Test Builder" in the navigation bar to review and assign to your class roster.`);
+  alert(`Question added to Test Assignment Draft.\nTotal: ${state.testDraft.length} Questions drafted.\n\nClick "Test Builder" in the navigation bar to review and assign to your class roster.`);
 }
 
 function updateTestDraftBadges() {
@@ -2986,7 +2986,7 @@ async function startAssignedTest(assessmentSummary) {
   renderPaletteButtons();
   updatePaletteCounts();
 
-  alert(`🚀 Test Started: "${fullAssessment.title}"\n\n• Questions: ${examState.questions.length}\n• Duration: ${fullAssessment.durationMinutes} Minutes\n• Live Telemetry: Sub-second timer streaming to Teacher Seatmap.\n\nGood luck!`);
+  alert(`Test Started: "${fullAssessment.title}"\n\n• Questions: ${examState.questions.length}\n• Duration: ${fullAssessment.durationMinutes} Minutes\n• Live Telemetry: Sub-second timer streaming to Teacher Seatmap.\n\nGood luck!`);
 }
 
 function displayDiagnosticResults(results) {
@@ -3227,12 +3227,12 @@ function renderPersonalizedRemedialAssignment(assignment) {
   // 3. Render Pedagogical Action Directives
   if (hostelEl && assignment.dualActionPlan?.hostelPrepAction) {
     const h = assignment.dualActionPlan.hostelPrepAction;
-    hostelEl.innerHTML = `<strong>${h.faculty || `${subjBadge} Proctor`}:</strong> ${h.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">⏰ Slot: ${h.timeSlot || '7:30 PM Prep'} &bull; Priority: ${h.priority || 'HIGH'}</span>`;
+    hostelEl.innerHTML = `<strong>${h.faculty || `${subjBadge} Proctor`}:</strong> ${h.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">Slot: ${h.timeSlot || '7:30 PM Prep'} &bull; Priority: ${h.priority || 'HIGH'}</span>`;
   }
 
   if (parentEl && assignment.dualActionPlan?.parentHomeAction) {
     const p = assignment.dualActionPlan.parentHomeAction;
-    parentEl.innerHTML = `${p.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">🎯 Focus Topic: ${p.focusConcept || `${subjBadge} Principles`}</span>`;
+    parentEl.innerHTML = `${p.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">Focus Topic: ${p.focusConcept || `${subjBadge} Principles`}</span>`;
   }
 
   // Render LaTeX math inside modal cards
@@ -3261,7 +3261,7 @@ async function handleVerifyFormula(drillIdx, subtopic, subject = 'Biology') {
     feedbackEl.style.background = 'rgba(239, 68, 68, 0.12)';
     feedbackEl.style.border = '1px solid rgba(239, 68, 68, 0.3)';
     feedbackEl.style.color = '#ef4444';
-    feedbackEl.innerHTML = '⚠️ Please write the formula or principle in the input box first before verifying.';
+    feedbackEl.innerHTML = 'Please enter the formula or principle in the input box before verifying.';
     return;
   }
 
@@ -3285,7 +3285,7 @@ async function handleVerifyFormula(drillIdx, subtopic, subject = 'Biology') {
       feedbackEl.style.border = '1px solid rgba(16, 185, 129, 0.35)';
       feedbackEl.style.color = '#10b981';
       feedbackEl.innerHTML = `
-        <div style="font-weight: 700; margin-bottom: 4px;">🎉 Flawless! Formula Verified Correctly.</div>
+        <div style="font-weight: 700; margin-bottom: 4px;">Verified: Formula Confirmed Correct.</div>
         <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 6px;">Model Formula: <code>${data.modelFormulaLatex || ''}</code></div>
         <div style="font-size: 0.76rem; color: #34d399; background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 4px;">
           ${data.signRules || 'Sign rules mastered.'}
@@ -3296,7 +3296,7 @@ async function handleVerifyFormula(drillIdx, subtopic, subject = 'Biology') {
       feedbackEl.style.border = '1px solid rgba(245, 158, 11, 0.35)';
       feedbackEl.style.color = '#f59e0b';
       feedbackEl.innerHTML = `
-        <div style="font-weight: 700; margin-bottom: 4px;">⚠️ Check Formula Precision</div>
+        <div style="font-weight: 700; margin-bottom: 4px;">Attention: Check Formula Precision</div>
         <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 4px;">${data.message || 'Incorrect variable placement or missing reciprocal.'}</div>
         <div style="font-size: 0.78rem; color: var(--accent-cyan); background: rgba(56, 189, 248, 0.08); padding: 6px 10px; border-radius: 4px;">
           <strong>Target Structure:</strong> ${renderLatexString('$' + (data.modelFormulaLatex || '') + '$')}
@@ -3306,7 +3306,7 @@ async function handleVerifyFormula(drillIdx, subtopic, subject = 'Biology') {
     }
     renderMathInElement(feedbackEl);
   } catch (err) {
-    feedbackEl.innerHTML = '✅ Formula recorded. Remember to verify Cartesian sign conventions.';
+    feedbackEl.innerHTML = 'Formula recorded. Verify Cartesian sign conventions.';
   }
 }
 
@@ -3331,7 +3331,7 @@ function handleRemedialOptionSelect(cardId, selectedKey, isCorrect, solutionEnco
     feedbackEl.style.border = '1px solid rgba(16, 185, 129, 0.35)';
     feedbackEl.style.color = '#10b981';
     feedbackEl.innerHTML = `
-      <div style="font-weight: 700; margin-bottom: 4px;">✅ Option ${selectedKey} is CORRECT!</div>
+      <div style="font-weight: 700; margin-bottom: 4px;">Option ${selectedKey} is CORRECT</div>
       <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.5;">
         <strong>Step-by-Step Derivation:</strong><br>
         ${renderLatexString(solutionLatex)}
@@ -3342,7 +3342,7 @@ function handleRemedialOptionSelect(cardId, selectedKey, isCorrect, solutionEnco
     feedbackEl.style.border = '1px solid rgba(239, 68, 68, 0.35)';
     feedbackEl.style.color = '#ef4444';
     feedbackEl.innerHTML = `
-      <div style="font-weight: 700; margin-bottom: 4px;">❌ Option ${selectedKey} is INCORRECT</div>
+      <div style="font-weight: 700; margin-bottom: 4px;">Option ${selectedKey} is INCORRECT</div>
       <div style="font-size: 0.8rem; color: #fca5a5; margin-bottom: 6px;">
         <strong>Distractor Trap:</strong> ${trapDesc || 'Formula inversion or sign rule slip.'}
       </div>
@@ -3389,7 +3389,7 @@ async function triggerDocxBlobDownload(endpoint, payload, fallbackFilename) {
     }, 100);
   } catch (err) {
     console.error('Failed to download DOCX:', err);
-    alert(`⚠️ Failed to download DOCX assignment: ${err.message}`);
+    alert(`Failed to download DOCX assignment: ${err.message}`);
   }
 }
 
@@ -3839,7 +3839,7 @@ function renderClassAnalyticsCharts(data) {
 
     const perfSummaryEl = document.getElementById('chartQuestionPerfSummary');
     if (perfSummaryEl && highlights.mostAttempted && highlights.mostWrong) {
-      perfSummaryEl.innerHTML = `🌟 Solved Most: <strong>Q${highlights.mostAttempted.questionIndex}</strong> (${highlights.mostAttempted.attemptRate}) &bull; ⚠️ Hardest: <strong>Q${highlights.mostWrong.questionIndex}</strong> (${highlights.mostWrong.errorRate} Err)`;
+      perfSummaryEl.innerHTML = `Solved Most: <strong>Q${highlights.mostAttempted.questionIndex}</strong> (${highlights.mostAttempted.attemptRate}) &bull; Challenging: <strong>Q${highlights.mostWrong.questionIndex}</strong> (${highlights.mostWrong.errorRate} Err)`;
     }
   }
 
@@ -4710,7 +4710,7 @@ async function openStudentDrilldown(studentId, assessmentId) {
               </div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <span class="speed-badge" style="background:${pacing === 'FAST' ? 'rgba(16,185,129,0.2)' : (pacing === 'OPTIMAL' ? 'rgba(56,189,248,0.2)' : 'rgba(245,158,11,0.2)')}; color:${pacingColor};">
-                  ⏱️ ${q.timeSpentSeconds}s (Target: ${q.benchmarkSeconds}s) &bull; ${pacing}
+                  Time: ${q.timeSpentSeconds}s (Target: ${q.benchmarkSeconds}s) &bull; ${pacing}
                 </span>
                 <span class="pilot-tag" style="background:${isCorrect ? 'rgba(16,185,129,0.2)' : 'rgba(244,63,94,0.2)'}; color:${isCorrect ? '#34d399' : '#fb7185'}; font-weight:700;">
                   ${isCorrect ? 'CORRECT (+4M)' : 'INCORRECT'}
@@ -4731,7 +4731,7 @@ async function openStudentDrilldown(studentId, assessmentId) {
               </p>
               ${m.distractorTrap ? `
                 <div style="font-size:0.75rem; color:#fca5a5; margin-top:4px;">
-                  ⚠️ <em>Trap identified: ${renderLatexString(m.distractorTrap)}</em>
+                  <em>Trap identified: ${renderLatexString(m.distractorTrap)}</em>
                 </div>
               ` : ''}
             </div>
@@ -4782,11 +4782,13 @@ window.loadClassAnalytics = loadClassAnalytics;
 // -----------------------------------------------------------------------------
 const teacherBuilderState = {
   classes: [],
-  selectedClassId: '12-NonMed',
+  selectedClassId: '11-NonMed',
+  teacherSubjectKey: 'PHYSICS',
   selectedSubjectKey: 'PHYSICS',
   currentTaxonomy: null,
   expandedChapters: new Set([1]),
-  activeModalScope: null
+  activeModalScope: null,
+  activeTeacher: null
 };
 
 function getSubjectIcon(key) {
@@ -4814,6 +4816,48 @@ function escapeHtml(str) {
 
 function getFallbackClasses() {
   return [
+    {
+      id: '11-NonMed',
+      key: '11-NonMed',
+      name: 'Class 11th (Non-Medical)',
+      grade: '11',
+      section: '11-NonMed',
+      stream: 'NON_MEDICAL',
+      badge: 'JEE & Boards',
+      defaultSubject: 'PHYSICS',
+      subjects: [
+        { key: 'PHYSICS', name: 'Physics', grade: '11' },
+        { key: 'CHEMISTRY', name: 'Chemistry', grade: '11' },
+        { key: 'MATHEMATICS', name: 'Mathematics', grade: '11' }
+      ],
+      students: [
+        { id: '11-NM-01', name: 'Adarsh Katoch', roll: '11-NM-01' },
+        { id: '11-NM-02', name: 'Pooja Sharma', roll: '11-NM-02' },
+        { id: '11-NM-03', name: 'Kunal Jamwal', roll: '11-NM-03' },
+        { id: '11-NM-04', name: 'Suhani Rana', roll: '11-NM-04' }
+      ]
+    },
+    {
+      id: '11-Med',
+      key: '11-Med',
+      name: 'Class 11th (Medical)',
+      grade: '11',
+      section: '11-Med',
+      stream: 'MEDICAL',
+      badge: 'NEET & Boards',
+      defaultSubject: 'BIOLOGY',
+      subjects: [
+        { key: 'PHYSICS', name: 'Physics', grade: '11' },
+        { key: 'CHEMISTRY', name: 'Chemistry', grade: '11' },
+        { key: 'BIOLOGY', name: 'Biology', grade: '11' }
+      ],
+      students: [
+        { id: '11-M-01', name: 'Riya Thakur', roll: '11-M-01' },
+        { id: '11-M-02', name: 'Ayush Banyal', roll: '11-M-02' },
+        { id: '11-M-03', name: 'Deepak Soni', roll: '11-M-03' },
+        { id: '11-M-04', name: 'Kriti Dogra', roll: '11-M-04' }
+      ]
+    },
     {
       id: '12-NonMed',
       key: '12-NonMed',
@@ -4896,6 +4940,9 @@ async function setupTeacherTestBuilder() {
 
   if (!classSelect || !pillsContainer) return;
 
+  // Initialize teacher profile session if stored
+  initTeacherSession();
+
   // 1. Fetch available classes & enrolled students
   await loadTeacherClassesList();
 
@@ -4911,15 +4958,20 @@ async function setupTeacherTestBuilder() {
       });
       card.classList.add('active', `active-${stream.toLowerCase()}`);
 
-      // Auto-align class & stream
-      if (stream === 'JEE') {
-        teacherBuilderState.selectedClassId = '12-NonMed';
-      } else if (stream === 'NEET') {
-        teacherBuilderState.selectedClassId = '12-Med';
-      } else if (stream === 'BOARD') {
-        teacherBuilderState.selectedClassId = '12-NonMed';
-      } else if (stream === 'OLYMPIAD') {
-        teacherBuilderState.selectedClassId = '10-Science-A';
+      // Auto-align class & stream based on teacher's subject
+      const teacherSubj = teacherBuilderState.teacherSubjectKey || 'PHYSICS';
+      if (teacherSubj === 'BIOLOGY') {
+        teacherBuilderState.selectedClassId = stream === 'NEET' ? '11-Med' : '12-Med';
+      } else {
+        if (stream === 'JEE') {
+          teacherBuilderState.selectedClassId = '11-NonMed';
+        } else if (stream === 'NEET') {
+          teacherBuilderState.selectedClassId = '11-Med';
+        } else if (stream === 'BOARD') {
+          teacherBuilderState.selectedClassId = '12-NonMed';
+        } else if (stream === 'OLYMPIAD') {
+          teacherBuilderState.selectedClassId = '10-Science-A';
+        }
       }
 
       if (classSelect) {
@@ -4975,8 +5027,10 @@ async function setupTeacherTestBuilder() {
 }
 
 async function loadTeacherClassesList() {
+  const teacherSubj = teacherBuilderState.teacherSubjectKey || 'PHYSICS';
+
   try {
-    const res = await fetch(`${getApiBaseUrl()}/api/curriculum/classes`);
+    const res = await fetch(`${getApiBaseUrl()}/api/curriculum/classes?teacherSubjectKey=${teacherSubj}`);
     if (res.ok) {
       const data = await res.json();
       teacherBuilderState.classes = (data.classes || []).map(c => ({
@@ -4993,12 +5047,42 @@ async function loadTeacherClassesList() {
     teacherBuilderState.classes = getFallbackClasses();
   }
 
+  // Strictly filter classes so only classes offering the signed-in teacher's subject are available
+  if (teacherSubj) {
+    teacherBuilderState.classes = teacherBuilderState.classes.filter(c => {
+      return (c.subjects || []).some(s => {
+        const sKey = (s.key || '').toUpperCase();
+        if (teacherSubj === 'PHYSICS') return sKey === 'PHYSICS' || sKey === 'CLASS10_SCIENCE';
+        if (teacherSubj === 'BIOLOGY') return sKey === 'BIOLOGY';
+        if (teacherSubj === 'CHEMISTRY') return sKey === 'CHEMISTRY' || sKey === 'CLASS10_SCIENCE';
+        if (teacherSubj === 'MATHEMATICS') return sKey === 'MATHEMATICS' || sKey === 'CLASS10_MATHEMATICS';
+        return sKey === teacherSubj;
+      });
+    });
+  }
+
+  // Auto-select valid class if current is not in filtered list
+  const classExists = teacherBuilderState.classes.some(c => c.id === teacherBuilderState.selectedClassId);
+  if (!classExists && teacherBuilderState.classes.length > 0) {
+    teacherBuilderState.selectedClassId = teacherBuilderState.classes[0].id;
+  }
+
   // Populate #selectTeacherClassScope options
   const classSelect = document.getElementById('selectTeacherClassScope');
   if (classSelect && teacherBuilderState.classes.length > 0) {
     classSelect.innerHTML = teacherBuilderState.classes.map(c => `
       <option value="${c.id}" ${c.id === teacherBuilderState.selectedClassId ? 'selected' : ''}>
         ${c.name} &bull; ${c.badge || (c.stream ? c.stream.replace('_', ' ') : 'General')}
+      </option>
+    `).join('');
+  }
+
+  // Populate modal section dropdown if exists
+  const modalSectionSelect = document.getElementById('selectNewStudentSection');
+  if (modalSectionSelect && teacherBuilderState.classes.length > 0) {
+    modalSectionSelect.innerHTML = teacherBuilderState.classes.map(c => `
+      <option value="${c.id}" ${c.id === teacherBuilderState.selectedClassId ? 'selected' : ''}>
+        ${c.name}
       </option>
     `).join('');
   }
@@ -5034,22 +5118,36 @@ function updateTeacherClassScopeUI() {
     `).join('');
   }
 
-  // 2. Render Subject Pills strictly scoped to this class
+  // 2. Render Subject Pills: STRICTLY SCOPED TO SIGNED-IN TEACHER'S SUBJECT
   const pillsContainer = document.getElementById('containerSubjectPills');
   if (pillsContainer) {
-    const subjects = currentClass.subjects || [];
-    
-    // Check if current selected subject is valid for this class; if not, switch to defaultSubject or first subject
-    const subjectExists = subjects.some(s => s.key === teacherBuilderState.selectedSubjectKey);
-    if (!subjectExists && subjects.length > 0) {
-      teacherBuilderState.selectedSubjectKey = currentClass.defaultSubject || subjects[0].key;
+    const rawSubjects = currentClass.subjects || [];
+    const teacherSubj = teacherBuilderState.teacherSubjectKey || 'PHYSICS';
+
+    // Strictly filter subjects so that ONLY the signed-in teacher's subject appears!
+    const scopedSubjects = rawSubjects.filter(s => {
+      const sKey = (s.key || '').toUpperCase();
+      if (teacherSubj === 'PHYSICS') return sKey === 'PHYSICS' || (currentClass.grade === '10' && sKey === 'CLASS10_SCIENCE');
+      if (teacherSubj === 'BIOLOGY') return sKey === 'BIOLOGY';
+      if (teacherSubj === 'CHEMISTRY') return sKey === 'CHEMISTRY' || (currentClass.grade === '10' && sKey === 'CLASS10_SCIENCE');
+      if (teacherSubj === 'MATHEMATICS') return sKey === 'MATHEMATICS' || (currentClass.grade === '10' && sKey === 'CLASS10_MATHEMATICS');
+      return sKey === teacherSubj;
+    });
+
+    if (scopedSubjects.length > 0) {
+      teacherBuilderState.selectedSubjectKey = scopedSubjects[0].key;
+    } else {
+      teacherBuilderState.selectedSubjectKey = teacherSubj;
     }
 
-    pillsContainer.innerHTML = subjects.map(s => {
-      const isActive = s.key === teacherBuilderState.selectedSubjectKey;
+    const displayList = scopedSubjects.length > 0 
+      ? scopedSubjects 
+      : [{ key: teacherSubj, name: teacherSubj.charAt(0) + teacherSubj.slice(1).toLowerCase(), grade: currentClass.grade }];
+
+    pillsContainer.innerHTML = displayList.map(s => {
       return `
         <button type="button" 
-          class="subject-pill-btn ${isActive ? 'active' : ''}" 
+          class="subject-pill-btn active" 
           data-subject-key="${s.key}"
           data-grade="${s.grade || currentClass.grade}"
           onclick="selectCurriculumSubject('${s.key}', '${s.grade || currentClass.grade}')">
@@ -5452,7 +5550,7 @@ async function submitGenerateCurriculumTest() {
 
       // Ask teacher if they want to attempt now as student, or view in dashboard
       const wantAttempt = confirm(
-        `🎉 ${modeLabel} Successfully Created & Assigned!\n\n` +
+        `${modeLabel} Successfully Created & Assigned\n\n` +
         `• Title: "${data.assessment?.title || title}"\n` +
         `• Chapter: ${scope.chapterTitle}\n` +
         `• Questions: ${data.assessment?.questions?.length || questionCount} Questions (Formatted in Clean LaTeX)\n` +
@@ -5553,70 +5651,122 @@ async function simulateClassAttemptsAndGenerateDashboard(assessmentId) {
 }
 
 // -----------------------------------------------------------------------------
-// 13. TEACHER FACULTY SUBJECT SWITCHER & STUDENT CLASS ENROLLMENT
+// 13. TEACHER FACULTY AUTHENTICATION, SIGN-IN & ROSTER MANAGEMENT
 // -----------------------------------------------------------------------------
-function setTeacherSubjectFaculty(subjectFaculty) {
-  teacherBuilderState.selectedSubjectKey = subjectFaculty;
 
-  const facultyProfiles = {
+function initTeacherSession() {
+  let stored = null;
+  try {
+    const raw = localStorage.getItem('haps_active_teacher');
+    if (raw) stored = JSON.parse(raw);
+  } catch (e) {}
+
+  if (!stored) {
+    stored = {
+      id: 'fac_phy_01',
+      name: 'Dr. Vikram Sharma',
+      email: 'vikram.phy@haps.edu.in',
+      subjectKey: 'PHYSICS',
+      subjectName: 'Physics',
+      designation: 'Senior Physics Faculty & HOD',
+      streamText: 'Assigned Subject: Physics &bull; Classes 11 &amp; 12 (JEE Main/Adv, NEET &amp; CBSE Boards)',
+      defaultClass: '11-NonMed',
+      targetStream: 'JEE'
+    };
+  }
+
+  applyTeacherProfile(stored, false);
+}
+
+function openTeacherSignInModal() {
+  const modal = document.getElementById('modalTeacherSignIn');
+  if (modal) modal.style.display = 'flex';
+  initLucideIcons();
+}
+
+function closeTeacherSignInModal() {
+  const modal = document.getElementById('modalTeacherSignIn');
+  if (modal) modal.style.display = 'none';
+}
+
+function authenticateTeacher(subjectKey, teacherName, email) {
+  const profiles = {
     'PHYSICS': {
-      avatar: '⚡',
-      name: 'Er. Rajesh Kumar',
-      badge: 'Senior Physics Faculty',
-      streamText: 'Class 12 Non-Med &bull; JEE Main, Advanced &amp; CBSE Boards',
-      defaultClass: '12-NonMed',
+      name: teacherName || 'Dr. Vikram Sharma',
+      email: email || 'vikram.phy@haps.edu.in',
+      subjectKey: 'PHYSICS',
+      subjectName: 'Physics',
+      designation: 'Senior Physics Faculty & HOD',
+      streamText: 'Assigned Subject: Physics &bull; Classes 11 &amp; 12 (JEE Main/Adv, NEET &amp; CBSE Boards)',
+      defaultClass: '11-NonMed',
       targetStream: 'JEE'
     },
     'CHEMISTRY': {
-      avatar: '🧪',
-      name: 'Dr. Sunita Sharma',
-      badge: 'Senior Chemistry Faculty',
-      streamText: 'Class 12 Non-Med &amp; Med &bull; NEET, JEE Main &amp; CBSE Boards',
-      defaultClass: '12-NonMed',
-      targetStream: 'JEE'
-    },
-    'MATHEMATICS': {
-      avatar: '📐',
-      name: 'Prof. Arvind Mehta',
-      badge: 'Senior Mathematics Faculty',
-      streamText: 'Class 12 Non-Med &bull; JEE Main, Advanced &amp; CBSE Boards',
-      defaultClass: '12-NonMed',
+      name: teacherName || 'Prof. Sunita Rao',
+      email: email || 'sunita.chem@haps.edu.in',
+      subjectKey: 'CHEMISTRY',
+      subjectName: 'Chemistry',
+      designation: 'Senior Chemistry Faculty',
+      streamText: 'Assigned Subject: Chemistry &bull; Classes 11 &amp; 12 (NEET, JEE Main &amp; CBSE Boards)',
+      defaultClass: '11-NonMed',
       targetStream: 'JEE'
     },
     'BIOLOGY': {
-      avatar: '🧬',
-      name: 'Dr. Priya Sen',
-      badge: 'Senior Biology Faculty',
-      streamText: 'Class 12 Medical &bull; NEET UG &amp; CBSE Boards',
-      defaultClass: '12-Med',
+      name: teacherName || 'Dr. Ananya Mukherjee',
+      email: email || 'ananya.bio@haps.edu.in',
+      subjectKey: 'BIOLOGY',
+      subjectName: 'Biology',
+      designation: 'Senior Biology Faculty & NEET Coordinator',
+      streamText: 'Assigned Subject: Biology &bull; Classes 11 &amp; 12 Medical (NEET UG &amp; CBSE Boards)',
+      defaultClass: '11-Med',
       targetStream: 'NEET'
+    },
+    'MATHEMATICS': {
+      name: teacherName || 'Er. Rajesh Gupta',
+      email: email || 'rajesh.math@haps.edu.in',
+      subjectKey: 'MATHEMATICS',
+      subjectName: 'Mathematics',
+      designation: 'Senior Mathematics Faculty',
+      streamText: 'Assigned Subject: Mathematics &bull; Classes 11 &amp; 12 Non-Med (JEE Main/Adv &amp; CBSE Boards)',
+      defaultClass: '11-NonMed',
+      targetStream: 'JEE'
     }
   };
 
-  const prof = facultyProfiles[subjectFaculty] || facultyProfiles['PHYSICS'];
+  const prof = profiles[subjectKey] || profiles['PHYSICS'];
+  applyTeacherProfile(prof, true);
+  closeTeacherSignInModal();
+}
 
-  const avatarEl = document.getElementById('teacherFacultyAvatar');
+function submitCustomTeacherLogin(event) {
+  if (event) event.preventDefault();
+  const name = document.getElementById('inputCustomTeacherName')?.value?.trim() || 'Faculty Educator';
+  const subjectKey = document.getElementById('selectCustomTeacherSubject')?.value || 'PHYSICS';
+  const email = document.getElementById('inputCustomTeacherEmail')?.value?.trim() || `${subjectKey.toLowerCase()}.faculty@haps.edu.in`;
+
+  authenticateTeacher(subjectKey, name, email);
+}
+
+function applyTeacherProfile(prof, notify = false) {
+  teacherBuilderState.teacherSubjectKey = prof.subjectKey;
+  teacherBuilderState.selectedSubjectKey = prof.subjectKey;
+  teacherBuilderState.selectedClassId = prof.defaultClass;
+  teacherBuilderState.targetStream = prof.targetStream;
+  teacherBuilderState.activeTeacher = prof;
+
+  try {
+    localStorage.setItem('haps_active_teacher', JSON.stringify(prof));
+  } catch (e) {}
+
   const nameEl = document.getElementById('teacherFacultyName');
   const badgeEl = document.getElementById('teacherFacultyBadge');
   const textEl = document.getElementById('teacherFacultyStreamText');
 
-  if (avatarEl) avatarEl.innerText = prof.avatar;
   if (nameEl) nameEl.innerText = prof.name;
-  if (badgeEl) badgeEl.innerText = prof.badge;
+  if (badgeEl) badgeEl.innerHTML = `${prof.designation} &bull; Department of ${prof.subjectName}`;
   if (textEl) textEl.innerHTML = prof.streamText;
 
-  // Toggle active class on pills
-  document.querySelectorAll('.btn-faculty-pill').forEach(btn => {
-    btn.classList.toggle('active', btn.getAttribute('data-subject-faculty') === subjectFaculty);
-  });
-
-  // Switch class and stream
-  teacherBuilderState.selectedClassId = prof.defaultClass;
-  teacherBuilderState.targetStream = prof.targetStream;
-
-  const classSelect = document.getElementById('selectTeacherClassScope');
-  if (classSelect) classSelect.value = prof.defaultClass;
-
+  // Stream cards styling
   const streamCards = document.querySelectorAll('#teacherTargetStreams .target-stream-card');
   streamCards.forEach(c => {
     const isMatch = c.getAttribute('data-target-stream') === prof.targetStream;
@@ -5624,7 +5774,80 @@ function setTeacherSubjectFaculty(subjectFaculty) {
     c.classList.toggle(`active-${prof.targetStream.toLowerCase()}`, isMatch);
   });
 
-  updateTeacherClassScopeUI();
+  // Reload classes filtered strictly by teacher subject
+  loadTeacherClassesList();
+
+  if (notify) {
+    alert(`Signed in as ${prof.name} (${prof.designation}). Dashboard scoped strictly to ${prof.subjectName}.`);
+  }
+}
+
+function setTeacherSubjectFaculty(subjectFaculty) {
+  authenticateTeacher(subjectFaculty);
+}
+
+function openCreateClassModal() {
+  const modal = document.getElementById('modalCreateClass');
+  if (modal) modal.style.display = 'flex';
+  const nameInput = document.getElementById('inputNewClassName');
+  if (nameInput) nameInput.focus();
+  initLucideIcons();
+}
+
+function closeCreateClassModal() {
+  const modal = document.getElementById('modalCreateClass');
+  if (modal) modal.style.display = 'none';
+  const form = document.getElementById('formCreateClass');
+  if (form) form.reset();
+}
+
+async function submitCreateClass(event) {
+  if (event) event.preventDefault();
+  const name = document.getElementById('inputNewClassName')?.value?.trim();
+  const grade = document.getElementById('selectNewClassGrade')?.value || '11';
+  const section = document.getElementById('inputNewClassSection')?.value?.trim();
+  const stream = document.getElementById('selectNewClassStream')?.value || 'NON_MEDICAL';
+
+  if (!name || !section) {
+    alert('Please enter both class name and section code.');
+    return;
+  }
+
+  const btnSubmit = document.getElementById('btnSubmitCreateClass');
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;"></i> Creating...`;
+    initLucideIcons();
+  }
+
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/curriculum/classes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, grade, section, stream })
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      closeCreateClassModal();
+      await loadTeacherClassesList();
+      teacherBuilderState.selectedClassId = section;
+      const classSelect = document.getElementById('selectTeacherClassScope');
+      if (classSelect) classSelect.value = section;
+      updateTeacherClassScopeUI();
+      alert(`Class "${name}" (${section}) created successfully and added to database.`);
+    } else {
+      alert(`Class Creation Notice: ${data.error || 'Could not create class.'}`);
+    }
+  } catch (err) {
+    console.error('Error creating class:', err);
+    alert('Failed to connect to backend server. Please verify backend is running.');
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = `<i data-lucide="plus" style="width:14px;height:14px;"></i> Create Class`;
+      initLucideIcons();
+    }
+  }
 }
 
 function openAddStudentModal() {
@@ -5654,6 +5877,7 @@ async function submitAddStudentToClass(event) {
   const targetExam = document.getElementById('selectNewStudentTargetExam')?.value || 'JEE_MAIN';
   const section = document.getElementById('selectNewStudentSection')?.value || teacherBuilderState.selectedClassId;
   const parentPhone = document.getElementById('inputNewStudentPhone')?.value?.trim() || '+91 98160-XXXXX';
+  const hostelResident = document.getElementById('selectNewStudentCategory')?.value === 'true';
 
   if (!name || !rollNumber) {
     alert('Please enter student full name and roll number.');
@@ -5674,10 +5898,10 @@ async function submitAddStudentToClass(event) {
       body: JSON.stringify({
         name,
         rollNumber,
-        grade: section.includes('10') ? '10' : '12',
         section,
         targetExam,
-        parentPhone
+        parentPhone,
+        hostelResident
       })
     });
 
@@ -5696,9 +5920,9 @@ async function submitAddStudentToClass(event) {
 
       closeAddStudentModal();
       updateTeacherClassScopeUI();
-      alert(`🎉 Student "${name}" (${rollNumber}) enrolled successfully into ${section}!`);
+      alert(`Student "${name}" (${rollNumber}) enrolled successfully into ${section} and recorded in database.`);
     } else {
-      alert(`Enrollment Error: ${data.error || 'Could not enroll student'}`);
+      alert(`Enrollment Notice: ${data.error || 'Could not enroll student'}`);
     }
   } catch (err) {
     console.error('Error adding student:', err);
@@ -5706,7 +5930,7 @@ async function submitAddStudentToClass(event) {
   } finally {
     if (btnSubmit) {
       btnSubmit.disabled = false;
-      btnSubmit.innerHTML = `<i data-lucide="check" style="width:14px; height:14px;"></i> Enroll Student`;
+      btnSubmit.innerHTML = `<i data-lucide="check" style="width:14px; height:14px;"></i> Enroll Student to Database`;
       initLucideIcons();
     }
   }
@@ -5728,6 +5952,14 @@ window.handleGoToSmartReport = handleGoToSmartReport;
 window.handleGoToClassDashboard = handleGoToClassDashboard;
 window.loadAndRenderSmartReport = loadAndRenderSmartReport;
 window.setTeacherSubjectFaculty = setTeacherSubjectFaculty;
+window.openTeacherSignInModal = openTeacherSignInModal;
+window.closeTeacherSignInModal = closeTeacherSignInModal;
+window.authenticateTeacher = authenticateTeacher;
+window.submitCustomTeacherLogin = submitCustomTeacherLogin;
+window.openCreateClassModal = openCreateClassModal;
+window.closeCreateClassModal = closeCreateClassModal;
+window.submitCreateClass = submitCreateClass;
 window.openAddStudentModal = openAddStudentModal;
 window.closeAddStudentModal = closeAddStudentModal;
 window.submitAddStudentToClass = submitAddStudentToClass;
+window.initTeacherSession = initTeacherSession;

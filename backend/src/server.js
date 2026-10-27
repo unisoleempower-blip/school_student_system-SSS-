@@ -103,7 +103,16 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/assessments', assessmentsRouter);
 app.use('/api/curriculum', curriculumRouter);
 
-// 404 Handler
+// Serve static frontend assets & HTML shell
+const path = require('path');
+const frontendPath = path.resolve(__dirname, '../../frontend');
+app.use(express.static(frontendPath));
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
+// 404 Handler for unhandled /api endpoints
 app.use((req, res) => {
   res.status(404).json({ success: false, error: 'Endpoint not found on HAPS-AI Gateway' });
 });
@@ -118,7 +127,7 @@ const PORT = process.env.PORT || 5050;
 
 async function bootstrap() {
   console.log('------------------------------------------------------------');
-  console.log('🚀 BOOTSTRAPPING HAPS-AI SCHOLAR ASSISTANT (STAGING/PROD)');
+  console.log('BOOTSTRAPPING HAPS-AI SCHOLAR ASSISTANT (STAGING/PROD)');
   console.log('------------------------------------------------------------');
 
   initDatabase();

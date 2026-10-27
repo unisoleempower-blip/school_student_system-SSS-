@@ -24,6 +24,8 @@ echo "--------------------------------------------------------------------"
 # 1. Pre-flight sanity checks
 echo "🔍 [STAGE 1/4] Running Local Unit & Diagnostic Evaluation Suite..."
 node scripts/test_evaluator.js
+node scripts/test_subject_remedial_pipeline.js
+node scripts/test_teacher_auth_and_class_management.js
 echo "✅ Local diagnostic tests passed."
 echo ""
 
