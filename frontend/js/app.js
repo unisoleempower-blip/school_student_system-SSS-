@@ -6312,6 +6312,11 @@ function updateStreamSelectionUI(stream = 'JEE') {
       badgeStream.style.borderColor = 'rgba(16, 185, 129, 0.4)';
       badgeStream.style.color = '#34d399';
       badgeStream.style.background = 'rgba(16, 185, 129, 0.12)';
+    } else if (stream === 'OLYMPIAD') {
+      badgeStream.innerText = 'Olympiad & Advanced';
+      badgeStream.style.borderColor = 'rgba(168, 85, 247, 0.4)';
+      badgeStream.style.color = '#c084fc';
+      badgeStream.style.background = 'rgba(168, 85, 247, 0.12)';
     } else {
       badgeStream.innerText = 'JEE (Main & Advanced)';
       badgeStream.style.borderColor = 'rgba(56, 189, 248, 0.4)';
@@ -6324,17 +6329,21 @@ function updateStreamSelectionUI(stream = 'JEE') {
   const btnBoard = document.getElementById('drawerStreamBoard');
   const btnJee = document.getElementById('drawerStreamJee');
   const btnNeet = document.getElementById('drawerStreamNeet');
+  const btnOlympiad = document.getElementById('drawerStreamOlympiad');
   const checkBoard = document.getElementById('checkStreamBoard');
   const checkJee = document.getElementById('checkStreamJee');
   const checkNeet = document.getElementById('checkStreamNeet');
+  const checkOlympiad = document.getElementById('checkStreamOlympiad');
 
   if (btnBoard) btnBoard.classList.toggle('active', stream === 'BOARD');
   if (btnJee) btnJee.classList.toggle('active', stream === 'JEE');
   if (btnNeet) btnNeet.classList.toggle('active', stream === 'NEET');
+  if (btnOlympiad) btnOlympiad.classList.toggle('active', stream === 'OLYMPIAD');
 
   if (checkBoard) checkBoard.style.display = stream === 'BOARD' ? 'inline-flex' : 'none';
   if (checkJee) checkJee.style.display = stream === 'JEE' ? 'inline-flex' : 'none';
   if (checkNeet) checkNeet.style.display = stream === 'NEET' ? 'inline-flex' : 'none';
+  if (checkOlympiad) checkOlympiad.style.display = stream === 'OLYMPIAD' ? 'inline-flex' : 'none';
 
   // 3. Fallback for older stream cards if present in DOM
   const streamCards = document.querySelectorAll('#teacherTargetStreams .target-stream-card');
@@ -6356,6 +6365,8 @@ function selectDrawerStream(stream) {
       matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('NON_MEDICAL') || (c.name || '').includes('Non-Med'));
     } else if (stream === 'BOARD') {
       matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('FOUNDATION') || (c.grade === '10'));
+    } else if (stream === 'OLYMPIAD') {
+      matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('ADVANCED') || (c.stream || '').includes('OLYMPIAD'));
     }
 
     if (matchedClass) {

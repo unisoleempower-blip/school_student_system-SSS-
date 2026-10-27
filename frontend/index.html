@@ -408,6 +408,18 @@
           </div>
           <span class="drawer-stream-check" id="checkStreamNeet"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
         </button>
+
+        <!-- Olympiad -->
+        <button type="button" class="drawer-stream-btn" id="drawerStreamOlympiad" onclick="selectDrawerStream('OLYMPIAD')">
+          <div class="drawer-stream-icon" style="background:rgba(168, 85, 247, 0.15); color:#c084fc;">
+            <i data-lucide="award" style="width:15px; height:15px;"></i>
+          </div>
+          <div class="drawer-stream-text">
+            <strong>Olympiad &amp; Advanced</strong>
+            <span>Deep Reasoning &bull; Multi-Step Problems</span>
+          </div>
+          <span class="drawer-stream-check" id="checkStreamOlympiad" style="display:none;"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
+        </button>
       </div>
     </div>
 
@@ -1433,27 +1445,6 @@
          2. STUDENT ADAPTIVE VIEW (3 LEARNING MODES + QUIZ ENGINE)
          ====================================================================== -->
     <section class="view-section" id="studentView">
-      <!-- 3 Learning Modes Switcher -->
-      <div class="modes-selector-grid" id="studentModeGrid">
-        <div class="mode-card selected" id="modeCardJee" data-mode="JEE_NEET">
-          <div class="mode-card-badge">Mode 01 &bull; Speed & Accuracy</div>
-          <h3>JEE / NEET Preparation</h3>
-          <p>Application, calculation shortcuts, negative mark avoidance & distractor trap analysis.</p>
-        </div>
-
-        <div class="mode-card" id="modeCardCbse" data-mode="CBSE_EXCELLENCE">
-          <div class="mode-card-badge">Mode 02 &bull; Concepts & Derivations</div>
-          <h3>CBSE & HP Board Excellence</h3>
-          <p>Step-by-step derivations, structured definitions, and rubric-guided answer writing.</p>
-        </div>
-
-        <div class="mode-card" id="modeCardOlympiad" data-mode="OLYMPIAD_ADVANCED">
-          <div class="mode-card-badge">Mode 03 &bull; Deep Reasoning</div>
-          <h3>Olympiad & Advanced</h3>
-          <p>Non-routine multi-step problems, progressive hints, and hypothesis justification.</p>
-        </div>
-      </div>
-
       <!-- Active Assigned Tests Selector Banner -->
       <div class="glass-card" style="margin-bottom: 1.25rem; padding: 12px 18px; border-left: 4px solid var(--accent-cyan); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;" id="assignedTestSelectorBanner">
         <div style="display: flex; align-items: center; gap: 12px;">
@@ -2362,6 +2353,6 @@
   </div>
 
   <!-- Application Logic -->
-  <script src="js/app.js?v=8.1"></script>
+  <script src="js/app.js?v=8.2"></script>
 </body>
 </html>
