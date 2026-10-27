@@ -218,9 +218,9 @@ To ensure zero downtime and absolute academic stability, HAPS-AI Scholar Assista
 graph LR
     Dev[Feature Commit] --> StagingBranch[Branch: staging]
     StagingBranch --> DeployStaging[Vercel Staging / Preview]
-    DeployStaging --> VerifySuite[Automated Staging Verification Suite: 7 Checks]
-    VerifySuite -- If ANY Check Fails --> BlockRelease[❌ GATE BLOCKED: Production Untouched]
-    VerifySuite -- 100% Passed --> PromoteGate[🎯 GATE APPROVED]
+    DeployStaging --> VerifySuite[Automated Staging Verification Suite: 12 Checks]
+    VerifySuite -- If ANY Check Fails --> BlockRelease[GATE BLOCKED: Production Untouched]
+    VerifySuite -- 100% Passed --> PromoteGate[GATE APPROVED]
     PromoteGate --> DeployProd[Vercel Production: haps-ai-scholar-assistant.vercel.app]
     PromoteGate --> GitMain[Merge staging -> main]
 ```
@@ -232,19 +232,19 @@ graph LR
 | **Staging** | `staging` | Preview / Staging Deployment | SSO Protected, Automated verification via `node scripts/verify_staging.js` |
 | **Production** | `main` | Production (`--prod`) | Public URL: [`https://haps-ai-scholar-assistant.vercel.app`](https://haps-ai-scholar-assistant.vercel.app) |
 
-### 🚦 Safe Staging-to-Production Commands
+### Safe Staging-to-Production Commands
 
 ```bash
 # 1. Deploy only to Staging / Preview environment:
 npm run deploy:staging
 
-# 2. Run the 7-check synthetic staging verification suite:
+# 2. Run the 12-check automated staging verification suite:
 npm run verify:staging
 
 # 3. Safe Promotion: Deploys to Staging, verifies 100% checks, then promotes to Production:
 npm run promote:production
 ```
 
-> **Strict Promotion Invariant**: Code is NEVER directly pushed to production without passing the staging test suite (`verify_staging.js`) encompassing API health, KaTeX LaTeX rendering, assessments catalog, class analytics, blueprints, and live diagnostic scoring.
+> **Strict Promotion Invariant**: Code is NEVER directly pushed to production without passing the staging test suite (`verify_staging.js`) encompassing API health, KaTeX LaTeX rendering, assessments catalog, class analytics, teacher mobile phone & subject expertise auth, blueprints, strict subject-isolated question delivery, and live diagnostic scoring.
 
 
