@@ -339,8 +339,9 @@ router.get('/remedial/:id', (req, res) => {
 // 4b. POST /api/assessments/remedial/verify-formula - Verify student formula input with LaTeX feedback
 router.post('/remedial/verify-formula', (req, res) => {
   try {
-    const { subtopic = 'Spherical Mirrors', formulaInput = '' } = req.body;
-    const evaluation = verifyStudentFormula(subtopic, formulaInput);
+    const { subtopic = 'Spherical Mirrors', formulaInput, studentInput } = req.body;
+    const input = formulaInput || studentInput || '';
+    const evaluation = verifyStudentFormula(subtopic, input);
     res.json({ success: true, ...evaluation });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

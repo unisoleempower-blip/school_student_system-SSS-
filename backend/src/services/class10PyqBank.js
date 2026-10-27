@@ -326,9 +326,34 @@ function getAllClass10Questions() {
 
 function getCuratedClass10Question(subject, chapter, board) {
   let matched = class10Questions;
-  if (subject) matched = matched.filter(q => q.subject.toLowerCase() === subject.toLowerCase());
-  if (chapter) matched = matched.filter(q => q.chapter.toLowerCase().includes(chapter.toLowerCase()));
-  if (board) matched = matched.filter(q => q.ncert_mapping.pyq_tag.includes(board));
+  const sLower = (subject || '').toLowerCase().trim();
+
+  if (sLower) {
+    if (sLower.includes('chem')) {
+      const chemQ = class10Questions.filter(q => q.chapter.toLowerCase().includes('metal') || q.chapter.toLowerCase().includes('acid') || q.chapter.toLowerCase().includes('carbon'));
+      if (chemQ.length > 0) return chemQ[Math.floor(Math.random() * chemQ.length)];
+    } else if (sLower.includes('bio')) {
+      const bioQ = class10Questions.filter(q => q.chapter.toLowerCase().includes('life') || q.chapter.toLowerCase().includes('heredity'));
+      if (bioQ.length > 0) return bioQ[Math.floor(Math.random() * bioQ.length)];
+    } else if (sLower.includes('math')) {
+      const mathQ = class10Questions.filter(q => q.subject.toLowerCase() === 'mathematics');
+      if (mathQ.length > 0) return mathQ[Math.floor(Math.random() * mathQ.length)];
+    } else if (sLower.includes('phys')) {
+      const phyQ = class10Questions.filter(q => q.chapter.toLowerCase().includes('light') || q.chapter.toLowerCase().includes('electr'));
+      if (phyQ.length > 0) return phyQ[Math.floor(Math.random() * phyQ.length)];
+    } else {
+      matched = matched.filter(q => q.subject.toLowerCase() === sLower);
+    }
+  }
+
+  if (chapter && matched.length > 0) {
+    const cMatches = matched.filter(q => q.chapter.toLowerCase().includes(chapter.toLowerCase()));
+    if (cMatches.length > 0) matched = cMatches;
+  }
+  if (board && matched.length > 0) {
+    const bMatches = matched.filter(q => q.ncert_mapping && q.ncert_mapping.pyq_tag && q.ncert_mapping.pyq_tag.includes(board));
+    if (bMatches.length > 0) matched = bMatches;
+  }
 
   if (matched.length > 0) {
     return matched[Math.floor(Math.random() * matched.length)];

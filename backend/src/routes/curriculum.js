@@ -43,12 +43,26 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
       chapters = chapters.filter(ch => String(ch.grade) === String(grade));
     }
 
-    // Gather all questions for this subject from inMemoryStore
+    // Gather questions strictly for this subject from inMemoryStore
     const banks = inMemoryStore.subjectBanks || {};
-    const allQuestions = [...(inMemoryStore.questions || [])];
-    Object.values(banks).forEach(arr => {
-      if (Array.isArray(arr)) allQuestions.push(...arr);
-    });
+    const sKeyUpper = (subjectKey || '').toUpperCase().trim();
+    let relevantBank = [];
+    if (sKeyUpper === 'CHEMISTRY') relevantBank = banks.senior_chemistry || [];
+    else if (sKeyUpper === 'BIOLOGY') relevantBank = banks.senior_biology || [];
+    else if (sKeyUpper === 'MATHEMATICS') relevantBank = banks.senior_mathematics || [];
+    else if (sKeyUpper === 'PHYSICS') relevantBank = banks.senior_physics || [];
+    else if (sKeyUpper === 'CLASS10_MATHEMATICS') relevantBank = banks.class10_maths || [];
+    else if (sKeyUpper === 'CLASS10_SCIENCE') relevantBank = banks.class10_science || [];
+    else relevantBank = Object.values(banks).flat();
+
+    const allQuestions = [
+      ...relevantBank,
+      ...(inMemoryStore.questions || []).filter(q => {
+        const qKey = (q.subjectKey || '').toUpperCase();
+        const qSub = (q.subject || '').toUpperCase();
+        return qKey === sKeyUpper || qSub === sKeyUpper || (sKeyUpper === 'CHEMISTRY' && qSub.includes('CHEM'));
+      })
+    ];
 
     // Enrich each chapter and topic with live question count
     const enrichedChapters = chapters.map(ch => {
@@ -308,7 +322,59 @@ router.get('/classes', (req, res) => {
   }
 });
 
-// 6. POST /api/curriculum/generate-test - Generate test/quiz/assignment chapter-wise or subtopic-wise
+// 5. POST /api/curriculum/students - Add/enroll a new student into class roster
+router.post('/students', (req, res) => {
+  try {
+    const {
+      name,
+      rollNumber,
+      grade = '12',
+      section = '12-NonMed',
+      targetExam = 'JEE_MAIN',
+      parentPhone = '+91 98160-XXXXX',
+      board = 'CBSE'
+    } = req.body;
+
+    if (!name || !rollNumber) {
+      return res.status(400).json({ success: false, error: 'Student full name and roll number are required.' });
+    }
+
+    if (!inMemoryStore.users) inMemoryStore.users = [];
+
+    const existing = inMemoryStore.users.find(u => u.roll_number === rollNumber.trim());
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        error: `A student with roll number "${rollNumber.trim()}" already exists (${existing.full_name}).`
+      });
+    }
+
+    const newStudent = {
+      id: `stu_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+      full_name: name.trim(),
+      roll_number: rollNumber.trim(),
+      grade: String(grade),
+      section: section,
+      board: board,
+      target_exam: targetExam,
+      parent_phone: parentPhone,
+      role: 'STUDENT',
+      created_at: new Date().toISOString()
+    };
+
+    inMemoryStore.users.push(newStudent);
+
+    res.json({
+      success: true,
+      student: newStudent,
+      message: `Enrolled student ${newStudent.full_name} (${newStudent.roll_number}) into ${section} successfully.`
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 6. POST /api/curriculum/generate-test - Generate test/quiz/assignment chapter-wise or subtopic-wise with STRICT subject isolation
 router.post('/generate-test', async (req, res) => {
   try {
     const {
@@ -328,26 +394,74 @@ router.post('/generate-test', async (req, res) => {
     } = req.body;
 
     const count = Math.min(25, Math.max(1, Number(questionCount) || 5));
-    const allQuestions = [...(inMemoryStore.questions || [])];
     const banks = inMemoryStore.subjectBanks || {};
-    Object.values(banks).forEach(arr => {
-      if (Array.isArray(arr)) allQuestions.push(...arr);
+
+    // 1. Strict Canonical Subject Determination
+    const sName = (subjectName || '').toLowerCase().trim();
+    const sKey = (subjectKey || '').toUpperCase().trim();
+    let targetBank = [];
+    let canonicalSubject = 'Physics';
+    let resolvedSubjectKey = 'PHYSICS';
+
+    if (sName.includes('chem') || sKey.includes('CHEM')) {
+      targetBank = banks.senior_chemistry || [];
+      canonicalSubject = 'Chemistry';
+      resolvedSubjectKey = 'CHEMISTRY';
+    } else if (sName.includes('bio') || sKey.includes('BIO')) {
+      targetBank = banks.senior_biology || [];
+      canonicalSubject = 'Biology';
+      resolvedSubjectKey = 'BIOLOGY';
+    } else if (sName.includes('math') || sKey.includes('MATH')) {
+      targetBank = String(grade) === '10' ? (banks.class10_maths || []) : (banks.senior_mathematics || []);
+      canonicalSubject = 'Mathematics';
+      resolvedSubjectKey = String(grade) === '10' ? 'CLASS10_MATHEMATICS' : 'MATHEMATICS';
+    } else if (sName.includes('phys') || sKey.includes('PHYS')) {
+      targetBank = banks.senior_physics || [];
+      canonicalSubject = 'Physics';
+      resolvedSubjectKey = 'PHYSICS';
+    } else if (String(grade) === '10' && (sName.includes('sci') || sKey.includes('SCI'))) {
+      targetBank = banks.class10_science || [];
+      canonicalSubject = 'Science';
+      resolvedSubjectKey = 'CLASS10_SCIENCE';
+    } else {
+      targetBank = banks.senior_physics || [];
+      canonicalSubject = subjectName || 'Physics';
+      resolvedSubjectKey = subjectKey || 'PHYSICS';
+    }
+
+    // 2. Build strictly isolated question pool for this subject only
+    const subjectQuestions = [
+      ...targetBank,
+      ...(inMemoryStore.questions || []).filter(q => {
+        const qSub = (q.subject || '').toLowerCase();
+        const qKey = (q.subjectKey || '').toUpperCase();
+        return qSub === canonicalSubject.toLowerCase() || qKey === resolvedSubjectKey;
+      })
+    ];
+
+    // 3. Filter questions for matching chapter & subtopics
+    const targetChap = (chapterName || '').toLowerCase().trim();
+    let matchingQuestions = subjectQuestions.filter(q => {
+      const qChap = (q.chapter || q.chapter_name || '').toLowerCase().trim();
+      if (!qChap || !targetChap) return false;
+      return qChap === targetChap || qChap.includes(targetChap) || targetChap.includes(qChap);
     });
 
-    // 1. Filter questions for matching chapter & subtopics
-    let matchingQuestions = allQuestions.filter(q => {
-      const qChap = (q.chapter || q.chapter_name || '').toLowerCase().trim();
-      const targetChap = (chapterName || '').toLowerCase().trim();
-      if (!qChap || !targetChap) return false;
-      const chapMatch = qChap === targetChap || qChap.includes(targetChap) || targetChap.includes(qChap);
-      if (!chapMatch) return false;
-
-      if (subtopics && subtopics.length > 0) {
+    if (subtopics && subtopics.length > 0 && matchingQuestions.length > 0) {
+      const subtopicMatches = matchingQuestions.filter(q => {
         const qTopic = (q.subtopic || q.topic || '').toLowerCase();
         return subtopics.some(sub => qTopic.includes(sub.toLowerCase()) || sub.toLowerCase().includes(qTopic));
+      });
+      if (subtopicMatches.length > 0) {
+        matchingQuestions = subtopicMatches;
       }
-      return true;
-    });
+    }
+
+    // If chapter name didn't match pre-seeded questions, pick from the SAME subject pool (never cross subject!)
+    if (matchingQuestions.length === 0) {
+      console.log(`[TEST GENERATOR] Using general ${canonicalSubject} pool for chapter: ${chapterName}`);
+      matchingQuestions = subjectQuestions;
+    }
 
     // Deduplicate
     const seen = new Set();
@@ -362,16 +476,29 @@ router.post('/generate-test', async (req, res) => {
 
     const selectedQuestions = curatedQuestions.sort(() => 0.5 - Math.random()).slice(0, count);
 
-    // 2. If more questions needed, generate with AI engine
+    // If more questions needed, fill from other verified questions in this subject bank first
+    if (selectedQuestions.length < count && subjectQuestions.length > selectedQuestions.length) {
+      const remainingPool = subjectQuestions.filter(q => {
+        const key = q.question_latex || q.questionText || q.id;
+        return !seen.has(key);
+      });
+      while (selectedQuestions.length < count && remainingPool.length > 0) {
+        const picked = remainingPool.splice(Math.floor(Math.random() * remainingPool.length), 1)[0];
+        seen.add(picked.question_latex || picked.questionText || picked.id);
+        selectedQuestions.push(picked);
+      }
+    }
+
+    // 4. If more questions needed, generate with AI engine strictly scoped to canonical subject
     if (selectedQuestions.length < count) {
       const needed = count - selectedQuestions.length;
-      console.log(`[TEST GENERATOR] Synthesizing ${needed} supplementary questions for ${subjectName} -> ${chapterName}...`);
+      console.log(`[TEST GENERATOR] Synthesizing ${needed} supplementary questions for ${canonicalSubject} -> ${chapterName}...`);
       const targetSub = (subtopics && subtopics.length > 0) ? subtopics[0] : 'Fundamental Application';
       for (let i = 0; i < needed; i++) {
         try {
           const fresh = await generateLlmQuestion({
             grade: String(grade),
-            subject: subjectName,
+            subject: canonicalSubject,
             chapter: `${chapterName} – ${targetSub}`,
             ncertSection: `${chapterNumber}.${i + 1}`,
             board: section.includes('NonMed') ? 'JEE_MAIN' : (section.includes('Med') ? 'NEET' : 'CBSE'),
@@ -384,7 +511,8 @@ router.post('/generate-test', async (req, res) => {
               ...fresh,
               id: `q_gen_${Date.now()}_${i}`,
               grade: String(grade),
-              subject: subjectName,
+              subject: canonicalSubject,
+              subjectKey: resolvedSubjectKey,
               chapter: chapterName,
               chapter_name: chapterName,
               topic: targetSub,
@@ -401,7 +529,7 @@ router.post('/generate-test', async (req, res) => {
     }
 
     const modeLabel = mode === 'QUIZ' ? 'Speed Quiz' : (mode === 'ASSIGNMENT' ? 'Homework Assignment' : 'Diagnostic Test');
-    const finalTitle = title || `Class ${grade} (${section.replace('12-', '').replace('10-', '')}) ${subjectName}: ${chapterName} ${modeLabel}`;
+    const finalTitle = title || `Class ${grade} (${section.replace('12-', '').replace('10-', '')}) ${canonicalSubject}: ${chapterName} ${modeLabel}`;
     const durationMinutes = mode === 'QUIZ' ? count * 2 : (mode === 'ASSIGNMENT' ? count * 4 : count * 3);
     const totalMarks = count * 4;
 
@@ -411,8 +539,8 @@ router.post('/generate-test', async (req, res) => {
       description: `${modeLabel} assigned to ${section} covering ${chapterName}. Total ${selectedQuestions.length} questions.`,
       grade: String(grade),
       section: section,
-      subject: subjectName,
-      subjectKey: subjectKey,
+      subject: canonicalSubject,
+      subjectKey: resolvedSubjectKey,
       chapterName: chapterName,
       subtopics: subtopics,
       mode: mode,

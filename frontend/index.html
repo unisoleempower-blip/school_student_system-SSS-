@@ -99,6 +99,35 @@
         </button>
       </div>
 
+      <!-- TEACHER SUBJECT FACULTY IDENTITY & SWITCHER (STRICT SUBJECT SCOPING) -->
+      <div class="teacher-faculty-banner" id="teacherFacultyBanner">
+        <div class="faculty-profile-info">
+          <div class="faculty-avatar" id="teacherFacultyAvatar">⚡</div>
+          <div>
+            <div class="faculty-name-row">
+              <strong id="teacherFacultyName">Er. Rajesh Kumar</strong>
+              <span class="faculty-badge" id="teacherFacultyBadge">Senior Physics Faculty</span>
+            </div>
+            <span class="faculty-subtext" id="teacherFacultyStreamText">Class 12 Non-Med &bull; JEE Main, Advanced &amp; CBSE Boards</span>
+          </div>
+        </div>
+        <div class="faculty-switcher-pills">
+          <span class="switcher-label">Faculty Subject:</span>
+          <button type="button" class="btn-faculty-pill active" id="btnFacultyPhysics" data-subject-faculty="PHYSICS" onclick="setTeacherSubjectFaculty('PHYSICS')">
+            <i data-lucide="zap" style="width:13px;height:13px;"></i> Physics
+          </button>
+          <button type="button" class="btn-faculty-pill" id="btnFacultyChemistry" data-subject-faculty="CHEMISTRY" onclick="setTeacherSubjectFaculty('CHEMISTRY')">
+            <i data-lucide="flask-conical" style="width:13px;height:13px;"></i> Chemistry
+          </button>
+          <button type="button" class="btn-faculty-pill" id="btnFacultyMaths" data-subject-faculty="MATHEMATICS" onclick="setTeacherSubjectFaculty('MATHEMATICS')">
+            <i data-lucide="calculator" style="width:13px;height:13px;"></i> Mathematics
+          </button>
+          <button type="button" class="btn-faculty-pill" id="btnFacultyBiology" data-subject-faculty="BIOLOGY" onclick="setTeacherSubjectFaculty('BIOLOGY')">
+            <i data-lucide="dna" style="width:13px;height:13px;"></i> Biology
+          </button>
+        </div>
+      </div>
+
       <!-- TAB: CREATE TEST & QUIZZES (TEACHER SCOPED) -->
       <div class="teacher-tab-content" id="tabGenerator" style="display:none;">
         
@@ -180,8 +209,12 @@
               </div>
             </div>
 
-            <!-- Enrolled Students Counter & Drawer Trigger -->
+            <!-- Enrolled Students Counter, Add Student Button & Drawer Trigger -->
             <div style="display: flex; align-items: center; gap: 8px;">
+              <button type="button" class="btn-add-student-pill" id="btnOpenAddStudentModal" onclick="openAddStudentModal()" title="Add / Enroll a new student into this class">
+                <i data-lucide="user-plus" style="width:14px; height:14px;"></i>
+                <span>+ Add Student</span>
+              </button>
               <button type="button" class="class-roster-preview-pill" id="btnToggleClassRosterPreview" title="Click to view enrolled class students">
                 <i data-lucide="users" style="width:14px; height:14px;"></i>
                 <span id="labelEnrolledStudentsCount">8 Students in Class</span>
@@ -192,9 +225,9 @@
 
           <!-- Collapsible Enrolled Students Drawer -->
           <div class="class-roster-drawer" id="drawerClassRosterPreview">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <strong style="font-size:0.8rem; color:var(--text-primary);"><i data-lucide="check-circle" style="width:12px;height:12px;color:#10b981;vertical-align:middle;"></i> Students enrolled in this class:</strong>
-              <span style="font-size:0.72rem; color:var(--text-muted);">Assigned tests will automatically dispatch to their portal</span>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+              <strong style="font-size:0.8rem; color:var(--text-primary);"><i data-lucide="users" style="width:13px;height:13px;color:#10b981;vertical-align:middle;"></i> Enrolled Class Students:</strong>
+              <span style="font-size:0.72rem; color:var(--text-muted);">💡 Click any student to view detailed progress, charts &amp; personalized assignment</span>
             </div>
             <div class="students-chips-list" id="listClassEnrolledStudentChips">
               <!-- Dynamically populated chips -->
@@ -1034,7 +1067,7 @@
             </div>
           </div>
 
-          <!-- Student Drill-Down Visual Progress Charts -->
+          <!-- Student Drill-Down Visual Progress Charts (3 Visual Analytics) -->
           <div class="student-modal-charts-grid" style="margin-bottom: 1.25rem;">
             <!-- Student Time vs Benchmark -->
             <div class="chart-card" style="background: rgba(0,0,0,0.25);">
@@ -1044,7 +1077,7 @@
                   <p>Student's solving velocity (Seconds)</p>
                 </div>
               </div>
-              <div class="chart-wrapper" style="height: 190px;">
+              <div class="chart-wrapper" style="height: 180px;">
                 <canvas id="chartStudentDrilldownTime"></canvas>
               </div>
             </div>
@@ -1057,10 +1090,39 @@
                   <p>Classification of student's errors</p>
                 </div>
               </div>
-              <div class="chart-wrapper" style="height: 190px;">
+              <div class="chart-wrapper" style="height: 180px;">
                 <canvas id="chartStudentDrilldownMistakes"></canvas>
               </div>
             </div>
+          </div>
+
+          <!-- Chart 3: Concept Mastery Across Topics -->
+          <div class="chart-card" style="background: rgba(0,0,0,0.25); margin-bottom: 1.25rem;">
+            <div class="chart-header" style="margin-bottom:0.5rem; display:flex; justify-content:space-between; align-items:center;">
+              <div class="chart-title-group">
+                <h4><i data-lucide="award" style="width:15px; height:15px; color:#10b981;"></i> Subject Concept Mastery &amp; Retention Breakdown</h4>
+                <p>Accuracy rates across key syllabus subtopics</p>
+              </div>
+              <span class="speed-badge optimal" id="drilldownMasterySummaryBadge">Mastery Overview</span>
+            </div>
+            <div class="chart-wrapper" style="height: 160px;">
+              <canvas id="chartStudentDrilldownMastery"></canvas>
+            </div>
+          </div>
+
+          <!-- Direct Remedial Action Callout -->
+          <div style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(219, 39, 119, 0.15)); border: 1px solid rgba(124, 58, 237, 0.35); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <strong style="color: #c084fc; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="sparkles" style="width: 16px; height: 16px;"></i> Personalized Remedial Assignment Ready
+              </strong>
+              <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 3px 0 0 0;">
+                Tailored "Write That Formula" interactive drills and practice questions for concepts missed by this student.
+              </p>
+            </div>
+            <button type="button" class="btn-primary" onclick="openStudentRemedialFromModal()" style="font-size: 0.85rem; padding: 8px 18px; background: linear-gradient(135deg, #7c3aed, #db2777); font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);">
+              <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Open Personalized Remedial Drill
+            </button>
           </div>
 
           <!-- Question-by-Question Timing & Mistake Analysis -->
@@ -1637,6 +1699,66 @@
         </div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Modal: Enroll / Add Student To Class -->
+  <div class="modal-overlay" id="modalAddStudentToClass" style="display: none; z-index: 10000;">
+    <div class="modal-card" style="max-width: 520px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);">
+      <div style="background: linear-gradient(135deg, #059669, #0d9488); padding: 16px 20px; color:#fff; display:flex; justify-content:space-between; align-items:center; border-radius: var(--radius-md) var(--radius-md) 0 0;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i data-lucide="user-plus" style="width:22px; height:22px;"></i>
+          <div>
+            <strong style="font-size:1.1rem; display:block;">Enroll Student to Class Roster</strong>
+            <p style="font-size:0.75rem; margin:0; opacity:0.9;">Add a student to active class roster and learning records</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeAddStudentModal()" style="background:transparent; border:none; color:#fff; cursor:pointer; padding:4px;">
+          <i data-lucide="x" style="width:20px; height:20px;"></i>
+        </button>
+      </div>
+      <form id="formAddStudentToClass" onsubmit="submitAddStudentToClass(event)" style="padding: 20px; display:flex; flex-direction:column; gap:14px; background: var(--bg-card);">
+        <div>
+          <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Student Full Name *</label>
+          <input type="text" class="form-control" id="inputNewStudentName" placeholder="e.g. Vikram Rathore" required style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div>
+            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Roll Number *</label>
+            <input type="text" class="form-control" id="inputNewStudentRoll" placeholder="e.g. 12-NM-09" required style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Target Exam</label>
+            <select class="form-select" id="selectNewStudentTargetExam" style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+              <option value="JEE_MAIN">JEE Main</option>
+              <option value="JEE_ADVANCED">JEE Advanced</option>
+              <option value="NEET_UG">NEET UG</option>
+              <option value="CBSE">CBSE Board</option>
+              <option value="HP_BOARD">HP Board (HPBOSE)</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div>
+            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Class / Stream</label>
+            <select class="form-select" id="selectNewStudentSection" style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+              <option value="12-NonMed">Class 12th (Non-Med)</option>
+              <option value="12-Med">Class 12th (Medical)</option>
+              <option value="10-Science-A">Class 10th (Section A)</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size:0.82rem; font-weight:600; margin-bottom:4px; display:block;">Parent WhatsApp Contact</label>
+            <input type="text" class="form-control" id="inputNewStudentPhone" placeholder="+91 98160-XXXXX" style="width:100%; padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px; font-size:0.88rem;">
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:10px; padding-top:12px; border-top:1px solid var(--border-subtle);">
+          <button type="button" class="btn-secondary" onclick="closeAddStudentModal()" style="font-size:0.82rem; padding:7px 14px; cursor:pointer;">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnSubmitAddStudent" style="background: linear-gradient(135deg, #10b981, #059669); font-weight:700; font-size:0.82rem; padding:7px 18px; cursor:pointer;">
+            <i data-lucide="check" style="width:14px; height:14px;"></i> Enroll Student
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

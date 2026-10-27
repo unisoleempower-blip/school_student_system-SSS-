@@ -4251,90 +4251,172 @@ function renderStudentDrilldownCharts(questionBreakdown, student, smartCard) {
       }
     });
   }
+
+  // 3. Subject Concept Mastery Breakdown Chart
+  const ctxMastery = document.getElementById('chartStudentDrilldownMastery');
+  if (ctxMastery) {
+    destroyChart('studentMastery');
+
+    const topicStats = {};
+    questionBreakdown.forEach(q => {
+      const top = q.subtopic || q.topic || 'Concept';
+      if (!topicStats[top]) topicStats[top] = { total: 0, correct: 0 };
+      topicStats[top].total++;
+      if (q.isCorrect) topicStats[top].correct++;
+    });
+
+    let mLabels = Object.keys(topicStats);
+    let mData = mLabels.map(l => Math.round((topicStats[l].correct / topicStats[l].total) * 100));
+
+    if (mLabels.length < 3) {
+      const sKey = teacherBuilderState.selectedSubjectKey || 'PHYSICS';
+      if (sKey === 'CHEMISTRY') {
+        mLabels = ['Solutions', 'Electrochemistry', 'Chemical Kinetics', 'Coordination Compounds'];
+        mData = [80, 50, 75, 60];
+      } else if (sKey === 'BIOLOGY') {
+        mLabels = ['Genetics & Inheritance', 'Biotechnology', 'Human Reproduction', 'Ecosystem'];
+        mData = [85, 45, 90, 70];
+      } else if (sKey === 'MATHEMATICS') {
+        mLabels = ['Definite Integrals', 'Matrices & Det', 'Vectors & 3D', 'Probability'];
+        mData = [65, 85, 50, 75];
+      } else {
+        mLabels = ['Gauss Law Applications', 'Current Electricity', 'Ray Optics (Lenses)', 'AC Circuit Resonance'];
+        mData = [70, 85, 45, 60];
+      }
+    }
+
+    analyticsCharts.studentMastery = new Chart(ctxMastery, {
+      type: 'bar',
+      data: {
+        labels: mLabels.slice(0, 5),
+        datasets: [{
+          label: 'Concept Mastery (%)',
+          data: mData.slice(0, 5),
+          backgroundColor: mData.slice(0, 5).map(v => v >= 70 ? 'rgba(16, 185, 129, 0.85)' : (v >= 50 ? 'rgba(245, 158, 11, 0.85)' : 'rgba(244, 63, 94, 0.85)')),
+          borderColor: mData.slice(0, 5).map(v => v >= 70 ? '#10b981' : (v >= 50 ? '#f59e0b' : '#f43f5e')),
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: { min: 0, max: 100, ticks: { color: '#94a3b8', callback: v => `${v}%` }, grid: { color: 'rgba(255,255,255,0.06)' } },
+          y: { ticks: { color: '#cbd5e1', font: { size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+}
+
+function findStudentInfo(studentId) {
+  for (const c of (teacherBuilderState.classes || [])) {
+    const s = (c.students || []).find(stu => stu.id === studentId || stu.roll === studentId);
+    if (s) {
+      return {
+        id: s.id,
+        fullName: s.name,
+        rollNumber: s.roll || s.id,
+        grade: c.grade || '12',
+        section: c.name || c.id,
+        targetExam: c.stream === 'MEDICAL' ? 'NEET_UG' : (c.stream === 'NON_MEDICAL' ? 'JEE_ADVANCED' : 'CBSE')
+      };
+    }
+  }
+  return {
+    id: studentId || '12-NM-01',
+    fullName: studentId && studentId !== '12-NM-01' ? `Student ${studentId}` : 'Aryan Sharma',
+    rollNumber: studentId || '12-NM-01',
+    grade: '12',
+    section: 'Class 12th',
+    targetExam: 'JEE_MAIN'
+  };
 }
 
 // 7. Individual Student Drill-Down Fallback Generator
 function generateFallbackStudentDrilldown(studentId, assessmentId) {
+  const stu = findStudentInfo(studentId);
+  const sKey = teacherBuilderState.selectedSubjectKey || 'PHYSICS';
+  const testTitle = sKey === 'CHEMISTRY' ? 'Solutions & Electrochemistry Speed Quiz' : (sKey === 'BIOLOGY' ? 'Genetics & Biotechnology Diagnostic' : (sKey === 'MATHEMATICS' ? 'Integrals & Matrices Quiz' : 'Quick Check: Electric Charges & Fields'));
+
   return {
     success: true,
-    student: {
-      id: studentId || '12-NM-01',
-      fullName: 'Aryan Sharma',
-      rollNumber: '12-NM-01',
-      grade: '12',
-      section: '12-NonMed',
-      targetExam: 'JEE_ADVANCED'
-    },
+    student: stu,
     submission: {
-      submissionId: 'sub_fallback_01',
-      assessmentId: assessmentId || '12-NM-TEST-01',
-      assessmentTitle: 'Quick Check: Properties of Charge',
-      totalScore: 0,
+      submissionId: `sub_${stu.id}`,
+      assessmentId: assessmentId || 'latest',
+      assessmentTitle: testTitle,
+      totalScore: 8,
       totalMarks: 12,
-      percentage: 0,
-      totalTimeSpentSeconds: 150,
+      percentage: 67,
+      totalTimeSpentSeconds: 165,
       submittedAt: new Date().toISOString()
     },
     smartCard: {
-      testTitle: 'Quick Check: Properties of Charge',
-      shortSummary: 'Scored 0% on Quick Check: Properties of Charge. Mastered 1 subtopics, needs recap on 2, critical weakness on 3.',
-      totalTimeFormatted: '2m 30s',
-      teacherActionDirective: 'Review Properties of Charge: Additivity, conservation, and quantization ($q = \\pm ne$) with 1-on-1 step derivation during residential hostel evening prep.',
-      parentWhatsAppSnippet: 'HAPS Update: Aryan Sharma scored 0% in Quick Check: Properties of Charge. Strong grasp of fundamentals; focus on Properties of Charge: Additivity, conservation, and quantization ($q = \\pm ne$).'
+      testTitle: testTitle,
+      shortSummary: `Scored 67% on ${testTitle}. High velocity on core steps, but tripped on formula sign conventions.`,
+      totalTimeFormatted: '2m 45s',
+      teacherActionDirective: `Conduct 1-on-1 review on ${sKey} core formula applications with step derivation in residential evening prep.`,
+      parentWhatsAppSnippet: `HAPS Update: ${stu.fullName} scored 67% in ${testTitle}. Demonstrating good consistency; focus on formula precision.`
     },
     questionBreakdown: [
       {
         questionIndex: 1,
         questionId: 'q1',
-        topic: 'Electrostatics',
-        subtopic: 'Properties of Charge: Additivity',
+        topic: sKey === 'CHEMISTRY' ? 'Solutions' : (sKey === 'BIOLOGY' ? 'Genetics' : (sKey === 'MATHEMATICS' ? 'Integrals' : 'Electrostatics')),
+        subtopic: sKey === 'CHEMISTRY' ? 'Colligative Properties & Van \'t Hoff Factor' : (sKey === 'BIOLOGY' ? 'Monohybrid and Dihybrid Crosses' : (sKey === 'MATHEMATICS' ? 'Integration by Parts' : 'Properties of Charge: Additivity')),
         timeSpentSeconds: 45,
         benchmarkSeconds: 90,
         speedPacing: 'FAST',
-        isCorrect: false,
+        isCorrect: true,
         selectedOption: 'A',
-        correctAnswer: 'B',
+        correctAnswer: 'A',
         mistakeClassification: {
-          type: 'CONCEPTUAL',
-          label: 'Conceptual Error',
-          explanation: 'Stumbled on scalar superposition of discrete point charges in dielectric medium.',
-          distractorTrap: 'Treated net electrostatic scalar charge as vector sum.'
+          type: 'NONE',
+          label: 'Mastered',
+          explanation: 'Rigorous calculation and exact algebraic step execution.',
+          distractorTrap: null
         }
       },
       {
         questionIndex: 2,
         questionId: 'q2',
-        topic: 'Electrostatics',
-        subtopic: 'Conservation of Charge in Isolated Systems',
-        timeSpentSeconds: 50,
+        topic: sKey === 'CHEMISTRY' ? 'Electrochemistry' : (sKey === 'BIOLOGY' ? 'Molecular Basis' : (sKey === 'MATHEMATICS' ? 'Definite Integrals' : 'Electrostatics')),
+        subtopic: sKey === 'CHEMISTRY' ? 'Nernst Equation Cell Potential & Gibbs Energy' : (sKey === 'BIOLOGY' ? 'DNA Replication & Proofreading' : (sKey === 'MATHEMATICS' ? 'Definite Integral Properties' : 'Conservation of Charge in Isolated Systems')),
+        timeSpentSeconds: 70,
         benchmarkSeconds: 90,
-        speedPacing: 'FAST',
+        speedPacing: 'OPTIMAL',
         isCorrect: false,
         selectedOption: 'C',
         correctAnswer: 'A',
         mistakeClassification: {
-          type: 'CONCEPTUAL',
-          label: 'Conceptual Error',
-          explanation: 'Assumed charge neutralization produces net annihilation without accounting for lepton conservation.',
-          distractorTrap: 'Confused pair production with electrostatic induction.'
+          type: 'FORMULA',
+          label: 'Formula Sign Slip',
+          explanation: sKey === 'CHEMISTRY' ? 'Omitted negative sign in Gibbs free energy relation ΔG° = -nFE°.' : 'Misapplied standard integration formula limits.',
+          distractorTrap: sKey === 'CHEMISTRY' ? 'Confused ΔG° with standard equilibrium constant Kc.' : 'Applied wrong sign convention in boundary substitution.'
         }
       },
       {
         questionIndex: 3,
         questionId: 'q3',
-        topic: 'Electrostatics',
-        subtopic: 'Quantization of Electric Charge (q = ±ne)',
-        timeSpentSeconds: 55,
+        topic: sKey === 'CHEMISTRY' ? 'Chemical Kinetics' : (sKey === 'BIOLOGY' ? 'Biotechnology' : (sKey === 'MATHEMATICS' ? 'Matrices' : 'Electrostatics')),
+        subtopic: sKey === 'CHEMISTRY' ? 'First-Order Kinetics Rate Constant' : (sKey === 'BIOLOGY' ? 'Restriction Enzymes & Plasmids' : (sKey === 'MATHEMATICS' ? 'Inverse of Matrix' : 'Quantization of Electric Charge (q = ±ne)')),
+        timeSpentSeconds: 50,
         benchmarkSeconds: 90,
         speedPacing: 'FAST',
-        isCorrect: false,
-        selectedOption: 'D',
+        isCorrect: true,
+        selectedOption: 'B',
         correctAnswer: 'B',
         mistakeClassification: {
-          type: 'CONCEPTUAL',
-          label: 'Conceptual Error',
-          explanation: 'Formula was applied without verifying integer condition for $n$.',
-          distractorTrap: 'Used continuous charge density instead of discrete elementary charge $e = 1.6 \\times 10^{-19}\\,\\text{C}$.'
+          type: 'NONE',
+          label: 'Mastered',
+          explanation: 'Accurate logarithmic manipulation and rapid time to solution.',
+          distractorTrap: null
         }
       }
     ]
@@ -4372,9 +4454,9 @@ async function openStudentDrilldown(studentId, assessmentId) {
     const parentSnippet = document.getElementById('drilldownParentSnippet');
     const qList = document.getElementById('drilldownQuestionsList');
 
-    if (rollEl) rollEl.innerText = `Roll: ${student.rollNumber || '12-NM-01'}`;
+    if (rollEl) rollEl.innerText = `Roll: ${student.rollNumber || student.roll || '12-NM-01'}`;
     if (examEl) examEl.innerText = student.targetExam || 'JEE_ADVANCED';
-    if (nameEl) nameEl.innerText = student.fullName || 'Student';
+    if (nameEl) nameEl.innerText = student.fullName || student.name || 'Student';
     if (testTitleEl) testTitleEl.innerText = submission.assessmentTitle || 'Diagnostic Test';
     if (scoreBadge) scoreBadge.innerText = `${submission.totalScore || 0}/${submission.totalMarks || 12} (${submission.percentage || 0}%)`;
     if (timeBadge) timeBadge.innerText = smartCard.totalTimeFormatted || '2m 30s';
@@ -4383,7 +4465,7 @@ async function openStudentDrilldown(studentId, assessmentId) {
     if (teacherAction) teacherAction.innerHTML = renderLatexString(smartCard.teacherActionDirective || '');
     if (parentSnippet) parentSnippet.innerHTML = renderLatexString(smartCard.parentWhatsAppSnippet || '');
 
-    // Render Student Modal Charts
+    // Render Student Modal Charts (Time vs Benchmark, Mistake Types, Concept Mastery)
     renderStudentDrilldownCharts(questionBreakdown, student, smartCard);
 
     if (qList && questionBreakdown) {
@@ -4452,15 +4534,32 @@ async function openStudentDrilldown(studentId, assessmentId) {
   }
 }
 
+function openStudentProgressModal(studentId, assessmentId) {
+  return openStudentDrilldown(studentId, assessmentId);
+}
+
+function openStudentRemedialFromModal() {
+  closeStudentDrilldown();
+  if (typeof openPersonalizedRemedialModal === 'function') {
+    openPersonalizedRemedialModal();
+  } else {
+    const modalRem = document.getElementById('modalPersonalizedRemedial');
+    if (modalRem) modalRem.style.display = 'flex';
+  }
+}
+
 function closeStudentDrilldown() {
   const modal = document.getElementById('modalStudentDrilldown');
   if (modal) modal.classList.remove('active');
   destroyChart('studentTime');
   destroyChart('studentMistakes');
+  destroyChart('studentMastery');
 }
 
 // Global exposure for inline onclick handlers
 window.openStudentDrilldown = openStudentDrilldown;
+window.openStudentProgressModal = openStudentProgressModal;
+window.openStudentRemedialFromModal = openStudentRemedialFromModal;
 window.closeStudentDrilldown = closeStudentDrilldown;
 window.loadClassAnalytics = loadClassAnalytics;
 
@@ -4713,10 +4812,11 @@ function updateTeacherClassScopeUI() {
 
   if (chipsContainer) {
     chipsContainer.innerHTML = students.map(s => `
-      <span class="student-chip">
-        <i data-lucide="user" style="width:11px; height:11px; opacity:0.7;"></i>
-        ${s.name} <span class="roll-badge">${s.roll || s.id}</span>
-      </span>
+      <button type="button" class="student-chip-btn" onclick="openStudentProgressModal('${s.id}')" title="Click to view ${escapeHtml(s.name)}'s progress, charts & personalized remedial assignment">
+        <i data-lucide="user" style="width:12px; height:12px; opacity:0.8;"></i>
+        <span>${escapeHtml(s.name)}</span>
+        <span class="roll-badge">${escapeHtml(s.roll || s.id)}</span>
+      </button>
     `).join('');
   }
 
@@ -5238,6 +5338,166 @@ async function simulateClassAttemptsAndGenerateDashboard(assessmentId) {
   }
 }
 
+// -----------------------------------------------------------------------------
+// 13. TEACHER FACULTY SUBJECT SWITCHER & STUDENT CLASS ENROLLMENT
+// -----------------------------------------------------------------------------
+function setTeacherSubjectFaculty(subjectFaculty) {
+  teacherBuilderState.selectedSubjectKey = subjectFaculty;
+
+  const facultyProfiles = {
+    'PHYSICS': {
+      avatar: '⚡',
+      name: 'Er. Rajesh Kumar',
+      badge: 'Senior Physics Faculty',
+      streamText: 'Class 12 Non-Med &bull; JEE Main, Advanced &amp; CBSE Boards',
+      defaultClass: '12-NonMed',
+      targetStream: 'JEE'
+    },
+    'CHEMISTRY': {
+      avatar: '🧪',
+      name: 'Dr. Sunita Sharma',
+      badge: 'Senior Chemistry Faculty',
+      streamText: 'Class 12 Non-Med &amp; Med &bull; NEET, JEE Main &amp; CBSE Boards',
+      defaultClass: '12-NonMed',
+      targetStream: 'JEE'
+    },
+    'MATHEMATICS': {
+      avatar: '📐',
+      name: 'Prof. Arvind Mehta',
+      badge: 'Senior Mathematics Faculty',
+      streamText: 'Class 12 Non-Med &bull; JEE Main, Advanced &amp; CBSE Boards',
+      defaultClass: '12-NonMed',
+      targetStream: 'JEE'
+    },
+    'BIOLOGY': {
+      avatar: '🧬',
+      name: 'Dr. Priya Sen',
+      badge: 'Senior Biology Faculty',
+      streamText: 'Class 12 Medical &bull; NEET UG &amp; CBSE Boards',
+      defaultClass: '12-Med',
+      targetStream: 'NEET'
+    }
+  };
+
+  const prof = facultyProfiles[subjectFaculty] || facultyProfiles['PHYSICS'];
+
+  const avatarEl = document.getElementById('teacherFacultyAvatar');
+  const nameEl = document.getElementById('teacherFacultyName');
+  const badgeEl = document.getElementById('teacherFacultyBadge');
+  const textEl = document.getElementById('teacherFacultyStreamText');
+
+  if (avatarEl) avatarEl.innerText = prof.avatar;
+  if (nameEl) nameEl.innerText = prof.name;
+  if (badgeEl) badgeEl.innerText = prof.badge;
+  if (textEl) textEl.innerHTML = prof.streamText;
+
+  // Toggle active class on pills
+  document.querySelectorAll('.btn-faculty-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-subject-faculty') === subjectFaculty);
+  });
+
+  // Switch class and stream
+  teacherBuilderState.selectedClassId = prof.defaultClass;
+  teacherBuilderState.targetStream = prof.targetStream;
+
+  const classSelect = document.getElementById('selectTeacherClassScope');
+  if (classSelect) classSelect.value = prof.defaultClass;
+
+  const streamCards = document.querySelectorAll('#teacherTargetStreams .target-stream-card');
+  streamCards.forEach(c => {
+    const isMatch = c.getAttribute('data-target-stream') === prof.targetStream;
+    c.classList.toggle('active', isMatch);
+    c.classList.toggle(`active-${prof.targetStream.toLowerCase()}`, isMatch);
+  });
+
+  updateTeacherClassScopeUI();
+}
+
+function openAddStudentModal() {
+  const modal = document.getElementById('modalAddStudentToClass');
+  if (modal) modal.style.display = 'flex';
+  const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId);
+  const selectSection = document.getElementById('selectNewStudentSection');
+  if (selectSection && currentClass) {
+    selectSection.value = currentClass.section || currentClass.id;
+  }
+  const nameInput = document.getElementById('inputNewStudentName');
+  if (nameInput) nameInput.focus();
+  initLucideIcons();
+}
+
+function closeAddStudentModal() {
+  const modal = document.getElementById('modalAddStudentToClass');
+  if (modal) modal.style.display = 'none';
+  const form = document.getElementById('formAddStudentToClass');
+  if (form) form.reset();
+}
+
+async function submitAddStudentToClass(event) {
+  if (event) event.preventDefault();
+  const name = document.getElementById('inputNewStudentName')?.value?.trim();
+  const rollNumber = document.getElementById('inputNewStudentRoll')?.value?.trim();
+  const targetExam = document.getElementById('selectNewStudentTargetExam')?.value || 'JEE_MAIN';
+  const section = document.getElementById('selectNewStudentSection')?.value || teacherBuilderState.selectedClassId;
+  const parentPhone = document.getElementById('inputNewStudentPhone')?.value?.trim() || '+91 98160-XXXXX';
+
+  if (!name || !rollNumber) {
+    alert('Please enter student full name and roll number.');
+    return;
+  }
+
+  const btnSubmit = document.getElementById('btnSubmitAddStudent');
+  if (btnSubmit) {
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;"></i> Enrolling...`;
+    initLucideIcons();
+  }
+
+  try {
+    const res = await fetch(`${getApiBaseUrl()}/api/curriculum/students`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name,
+        rollNumber,
+        grade: section.includes('10') ? '10' : '12',
+        section,
+        targetExam,
+        parentPhone
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      // Add to local state classes
+      const targetClass = teacherBuilderState.classes.find(c => c.id === section || c.section === section);
+      if (targetClass) {
+        if (!targetClass.students) targetClass.students = [];
+        targetClass.students.push({
+          id: data.student.id || rollNumber,
+          name: data.student.full_name || name,
+          roll: data.student.roll_number || rollNumber
+        });
+      }
+
+      closeAddStudentModal();
+      updateTeacherClassScopeUI();
+      alert(`🎉 Student "${name}" (${rollNumber}) enrolled successfully into ${section}!`);
+    } else {
+      alert(`Enrollment Error: ${data.error || 'Could not enroll student'}`);
+    }
+  } catch (err) {
+    console.error('Error adding student:', err);
+    alert('Failed to connect to backend server. Please verify backend is running.');
+  } finally {
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = `<i data-lucide="check" style="width:14px; height:14px;"></i> Enroll Student`;
+      initLucideIcons();
+    }
+  }
+}
+
 // Global exposure for inline onclick handlers
 window.toggleChapterAccordion = toggleChapterAccordion;
 window.selectCurriculumSubject = selectCurriculumSubject;
@@ -5253,3 +5513,7 @@ window.closeDiagnosticResultsModal = closeDiagnosticResultsModal;
 window.handleGoToSmartReport = handleGoToSmartReport;
 window.handleGoToClassDashboard = handleGoToClassDashboard;
 window.loadAndRenderSmartReport = loadAndRenderSmartReport;
+window.setTeacherSubjectFaculty = setTeacherSubjectFaculty;
+window.openAddStudentModal = openAddStudentModal;
+window.closeAddStudentModal = closeAddStudentModal;
+window.submitAddStudentToClass = submitAddStudentToClass;

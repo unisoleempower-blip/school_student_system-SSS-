@@ -128,21 +128,126 @@ Output strictly in this JSON format:
     }
   }
 
-  // 3. Fallback: Curated NCERT & Previous Year Question Bank
-  console.log('[LLM ENGINE] No live LLM keys detected or API offline. Generating from verified NCERT Class 10/11 PYQ Bank.');
-  const { getCuratedClass10Question } = require('./class10PyqBank');
-  const fallbackQ = getCuratedClass10Question(subject, chapter, board);
+  // 3. Fallback: Curated Subject-Specific Question Bank (Strict Subject Isolation)
+  console.log(`[LLM ENGINE] Offline/deterministic generation for Class ${grade} ${subject} -> ${chapter}`);
+  const fallbackQ = getSubjectSpecificFallbackQuestion({ subject, chapter, grade, board, difficulty });
   
   return {
-    id: `ncert_pyq_${Date.now()}`,
-    llm_provider: 'HAPS Curated NCERT & Board PYQ Bank (Offline/Deterministic)',
+    id: `subj_pyq_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+    llm_provider: 'HAPS Subject-Specific NCERT & Board PYQ Bank (Strict Isolation)',
     ...fallbackQ,
-    grade,
+    grade: String(grade),
     subject,
+    chapter: fallbackQ.chapter || chapter,
+    chapter_name: fallbackQ.chapter || chapter,
     curriculum_board: board,
     is_ai_generated: false,
     generated_at: new Date().toISOString()
   };
+}
+
+/**
+ * Fallback generator ensuring 100% subject isolation (Chemistry never produces Physics, etc.)
+ */
+function getSubjectSpecificFallbackQuestion({ subject = '', chapter = '', grade = '12', board = 'CBSE', difficulty = 'MEDIUM' }) {
+  let inMemoryStore = null;
+  try {
+    inMemoryStore = require('../config/database').inMemoryStore;
+  } catch (e) {}
+
+  const sLower = (subject || '').toLowerCase().trim();
+  const cLower = (chapter || '').toLowerCase().trim();
+  const banks = inMemoryStore?.subjectBanks || {};
+
+  // 1. CHEMISTRY
+  if (sLower.includes('chem')) {
+    const chemBank = banks.senior_chemistry || [];
+    const chapterMatches = chemBank.filter(q => {
+      const qChap = (q.chapter_name || q.chapter || '').toLowerCase();
+      return qChap.includes(cLower) || cLower.includes(qChap);
+    });
+    if (chapterMatches.length > 0) {
+      return chapterMatches[Math.floor(Math.random() * chapterMatches.length)];
+    }
+    if (chemBank.length > 0) {
+      return chemBank[Math.floor(Math.random() * chemBank.length)];
+    }
+    // High-yield Chemistry fallback if bank unavailable
+    return {
+      question_latex: "For a first-order chemical reaction, the half-life period $t_{1/2}$ is $69.3\\,\\text{min}$. Calculate the time required for $99\\%$ completion of the reaction. (Take $\\log 10 = 1, \\ln 2 = 0.693$).",
+      options_latex: [
+        { key: "A", latex: "$t = 460.6\\,\\text{min}$", is_correct: true, distractor_trap: null },
+        { key: "B", latex: "$t = 138.6\\,\\text{min}$", is_correct: false, distractor_trap: "Confused 99% completion with $2 \\times t_{1/2}$" },
+        { key: "C", latex: "$t = 693.0\\,\\text{min}$", is_correct: false, distractor_trap: "Multiplied $t_{1/2}$ by 10 directly without using logarithmic rate relation" },
+        { key: "D", latex: "$t = 230.3\\,\\text{min}$", is_correct: false, distractor_trap: "Calculated time for 90% completion instead of 99%" }
+      ],
+      correct_answer_latex: "t = 460.6\\,\\text{min}",
+      solution_latex: "$$k = \\frac{0.693}{t_{1/2}} = \\frac{0.693}{69.3} = 0.01\\,\\text{min}^{-1}$$.\nFor 99% completion, $[A] = [A]_0 - 0.99[A]_0 = 0.01[A]_0$.\n$$t = \\frac{2.303}{k}\\log\\left(\\frac{[A]_0}{0.01[A]_0}\\right) = \\frac{2.303}{0.01}\\log(100) = \\frac{2.303 \\times 2}{0.01} = 460.6\\,\\text{min}$$.",
+      socratic_hints: [
+        "What is the relation between rate constant $k$ and half-life $t_{1/2}$ for a first-order reaction?",
+        "What fraction of reactant $[A]/[A]_0$ remains after 99% reaction completes?"
+      ],
+      step_rubric: [
+        { step: 1, description: "Calculate rate constant $k = 0.01\\text{ min}^{-1}$", marks: 1.0 },
+        { step: 2, description: "Substitute remaining concentration $[A] = 0.01[A]_0$ into first order equation", marks: 1.0 },
+        { step: 3, description: "Final answer $t = 460.6\\text{ min}$ with unit", marks: 1.0 }
+      ],
+      benchmark_time_seconds: 90
+    };
+  }
+
+  // 2. BIOLOGY
+  if (sLower.includes('bio')) {
+    const bioBank = banks.senior_biology || [];
+    const chapterMatches = bioBank.filter(q => {
+      const qChap = (q.chapter_name || q.chapter || '').toLowerCase();
+      return qChap.includes(cLower) || cLower.includes(qChap);
+    });
+    if (chapterMatches.length > 0) {
+      return chapterMatches[Math.floor(Math.random() * chapterMatches.length)];
+    }
+    if (bioBank.length > 0) {
+      return bioBank[Math.floor(Math.random() * bioBank.length)];
+    }
+    const { getCuratedClass10Question } = require('./class10PyqBank');
+    return getCuratedClass10Question('Science', 'Life Processes', board);
+  }
+
+  // 3. MATHEMATICS
+  if (sLower.includes('math')) {
+    const mathBank = String(grade) === '10' ? (banks.class10_maths || []) : (banks.senior_mathematics || []);
+    const chapterMatches = mathBank.filter(q => {
+      const qChap = (q.chapter_name || q.chapter || '').toLowerCase();
+      return qChap.includes(cLower) || cLower.includes(qChap);
+    });
+    if (chapterMatches.length > 0) {
+      return chapterMatches[Math.floor(Math.random() * chapterMatches.length)];
+    }
+    if (mathBank.length > 0) {
+      return mathBank[Math.floor(Math.random() * mathBank.length)];
+    }
+    const { getCuratedClass10Question } = require('./class10PyqBank');
+    return getCuratedClass10Question('Mathematics', chapter, board);
+  }
+
+  // 4. PHYSICS
+  if (sLower.includes('phys')) {
+    const phyBank = banks.senior_physics || [];
+    const chapterMatches = phyBank.filter(q => {
+      const qChap = (q.chapter_name || q.chapter || '').toLowerCase();
+      return qChap.includes(cLower) || cLower.includes(qChap);
+    });
+    if (chapterMatches.length > 0) {
+      return chapterMatches[Math.floor(Math.random() * chapterMatches.length)];
+    }
+    if (phyBank.length > 0) {
+      return phyBank[Math.floor(Math.random() * phyBank.length)];
+    }
+  }
+
+  // 5. CLASS 10 SCIENCE OR DEFAULT
+  const { getCuratedClass10Question } = require('./class10PyqBank');
+  return getCuratedClass10Question(subject, chapter, board);
 }
 
 /**
@@ -179,13 +284,13 @@ function cleanAndParseJson(raw) {
  */
 async function callGroqApi({ apiKey, systemPrompt, userPrompt }) {
   const start = Date.now();
-  const modelsToTry = ['openai/gpt-oss-120b', 'qwen/qwen3.8-27b', 'openai/gpt-oss-20b'];
+  const modelsToTry = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.2-3b-preview'];
   let lastError = null;
 
   for (const model of modelsToTry) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -237,13 +342,13 @@ async function callGroqApi({ apiKey, systemPrompt, userPrompt }) {
  */
 async function callGeminiApi({ apiKey, systemPrompt, userPrompt }) {
   const start = Date.now();
-  const geminiModels = ['gemini-2.5-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
+  const geminiModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
   let lastError = null;
 
   for (const model of geminiModels) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 7000); // 7s timeout guard
+      const timeoutId = setTimeout(() => controller.abort(), 4000); // 4s timeout guard
 
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
