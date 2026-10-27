@@ -40,20 +40,25 @@ router.get('/class-dashboard', (req, res) => {
       if (relevantAssessments.length === 0) relevantAssessments = assessmentsList;
     }
 
-    // Default to specified assessment, or first available for this teacher's subject
-    const assessment = assessmentId
-      ? assessmentsList.find(a => a.id === assessmentId)
-      : relevantAssessments[0];
+    // Filter submissions for this assessment
+    const allSubmissions = inMemoryStore.submissions || [];
+
+    // Default to specified assessment, or prefer first with submissions for this teacher's subject
+    let assessment = null;
+    if (assessmentId) {
+      assessment = assessmentsList.find(a => a.id === assessmentId);
+    } else {
+      assessment = relevantAssessments.find(a => allSubmissions.some(s => s.assessmentId === a.id)) || relevantAssessments[0];
+    }
 
     if (!assessment) {
       return res.status(404).json({ success: false, error: `Assessment "${assessmentId}" not found.` });
     }
 
-    // Filter submissions for this assessment
-    const allSubmissions = inMemoryStore.submissions || [];
     const submissions = allSubmissions.filter(s => s.assessmentId === assessment.id);
 
     if (submissions.length === 0) {
+      const classStudents = (inMemoryStore.users || []).filter(u => u.role === 'STUDENT' && (u.section === assessment.section || (!assessment.section && u.grade === assessment.grade)));
       return res.json({
         success: true,
         message: 'No student submissions recorded for this test yet.',
@@ -62,10 +67,24 @@ router.get('/class-dashboard', (req, res) => {
           title: assessment.title,
           grade: assessment.grade,
           section: assessment.section,
-          totalQuestions: assessment.questions.length,
+          subject: assessment.subject,
+          subjectKey: assessment.subjectKey,
+          totalQuestions: assessment.questions ? assessment.questions.length : 0,
           totalMarks: assessment.totalMarks
         },
         hasSubmissions: false,
+        studentRoster: classStudents.map(s => ({
+          studentId: s.id,
+          studentName: s.full_name,
+          rollNumber: s.roll_number,
+          score: 0,
+          totalMarks: assessment.totalMarks,
+          percentage: 0,
+          totalTimeSpentSeconds: 0,
+          wrongQuestionsCount: 0,
+          primaryMistake: 'Pending Attempt',
+          smartCardSummary: 'Awaiting student completion'
+        })),
         availableAssessments: relevantAssessments.map(a => ({ id: a.id, title: a.title, grade: a.grade, section: a.section, subject: a.subject, subjectKey: a.subjectKey }))
       });
     }
