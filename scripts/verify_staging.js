@@ -22,7 +22,7 @@ let passCount = 0;
 let failCount = 0;
 const results = [];
 
-function makeRequest(endpoint, options = {}) {
+function executeRequest(endpoint, options = {}) {
   const method = options.method || 'GET';
   const data = options.data ? JSON.stringify(options.data) : null;
   const isHtml = options.isHtml || false;
@@ -39,7 +39,7 @@ function makeRequest(endpoint, options = {}) {
         `"${fullUrl}"`
       ].filter(Boolean).join(' ');
 
-      const stdout = execSync(curlCmd, { encoding: 'utf8', timeout: 20000 });
+      const stdout = execSync(curlCmd, { encoding: 'utf8', timeout: 45000 });
       // If Vercel SSO redirect is detected, fall back to vercel curl
       if (!stdout.includes('Redirecting') && !stdout.includes('sso-api')) {
         return { success: true, body: stdout };
@@ -62,7 +62,7 @@ function makeRequest(endpoint, options = {}) {
       data ? `-H "Content-Type: application/json" -d '${data}'` : ''
     ].filter(Boolean).join(' ');
 
-    const stdout = execSync(vercelCurlCmd, { encoding: 'utf8', timeout: 30000 });
+    const stdout = execSync(vercelCurlCmd, { encoding: 'utf8', timeout: 60000 });
     
     if (isHtml) {
       return { success: true, body: stdout };
@@ -78,6 +78,16 @@ function makeRequest(endpoint, options = {}) {
   } catch (err) {
     return { success: false, error: err.message, stderr: err.stderr ? err.stderr.toString() : '' };
   }
+}
+
+function makeRequest(endpoint, options = {}) {
+  let res = executeRequest(endpoint, options);
+  // Retry once if request timed out due to initial serverless cold-start
+  if (!res.success) {
+    try { execSync('sleep 2'); } catch(e) {}
+    res = executeRequest(endpoint, options);
+  }
+  return res;
 }
 
 function runTest(testName, testFn) {
@@ -96,6 +106,19 @@ function runTest(testName, testFn) {
     failCount++;
     results.push({ name: testName, status: 'FAILED', error: err.message, duration });
   }
+}
+
+// -----------------------------------------------------------------------------
+// WARM UP SERVERLESS DEPLOYMENT (ABSORB COLD-START)
+// -----------------------------------------------------------------------------
+console.log('⏳ Warming up preview deployment to absorb serverless cold-start...');
+for (let attempt = 1; attempt <= 3; attempt++) {
+  const warmup = makeRequest('/api/health');
+  if (warmup.success) {
+    console.log('⚡ Deployment warmed up successfully!\n');
+    break;
+  }
+  try { execSync('sleep 3'); } catch(e) {}
 }
 
 // -----------------------------------------------------------------------------
