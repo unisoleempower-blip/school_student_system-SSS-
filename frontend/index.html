@@ -525,8 +525,14 @@
         
         <!-- COMPACT TRACK STATUS STRIP (REPLACES MESSY HORIZONTAL CARDS) -->
         <div class="stream-compact-strip" id="streamCompactStrip">
-          <div class="stream-strip-left">
-            <span class="stream-strip-label">Curriculum Track:</span>
+          <div class="stream-strip-left" style="display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div class="stream-faculty-strip-chip" onclick="openTeacherSignInModal()" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);" title="Click to view or switch educator profile">
+              <span style="width:8px; height:8px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+              <span id="stripFacultyName" style="font-weight:700; color:var(--text-primary); font-size:0.85rem;">Dr. Vikram Sharma</span>
+              <span id="stripFacultyDept" style="background:rgba(59,130,246,0.18); color:var(--accent-blue); padding:1px 7px; border-radius:10px; font-size:0.72rem; font-weight:600;">Physics</span>
+            </div>
+            <span class="stream-strip-divider">&bull;</span>
+            <span class="stream-strip-label">Track:</span>
             <span class="stream-active-badge" id="badgeActiveStreamName">JEE (Main &amp; Advanced)</span>
             <span class="stream-strip-divider">&bull;</span>
             <span class="stream-strip-hint">Select Board, JEE, or NEET from the top-left menu (&#9776;)</span>
@@ -610,82 +616,6 @@
         <!-- Chapters Accordion Container -->
         <div id="testBuilderChaptersContainer" class="curriculum-accordion">
           <!-- Dynamically populated via app.js -->
-        </div>
-
-        <!-- MODAL: GENERATE TEST / QUIZ / ASSIGNMENT -->
-        <div class="drilldown-modal-backdrop" id="modalGenerateCurriculumTest" role="dialog" aria-modal="true">
-          <div class="drilldown-modal-content" style="max-width: 640px;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 0.85rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.25rem;">
-              <div>
-                <span class="pilot-tag" id="modalGenClassBadge" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-blue);">Class 12th (Non-Medical)</span>
-                <h2 id="modalGenChapterTitle" style="font-family: var(--font-heading); font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">
-                  Create Test / Assignment
-                </h2>
-                <p id="modalGenScopeSubtitle" style="font-size: 0.82rem; color: var(--text-secondary);">
-                  Scope: Full Chapter
-                </p>
-              </div>
-              <button class="btn-icon" id="btnCloseGenTestModal" type="button" onclick="closeCurriculumTestModal()" title="Close" aria-label="Close" style="background: rgba(255,255,255,0.06); border-radius: 50%; cursor: pointer;">
-                <i data-lucide="x" style="width:20px; height:20px;"></i>
-              </button>
-            </div>
-
-            <!-- Form -->
-            <form id="formGenerateCurriculumTest" onsubmit="event.preventDefault(); submitGenerateCurriculumTest();">
-              <div class="form-group" style="margin-bottom: 1rem;">
-                <label class="form-label" for="inputGenTestTitle" style="font-weight: 600;">Test / Assignment Title</label>
-                <input type="text" class="form-select" id="inputGenTestTitle" required style="width: 100%; font-size: 0.9rem; padding: 8px 12px;" />
-              </div>
-
-              <div class="grid-2col" style="gap: 1rem; margin-bottom: 1rem;">
-                <div class="form-group">
-                  <label class="form-label" style="font-weight: 600;">Format / Mode</label>
-                  <select class="form-select" id="selectGenTestMode" style="width: 100%;">
-                    <option value="QUIZ" selected>Speed Quiz (15–20 Mins)</option>
-                    <option value="ASSIGNMENT">Homework Assignment (Practice Set)</option>
-                    <option value="TEST">Chapter Diagnostic Test (Full Marking)</option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" style="font-weight: 600;">Number of Questions</label>
-                  <select class="form-select" id="selectGenTestCount" style="width: 100%;">
-                    <option value="3">3 Questions (Quick Check)</option>
-                    <option value="5" selected>5 Questions (Standard)</option>
-                    <option value="10">10 Questions (Comprehensive)</option>
-                    <option value="15">15 Questions (Full Test)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="grid-2col" style="gap: 1rem; margin-bottom: 1.25rem;">
-                <div class="form-group">
-                  <label class="form-label" style="font-weight: 600;">Difficulty / Target Exam</label>
-                  <select class="form-select" id="selectGenTestDifficulty" style="width: 100%;">
-                    <option value="MEDIUM" selected>Board Standard (CBSE & HP Board)</option>
-                    <option value="HARD">JEE Main (Speed & Trap Focus)</option>
-                    <option value="OLYMPIAD_LEVEL">JEE Advanced (Multi-Concept)</option>
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label" style="font-weight: 600;">Assigned To</label>
-                  <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.85rem; color: #34d399; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                    <i data-lucide="check" style="width:14px; height:14px;"></i>
-                    <span id="labelGenTargetClass">All 8 Students in Class 12th Non-Med</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Action Buttons -->
-              <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
-                <button type="button" class="btn-secondary" id="btnCancelGenModal" onclick="closeCurriculumTestModal()" style="padding: 8px 16px; cursor: pointer;">Cancel</button>
-                <button type="submit" class="btn-primary" id="btnSubmitGenTest" style="padding: 8px 20px;">
-                  <i data-lucide="zap" style="width:16px; height:16px;"></i> Create & Assign Now
-                </button>
-              </div>
-            </form>
-          </div>
         </div>
 
       </div>
@@ -2289,7 +2219,149 @@
     </div>
   </div>
 
+  <!-- MODAL: GENERATE TEST / QUIZ / ASSIGNMENT (TOP-LEVEL OVERLAY) -->
+  <div class="drilldown-modal-backdrop" id="modalGenerateCurriculumTest" role="dialog" aria-modal="true" style="display: none; z-index: 10002;">
+    <div class="drilldown-modal-content" style="max-width: 640px;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 0.85rem; border-bottom: 1px solid var(--border-subtle); margin-bottom: 1.25rem;">
+        <div>
+          <span class="pilot-tag" id="modalGenClassBadge" style="background: rgba(59, 130, 246, 0.2); color: var(--accent-blue);">Class 11th (Medical)</span>
+          <h2 id="modalGenChapterTitle" style="font-family: var(--font-heading); font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin-top: 4px;">
+            Create Test / Assignment
+          </h2>
+          <p id="modalGenScopeSubtitle" style="font-size: 0.82rem; color: var(--text-secondary);">
+            Scope: Full Chapter
+          </p>
+        </div>
+        <button class="btn-icon" id="btnCloseGenTestModal" type="button" onclick="closeCurriculumTestModal()" title="Close" aria-label="Close" style="background: rgba(255,255,255,0.06); border-radius: 50%; cursor: pointer;">
+          <i data-lucide="x" style="width:20px; height:20px;"></i>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form id="formGenerateCurriculumTest" onsubmit="event.preventDefault(); submitGenerateCurriculumTest();">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="inputGenTestTitle" style="font-weight: 600;">Test / Assignment Title</label>
+          <input type="text" class="form-select" id="inputGenTestTitle" required style="width: 100%; font-size: 0.9rem; padding: 8px 12px;" />
+        </div>
+
+        <div class="grid-2col" style="gap: 1rem; margin-bottom: 1rem;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600;">Format / Mode</label>
+            <select class="form-select" id="selectGenTestMode" style="width: 100%;">
+              <option value="QUIZ" selected>Speed Quiz (15–20 Mins)</option>
+              <option value="ASSIGNMENT">Homework Assignment (Practice Set)</option>
+              <option value="TEST">Chapter Diagnostic Test (Full Marking)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600;">Number of Questions</label>
+            <select class="form-select" id="selectGenTestCount" style="width: 100%;">
+              <option value="3">3 Questions (Quick Check)</option>
+              <option value="5" selected>5 Questions (Standard)</option>
+              <option value="10">10 Questions (Comprehensive)</option>
+              <option value="15">15 Questions (Full Test)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid-2col" style="gap: 1rem; margin-bottom: 1.25rem;">
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600;">Difficulty / Target Exam</label>
+            <select class="form-select" id="selectGenTestDifficulty" style="width: 100%;">
+              <option value="MEDIUM" selected>Board Standard (CBSE & HP Board)</option>
+              <option value="HARD">Competitive Exam Focus (NEET / JEE)</option>
+              <option value="OLYMPIAD_LEVEL">Advanced Depth (Multi-Concept)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" style="font-weight: 600;">Assigned To</label>
+            <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); padding: 8px 12px; border-radius: var(--radius-sm); font-size: 0.85rem; color: #34d399; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="check" style="width:14px; height:14px;"></i>
+              <span id="labelGenTargetClass">All Enrolled Students</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; border-top: 1px solid var(--border-subtle); padding-top: 1rem;">
+          <button type="button" class="btn-secondary" id="btnCancelGenModal" onclick="closeCurriculumTestModal()" style="padding: 8px 16px; cursor: pointer;">Cancel</button>
+          <button type="submit" class="btn-primary" id="btnSubmitGenTest" style="padding: 8px 20px;">
+            <i data-lucide="zap" style="width:16px; height:16px;"></i> Create & Assign Now
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: QUIZ CREATED & PUBLISHED SUCCESS (INTERACTIVE PREVIEW & LAUNCH) -->
+  <div class="modal-overlay" id="modalQuizCreatedSuccess" style="display: none; z-index: 10005;">
+    <div class="modal-card" style="max-width: 680px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.7);">
+      <div style="background: linear-gradient(135deg, #065f46, #047857); padding: 16px 20px; color: #fff; display: flex; justify-content: space-between; align-items: center; border-radius: var(--radius-lg) var(--radius-lg) 0 0;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center;">
+            <i data-lucide="check-circle" style="width: 22px; height: 22px; color: #a7f3d0;"></i>
+          </div>
+          <div>
+            <strong style="font-size: 1.1rem; display: block;" id="successQuizModalHeading">Quiz Created &amp; Assigned Successfully</strong>
+            <span style="font-size: 0.78rem; opacity: 0.9;" id="successQuizModalSubheading">Assigned to all students in Class</span>
+          </div>
+        </div>
+        <button type="button" onclick="closeQuizCreatedSuccessModal()" style="background: transparent; border: none; color: #fff; cursor: pointer; padding: 4px;" aria-label="Close">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <div style="padding: 18px 20px; overflow-y: auto; flex: 1;">
+        <!-- Test Meta Bar -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px 16px; margin-bottom: 14px; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px;">
+          <div>
+            <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block;">Title</span>
+            <strong id="successQuizTitle" style="font-size: 0.88rem; color: var(--text-primary);">Biology Speed Quiz</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block;">Subject &amp; Stream</span>
+            <span id="successQuizSubject" class="pilot-tag" style="background: rgba(16,185,129,0.15); color: #10b981;">Biology</span>
+          </div>
+          <div>
+            <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block;">Questions &amp; Marks</span>
+            <strong id="successQuizQuestionsMarks" style="font-size: 0.88rem; color: var(--accent-cyan);">5 Questions • 20 Marks</strong>
+          </div>
+          <div>
+            <span style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; display: block;">Target Class</span>
+            <strong id="successQuizTargetClass" style="font-size: 0.88rem; color: var(--text-primary);">Class 11th (Medical)</strong>
+          </div>
+        </div>
+
+        <!-- Questions Preview Header & List -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <strong style="font-size: 0.88rem; color: var(--text-primary);">Generated Questions:</strong>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Formatted in Clean LaTeX</span>
+        </div>
+        <div id="successQuizQuestionsList" style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+          <!-- Questions injected dynamically -->
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div style="padding: 14px 20px; background: var(--bg-card); border-top: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; border-radius: 0 0 var(--radius-lg) var(--radius-lg);">
+        <button type="button" class="btn-secondary" onclick="closeQuizCreatedSuccessModal()" style="font-size: 0.82rem; padding: 8px 16px;">
+          Back to Syllabus
+        </button>
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn-secondary" id="btnSuccessViewAnalytics" style="font-size: 0.82rem; padding: 8px 16px; border-color: rgba(56,189,248,0.4); color: var(--accent-cyan);">
+            <i data-lucide="bar-chart-2" style="width: 15px; height: 15px;"></i> Class Analytics
+          </button>
+          <button type="button" class="btn-primary" id="btnSuccessAttemptQuiz" style="font-size: 0.85rem; padding: 8px 20px; background: linear-gradient(135deg, #0284c7, #06b6d4); font-weight: 700;">
+            <i data-lucide="play" style="width: 15px; height: 15px;"></i> Take Quiz as Student
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Application Logic -->
-  <script src="js/app.js?v=8.0"></script>
+  <script src="js/app.js?v=8.1"></script>
 </body>
 </html>
