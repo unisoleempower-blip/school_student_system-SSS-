@@ -317,6 +317,57 @@ runTest('Strict Subject Isolation for Teacher Scope (/api/curriculum/classes?tea
   }
 });
 
+// TEST 11: Teacher Phone & Expertise Auth + Lookup API
+runTest('Teacher Phone & Expertise Authentication (/api/curriculum/auth/teacher-login)', () => {
+  const lookupRes = makeRequest('/api/curriculum/faculty/lookup?phone=9816010003');
+  if (!lookupRes.success) throw new Error(`Phone lookup request failed: ${lookupRes.error}`);
+  const lookupData = JSON.parse(lookupRes.body);
+  if (!lookupData.success || !lookupData.faculty || lookupData.faculty.subjectKey !== 'BIOLOGY') {
+    throw new Error('Expected phone lookup for 9816010003 to resolve Biology faculty');
+  }
+
+  const loginRes = makeRequest('/api/curriculum/auth/teacher-login', {
+    method: 'POST',
+    data: {
+      phone: '9816010003',
+      name: 'Dr. Ananya Mukherjee',
+      subjectKey: 'BIOLOGY'
+    }
+  });
+  if (!loginRes.success) throw new Error(`Teacher login request failed: ${loginRes.error}`);
+  const loginData = JSON.parse(loginRes.body);
+  if (!loginData.success || loginData.teacher.subjectKey !== 'BIOLOGY' || loginData.teacher.targetStream !== 'NEET') {
+    throw new Error('Expected teacher profile to be strictly scoped to BIOLOGY and NEET stream');
+  }
+});
+
+// TEST 12: Biology Curriculum, Questions Bank & Students Isolation
+runTest('Biology Isolated Questions & Medical Students (/api/curriculum/questions & /api/curriculum/students)', () => {
+  const qRes = makeRequest('/api/curriculum/questions?subjectKey=BIOLOGY');
+  if (!qRes.success) throw new Error(`Questions request failed: ${qRes.error}`);
+  const qData = JSON.parse(qRes.body);
+  if (!qData.success || !Array.isArray(qData.questions) || qData.questions.length === 0) {
+    throw new Error('Expected authentic Biology questions');
+  }
+  for (const q of qData.questions) {
+    if (q.subject !== 'Biology' && q.subjectKey !== 'BIOLOGY') {
+      throw new Error(`Non-Biology question found in bank: ${q.subject}`);
+    }
+  }
+
+  const stuRes = makeRequest('/api/curriculum/students?subjectKey=BIOLOGY');
+  if (!stuRes.success) throw new Error(`Students request failed: ${stuRes.error}`);
+  const stuData = JSON.parse(stuRes.body);
+  if (!stuData.success || !Array.isArray(stuData.students) || stuData.students.length === 0) {
+    throw new Error('Expected medical students array for Biology faculty');
+  }
+  for (const s of stuData.students) {
+    if (!s.section.includes('Med') || s.section.includes('NonMed')) {
+      throw new Error(`Non-medical student found in Biology roster: ${s.full_name} (${s.section})`);
+    }
+  }
+});
+
 // -----------------------------------------------------------------------------
 // VERIFICATION REPORT & PRODUCTION GATE EXIT CODE
 // -----------------------------------------------------------------------------
