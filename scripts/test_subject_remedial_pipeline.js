@@ -104,8 +104,8 @@ async function runTests() {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' }
   }, {
-    studentId: 'b0000000-0000-0000-0000-000000000001',
-    studentName: 'Aryan Sharma',
+    studentId: 'b0000000-0000-0000-0000-000000000011',
+    studentName: 'Ananya Thakur',
     answers: quiz.questions.map((q, idx) => ({
       questionId: q.id,
       selectedOption: 'D', // deliberately miss question

@@ -248,7 +248,19 @@ router.get('/class-dashboard', (req, res) => {
     });
 
     // 4. Student Roster Summary
-    const studentRoster = submissions.map(s => {
+    let rosterSubmissions = submissions;
+    if (subjectKey === 'BIOLOGY' || teacherSubjectKey === 'BIOLOGY' || assessment.subjectKey === 'BIOLOGY' || assessment.subject === 'Biology') {
+      const medOnly = submissions.filter(s => {
+        const roll = s.rollNumber || '';
+        const sec = s.section || '';
+        return roll.startsWith('11-M') || roll.startsWith('12-M') || (sec.includes('Med') && !sec.includes('NonMed'));
+      });
+      if (medOnly.length > 0) {
+        rosterSubmissions = medOnly;
+      }
+    }
+
+    const studentRoster = rosterSubmissions.map(s => {
       const wrongItems = (s.questionBreakdown || []).filter(qb => !qb.isCorrect);
       let primaryMistake = 'None';
       if (wrongItems.length > 0) {
