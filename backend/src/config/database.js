@@ -10,6 +10,13 @@ try {
   // pg module not yet installed locally; in-memory store active
 }
 
+let class10MathQuestions = [];
+try {
+  class10MathQuestions = require('../services/class10MathQuestionBank').class10MathQuestions;
+} catch (e) {
+  console.warn('[DATABASE] Failed to load class10MathQuestionBank:', e.message);
+}
+
 let pool = null;
 let isConnected = false;
 
@@ -134,63 +141,8 @@ const inMemoryStore = {
   // - Class 11 & 12 Non-Medical (Physics, Chemistry, Maths -> JEE Main / Adv / Boards)
   // - Class 11 & 12 Medical (Physics, Chemistry, Biology -> NEET / Boards)
   subjectBanks: {
-    class10_maths: [
-      {
-        id: 'c10_m_01',
-        grade: '10',
-        stream: 'FOUNDATION',
-        subject: 'Mathematics',
-        chapter_number: 4,
-        chapter_name: 'Quadratic Equations',
-        topic: 'Roots of Quadratic Equations',
-        subtopic: 'Discriminant & Nature of Roots',
-        curriculum_board: 'CBSE_CLASS_10',
-        pyq_appearance: 'CBSE Class 10 Board 2024 (Set 30/1/1) & HPBOSE 2022',
-        difficulty: 'MEDIUM',
-        question_format: 'MCQ_SINGLE',
-        benchmark_time_seconds: 90,
-        marks_weightage: 1,
-        question_latex: 'If the quadratic equation $2x^2 - kx + 3 = 0$ has two equal real roots, what is the value of $k$?',
-        options_latex: [
-          { key: 'A', latex: '$k = \\pm 2\\sqrt{6}$', is_correct: true, distractor_trap: null },
-          { key: 'B', latex: '$k = \\pm 6$', is_correct: false, distractor_trap: 'Forgot square root over 24' },
-          { key: 'C', latex: '$k = \\pm 4\\sqrt{3}$', is_correct: false, distractor_trap: 'Factored 24 incorrectly as $16 \\times 3$' },
-          { key: 'D', latex: '$k = 24$', is_correct: false, distractor_trap: 'Did not solve for $k = \\sqrt{D}$' }
-        ],
-        correct_answer_latex: 'A',
-        solution_latex: 'For equal real roots, the discriminant $D = b^2 - 4ac = 0$. Here $a = 2, b = -k, c = 3$. Hence $(-k)^2 - 4(2)(3) = 0 \\implies k^2 = 24 \\implies k = \\pm \\sqrt{24} = \\pm 2\\sqrt{6}$.',
-        socratic_hints: [
-          "What is the condition on discriminant $D = b^2 - 4ac$ for equal roots?",
-          "Identify $a, b, c$ from $2x^2 - kx + 3 = 0$.",
-          "Set $b^2 - 4ac = 0$ and solve for $k$."
-        ]
-      },
-      {
-        id: 'c10_m_02',
-        grade: '10',
-        stream: 'FOUNDATION',
-        subject: 'Mathematics',
-        chapter_number: 8,
-        chapter_name: 'Introduction to Trigonometry',
-        topic: 'Trigonometric Identities',
-        subtopic: 'Pythagorean Identities',
-        curriculum_board: 'CBSE_CLASS_10',
-        pyq_appearance: 'CBSE 2023 Standard Set-2',
-        difficulty: 'MEDIUM',
-        question_format: 'SHORT_ANSWER',
-        benchmark_time_seconds: 120,
-        marks_weightage: 3,
-        question_latex: 'Prove that: $$\\frac{\\sin\\theta - 2\\sin^3\\theta}{2\\cos^3\\theta - \\cos\\theta} = \\tan\\theta$$',
-        options_latex: [],
-        correct_answer_latex: '\\tan\\theta',
-        solution_latex: '$$\\text{LHS} = \\frac{\\sin\\theta(1 - 2\\sin^2\\theta)}{\\cos\\theta(2\\cos^2\\theta - 1)}$$. Since $\\sin^2\\theta = 1 - \\cos^2\\theta$, numerator bracket is $1 - 2(1 - \\cos^2\\theta) = 2\\cos^2\\theta - 1$. Hence $\\frac{\\sin\\theta(2\\cos^2\\theta - 1)}{\\cos\\theta(2\\cos^2\\theta - 1)} = \\frac{\\sin\\theta}{\\cos\\theta} = \\tan\\theta = \\text{RHS}$.',
-        step_rubric: [
-          { step: 1, description: 'Factoring out $\\sin\\theta$ from numerator and $\\cos\\theta$ from denominator', marks: 1.0 },
-          { step: 2, description: 'Substituting $\\sin^2\\theta = 1 - \\cos^2\\theta$ in numerator bracket', marks: 1.0 },
-          { step: 3, description: 'Canceling common factor $(2\\cos^2\\theta - 1)$ to obtain $\\tan\\theta$', marks: 1.0 }
-        ]
-      }
-    ],
+    class10_maths: (class10MathQuestions && class10MathQuestions.length > 0) ? class10MathQuestions : [],
+    class10_math_pyq_ncert: (class10MathQuestions && class10MathQuestions.length > 0) ? class10MathQuestions : [],
     class10_science: [
       {
         id: 'c10_s_01',

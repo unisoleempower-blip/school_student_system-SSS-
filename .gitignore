@@ -29,6 +29,11 @@ dist/
 coverage/
 .nyc_output/
 
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+
 # IDE & Editor
 .vscode/
 .idea/

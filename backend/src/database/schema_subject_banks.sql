@@ -83,6 +83,43 @@ CREATE TABLE IF NOT EXISTS bank_class10_mathematics (
 );
 
 -- ============================================================================
+-- 1B. CLASS 10 MATHEMATICS PYQ & NCERT SPECIALIZED QUESTION BANK
+-- Dedicated table for all Board PYQs, NCERT Examples/Exercises & Pattern Questions
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS bank_class10_math_pyq_ncert (
+    id VARCHAR(100) PRIMARY KEY,
+    grade VARCHAR(10) DEFAULT '10',
+    stream academic_stream DEFAULT 'FOUNDATION',
+    subject VARCHAR(50) DEFAULT 'Mathematics',
+    chapter_number INT NOT NULL,
+    chapter_name VARCHAR(150) NOT NULL,
+    topic VARCHAR(150) NOT NULL,
+    subtopic VARCHAR(200),
+    
+    question_source VARCHAR(50) DEFAULT 'CBSE_PYQ', -- 'CBSE_PYQ', 'NCERT_TEXTBOOK', 'CBSE_SAMPLE_PATTERN'
+    curriculum_board target_exam_type DEFAULT 'CBSE_CLASS_10',
+    pyq_appearance VARCHAR(255),
+    difficulty VARCHAR(20) DEFAULT 'MEDIUM',
+    question_format question_format_type NOT NULL DEFAULT 'SHORT_ANSWER',
+    benchmark_time_seconds INT DEFAULT 90,
+    marks_weightage NUMERIC(3, 1) DEFAULT 2.0,
+    
+    question_latex TEXT NOT NULL,
+    options_latex JSONB DEFAULT '[]'::jsonb,
+    correct_answer_latex TEXT NOT NULL,
+    solution_latex TEXT NOT NULL,
+    socratic_hints JSONB DEFAULT '[]'::jsonb,
+    
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_math_pyq_ncert_chapter ON bank_class10_math_pyq_ncert(chapter_number);
+CREATE INDEX IF NOT EXISTS idx_math_pyq_ncert_source ON bank_class10_math_pyq_ncert(question_source);
+CREATE INDEX IF NOT EXISTS idx_math_pyq_ncert_format ON bank_class10_math_pyq_ncert(question_format);
+CREATE INDEX IF NOT EXISTS idx_math_pyq_ncert_difficulty ON bank_class10_math_pyq_ncert(difficulty);
+
+-- ============================================================================
 -- 2. CLASS 10 SCIENCE QUESTION BANK (Physics, Chemistry, Biology)
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS bank_class10_science (

@@ -233,8 +233,8 @@ router.post('/import-batch', (req, res) => {
 // SUBJECT-WISE SPECIALIZED TABLES: CLASS 10, +1, +2 (MED & NON-MED)
 // ============================================================================
 
-// GET /api/questions/subject-banks/overview/stats - Overview of all subject tables
-router.get('/subject-banks/overview/stats', (req, res) => {
+// GET /api/questions/subject-banks & /api/questions/subject-banks/overview/stats - Overview of all subject tables
+router.get(['/subject-banks', '/subject-banks/overview/stats'], (req, res) => {
   try {
     const banks = inMemoryStore.subjectBanks || {};
     const stats = {
@@ -245,6 +245,12 @@ router.get('/subject-banks/overview/stats', (req, res) => {
             table: 'bank_class10_mathematics',
             name: 'Class 10 Mathematics',
             totalQuestions: (banks.class10_maths || []).length,
+            targetExam: 'CBSE / HPBOSE 10th Board'
+          },
+          class10_math_pyq_ncert: {
+            table: 'bank_class10_math_pyq_ncert',
+            name: 'Class 10 Mathematics (Board PYQs + NCERT Solved Examples & Exercises + CBSE Pattern)',
+            totalQuestions: (banks.class10_math_pyq_ncert || []).length,
             targetExam: 'CBSE / HPBOSE 10th Board'
           },
           class10_science: {
@@ -297,6 +303,7 @@ router.get('/subject-banks/overview/stats', (req, res) => {
       },
       supportedTables: [
         'class10_maths',
+        'class10_math_pyq_ncert',
         'class10_science',
         'senior_physics',
         'senior_chemistry',
@@ -306,6 +313,77 @@ router.get('/subject-banks/overview/stats', (req, res) => {
     };
 
     res.json({ success: true, stats });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/questions/class10-math-bank - Specialized query endpoint for Class 10 Math PYQ & NCERT
+router.get('/class10-math-bank', (req, res) => {
+  try {
+    let mathService = null;
+    try {
+      mathService = require('../services/class10MathQuestionBank');
+    } catch (e) {
+      // fallback
+    }
+
+    const banks = inMemoryStore.subjectBanks || {};
+    const bank = (mathService && mathService.class10MathQuestions) || banks.class10_math_pyq_ncert || banks.class10_maths || [];
+    const { chapter, source, format, difficulty, search, limit = 50, offset = 0 } = req.query;
+
+    let filtered = [...bank];
+
+    if (chapter) {
+      if (!isNaN(chapter)) {
+        const chNum = Number(chapter);
+        filtered = filtered.filter(q => q.chapter_number === chNum);
+      } else {
+        const chLower = chapter.toLowerCase();
+        filtered = filtered.filter(q => (q.chapter_name || '').toLowerCase().includes(chLower));
+      }
+    }
+
+    if (source) {
+      const srcUpper = source.toUpperCase();
+      filtered = filtered.filter(q => (q.question_source || '').toUpperCase().includes(srcUpper) || (q.pyq_appearance || '').toUpperCase().includes(srcUpper));
+    }
+
+    if (format) {
+      const fmtUpper = format.toUpperCase();
+      filtered = filtered.filter(q => (q.question_format || '').toUpperCase() === fmtUpper);
+    }
+
+    if (difficulty) {
+      const diffUpper = difficulty.toUpperCase();
+      filtered = filtered.filter(q => (q.difficulty || '').toUpperCase() === diffUpper);
+    }
+
+    if (search && search.trim()) {
+      const sLower = search.toLowerCase();
+      filtered = filtered.filter(q =>
+        (q.question_latex || '').toLowerCase().includes(sLower) ||
+        (q.topic || '').toLowerCase().includes(sLower) ||
+        (q.subtopic || '').toLowerCase().includes(sLower) ||
+        (q.solution_latex || '').toLowerCase().includes(sLower)
+      );
+    }
+
+    const parsedLimit = Math.max(1, Math.min(500, Number(limit) || 50));
+    const parsedOffset = Math.max(0, Number(offset) || 0);
+    const paginated = filtered.slice(parsedOffset, parsedOffset + parsedLimit);
+
+    const summary = mathService && mathService.getBankSummary ? mathService.getBankSummary() : { totalQuestions: bank.length };
+
+    res.json({
+      success: true,
+      totalBankQuestions: bank.length,
+      filteredCount: filtered.length,
+      limit: parsedLimit,
+      offset: parsedOffset,
+      summary,
+      questions: paginated
+    });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -321,7 +399,7 @@ router.get('/subject-banks/:subjectKey', (req, res) => {
     if (!tableData) {
       return res.status(404).json({
         success: false,
-        error: `Subject bank "${subjectKey}" not found. Valid keys: class10_maths, class10_science, senior_physics, senior_chemistry, senior_mathematics, senior_biology.`
+        error: `Subject bank "${subjectKey}" not found. Valid keys: class10_maths, class10_math_pyq_ncert, class10_science, senior_physics, senior_chemistry, senior_mathematics, senior_biology.`
       });
     }
 
