@@ -2003,6 +2003,13 @@ try {
   if (Array.isArray(inMemoryStore.questions)) {
     inMemoryStore.questions.forEach(q => ensureQuestionHasRichOptions(q));
   }
+  if (Array.isArray(inMemoryStore.assessments)) {
+    inMemoryStore.assessments.forEach(asgn => {
+      if (Array.isArray(asgn.questions)) {
+        asgn.questions.forEach(q => ensureQuestionHasRichOptions(q));
+      }
+    });
+  }
 } catch (e) {
   console.warn('[DATABASE] Options enrichment notice:', e.message);
 }

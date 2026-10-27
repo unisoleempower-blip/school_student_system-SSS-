@@ -15,6 +15,7 @@ const { generateLlmQuestion } = require('../services/llmQuestionEngine');
 const { EXAM_BLUEPRINTS, analyzeBankCoverage, generatePatternMatchedExam } = require('../services/examPatternAnalyzer');
 const { generatePersonalizedRemedialAssignment, verifyStudentFormula } = require('../services/remedialAssignmentService');
 const { generateAssignmentDocxBuffer } = require('../services/docxExportService');
+const { ensureQuestionHasRichOptions } = require('../services/questionOptionEngine');
 
 // 1. GET /api/assessments - List all test assignments
 router.get('/', (req, res) => {
@@ -93,23 +94,26 @@ router.post('/', async (req, res) => {
       subject,
       durationMinutes: Number(durationMinutes) || 30,
       totalMarks: Number(totalMarks) || (questions.length * 4),
-      questions: questions.map((q, idx) => ({
-        id: q.id || `q_asgn_${Date.now()}_${idx + 1}`,
-        topic: q.topic || q.chapter || 'Science Core',
-        subtopic: q.subtopic || (q.ncert_mapping ? q.ncert_mapping.ncert_section : 'General'),
-        grade: q.grade || grade,
-        board: q.curriculum_board || board,
-        question_type: q.question_type || 'MCQ_SINGLE',
-        difficulty: q.difficulty || 'MEDIUM',
-        benchmark_time_seconds: Number(q.benchmark_time_seconds) || 90,
-        question_latex: q.question_latex,
-        options_latex: q.options_latex || [],
-        correct_answer: q.correct_answer || q.correct_answer_latex || 'B',
-        solution_latex: q.solution_latex || '',
-        socratic_hints: q.socratic_hints || [],
-        ncert_mapping: q.ncert_mapping || null,
-        step_rubric: q.step_rubric || []
-      })),
+      questions: questions.map((rawQ, idx) => {
+        const q = ensureQuestionHasRichOptions({ ...rawQ });
+        return {
+          id: q.id || `q_asgn_${Date.now()}_${idx + 1}`,
+          topic: q.topic || q.chapter || 'Science Core',
+          subtopic: q.subtopic || (q.ncert_mapping ? q.ncert_mapping.ncert_section : 'General'),
+          grade: q.grade || grade,
+          board: q.curriculum_board || board,
+          question_type: q.question_type || 'MCQ_SINGLE',
+          difficulty: q.difficulty || 'MEDIUM',
+          benchmark_time_seconds: Number(q.benchmark_time_seconds) || 90,
+          question_latex: q.question_latex,
+          options_latex: q.options_latex || [],
+          correct_answer: q.correct_answer || q.correct_answer_latex || 'A',
+          solution_latex: q.solution_latex || '',
+          socratic_hints: q.socratic_hints || [],
+          ncert_mapping: q.ncert_mapping || null,
+          step_rubric: q.step_rubric || []
+        };
+      }),
       createdAt: new Date().toISOString()
     };
 
@@ -519,23 +523,26 @@ router.post('/auto-generate', async (req, res) => {
       subject,
       durationMinutes,
       totalMarks,
-      questions: selectedQuestions.map((q, idx) => ({
-        id: q.id || `q_auto_${Date.now()}_${idx + 1}`,
-        topic: q.topic || q.chapter || 'Science Core',
-        subtopic: q.subtopic || (q.ncert_mapping ? q.ncert_mapping.ncert_section : 'Standard'),
-        grade: q.grade || grade,
-        board: q.curriculum_board || examType,
-        question_type: q.question_type || 'MCQ_SINGLE',
-        difficulty: q.difficulty || 'MEDIUM',
-        benchmark_time_seconds: Number(q.benchmark_time_seconds) || 90,
-        question_latex: q.question_latex,
-        options_latex: q.options_latex || [],
-        correct_answer: q.correct_answer || q.correct_answer_latex || 'B',
-        solution_latex: q.solution_latex || '',
-        socratic_hints: q.socratic_hints || [],
-        ncert_mapping: q.ncert_mapping || null,
-        step_rubric: q.step_rubric || []
-      })),
+      questions: selectedQuestions.map((rawQ, idx) => {
+        const q = ensureQuestionHasRichOptions({ ...rawQ });
+        return {
+          id: q.id || `q_auto_${Date.now()}_${idx + 1}`,
+          topic: q.topic || q.chapter || 'Science Core',
+          subtopic: q.subtopic || (q.ncert_mapping ? q.ncert_mapping.ncert_section : 'Standard'),
+          grade: q.grade || grade,
+          board: q.curriculum_board || examType,
+          question_type: q.question_type || 'MCQ_SINGLE',
+          difficulty: q.difficulty || 'MEDIUM',
+          benchmark_time_seconds: Number(q.benchmark_time_seconds) || 90,
+          question_latex: q.question_latex,
+          options_latex: q.options_latex || [],
+          correct_answer: q.correct_answer || q.correct_answer_latex || 'A',
+          solution_latex: q.solution_latex || '',
+          socratic_hints: q.socratic_hints || [],
+          ncert_mapping: q.ncert_mapping || null,
+          step_rubric: q.step_rubric || []
+        };
+      }),
       createdAt: new Date().toISOString()
     };
 

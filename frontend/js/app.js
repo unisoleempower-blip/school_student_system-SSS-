@@ -204,6 +204,8 @@ function decodeHtmlEntities(str) {
 
 function cleanFormula(tex) {
   let clean = decodeHtmlEntities(tex.trim());
+  // Strip leading and trailing $ signs if accidentally enclosed
+  clean = clean.replace(/^\$+|\$+$/g, '').trim();
   // Replace double backslashes if present e.g. \\frac -> \frac
   clean = clean.replace(/\\\\([a-zA-Z]+)/g, '\\$1');
   // Fix unescaped text{...} e.g. text{cm} -> \text{cm}
@@ -213,6 +215,86 @@ function cleanFormula(tex) {
   // Fix unescaped % inside math formulas
   clean = clean.replace(/(?<!\\)%/g, '\\%');
   return clean;
+}
+
+/**
+ * Smart LaTeX normalizer
+ * Intelligently protects existing math blocks ($$...$$, \[...\], \(...\), $...$)
+ * and wraps stray/un-delimited mathematical symbols, formulas, and Greek letters
+ * in proper $...$ delimiters without italicizing English sentences.
+ */
+function normalizeLatexText(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  let str = raw.trim();
+
+  // 1. Stash existing valid math blocks
+  const placeholders = [];
+  const stash = (match) => {
+    const id = `___MATH_PLH_${placeholders.length}___`;
+    placeholders.push({ id, val: match });
+    return id;
+  };
+
+  // Stash environments: \begin{...}...\end{...}
+  str = str.replace(/\\begin\{(equation|align|aligned|gather|matrix|pmatrix|bmatrix)\}[\s\S]*?\\end\{\1\}/g, stash);
+  // Stash display math: $$...$$ and \[...\]
+  str = str.replace(/\$\$[\s\S]*?\$\$/g, stash);
+  str = str.replace(/\\\[[\s\S]*?\\\]/g, stash);
+  // Stash inline math: \(...\)
+  str = str.replace(/\\\([\s\S]*?\\\)/g, stash);
+  // Stash inline math: $...$
+  str = str.replace(/(^|[^\$])\$([^\$\n]+?)\$(?!\$)/g, (m, prefix, inner) => {
+    return prefix + stash(`$${inner}$`);
+  });
+
+  // 2. Now examine non-stashed text outside math delimiters
+  const englishWords = (str.replace(/\\[a-zA-Z]+(?:\{[^{}]*\})?/g, '').match(/\b[a-zA-Z]{3,}\b/g) || [])
+    .filter(w => !/^(sin|cos|tan|cot|sec|csc|log|ln|lim|max|min|det|exp|deg|units|unit|rad|vol|mol|rpm)$/i.test(w));
+
+  const isEntireFormula = !str.includes('___MATH_PLH_') &&
+    englishWords.length <= 1 &&
+    (
+      /^([a-zA-Z_0-9\\]+(\s*[=><\approx\le\ge\pm]\s*|\\frac|\\sqrt|\\int|\\sum|\\lim|\\prod)).*$/.test(str) ||
+      /^\\(frac|sqrt|rho|sigma|alpha|beta|gamma|Delta|theta|lambda|tau|omega|Phi|psi)\b/.test(str)
+    );
+
+  if (isEntireFormula) {
+    str = `$${str}$`;
+  } else {
+    // Standalone degree notations: 3^\circ, 2^\circ, 1^\circ, 0^\circ C, 90^\circ, 0°C
+    str = str.replace(/(\b\d+\s*\^\s*\\?circ(?:\s*\\?text\{[A-Z]\})?)/g, (m) => stash(`$${m}$`));
+    str = str.replace(/(\b\d+°(?:\s*C)?)/g, (m) => stash(`$${m.replace('°', '^\\circ ')}$`));
+
+    // Common chemical orbital notations outside math: d^2sp^3, sp^3d^2, sp^3, sp^2, sp, t_{2g}^3, e_g^2
+    str = str.replace(/\b(d\^2sp\^3|sp\^3d\^2|sp\^3|sp\^2|sp|t_\{2g\}\^3|e_g\^2|[1-5][sspdf]\^\d+)\b/g, (m) => stash(`$${m}$`));
+
+    // Complex coordination ions outside math: e.g. [Co(NH_3)_6]^{3+}, [CoF_6]^{3-}
+    str = str.replace(/(\[[A-Z][a-zA-Z0-9_\(\)]+\]\^\{[0-9]+[+-]\})/g, (m) => stash(`$${m}$`));
+
+    // Reaction mechanism notation: S_N1, S_N2
+    str = str.replace(/\b(S_N[12])\b/g, (m) => stash(`$${m}$`));
+
+    // LaTeX macros with parameters outside math: \frac{...}{...}, \sqrt{...}, \mathrm{...}
+    str = str.replace(/(\\(?:frac|sqrt|mathrm|text|mathbf|vec|overline)\{[^{}]+\}(?:\{[^{}]+\})?)/g, (m) => stash(`$${m}$`));
+
+    // Greek letters & math operators outside math: e.g. \beta-elimination -> $\beta$-elimination
+    str = str.replace(/(\\(?:alpha|beta|gamma|delta|Delta|epsilon|varepsilon|zeta|eta|theta|Theta|iota|kappa|lambda|Lambda|mu|nu|xi|Xi|pi|Pi|rho|sigma|Sigma|tau|upsilon|phi|Phi|chi|psi|Psi|omega|Omega|rightarrow|leftarrow|rightleftharpoons|to|times|pm|mp|le|ge|leq|geq|neq|approx|sim|propto|infty|nabla|partial|degree)\b(?:\s*[-–]\s*[a-zA-Z]+)?)/g, (match) => {
+      const hyphenIdx = match.search(/[-–]/);
+      if (hyphenIdx > -1) {
+        const sym = match.slice(0, hyphenIdx).trim();
+        const rest = match.slice(hyphenIdx);
+        return stash(`$${sym}$`) + rest;
+      }
+      return stash(`$${match}$`);
+    });
+  }
+
+  // 3. Restore stashed math blocks in reverse order
+  for (let i = placeholders.length - 1; i >= 0; i--) {
+    str = str.replace(placeholders[i].id, placeholders[i].val);
+  }
+
+  return str;
 }
 
 /**
@@ -226,20 +308,14 @@ function cleanFormula(tex) {
 function renderLatexString(rawText) {
   if (!rawText || typeof rawText !== 'string') return '';
 
-  let content = rawText.trim();
-
-  // If string contains LaTeX commands but is not wrapped in delimiters, auto-wrap
-  if (!content.includes('$') && !content.includes('\\(') && !content.includes('\\[') && !content.includes('\\begin{')) {
-    if (/\\[a-zA-Z]+/.test(content)) {
-      content = `$${content}$`;
-    }
-  }
+  // 0. Smart LaTeX normalizer (repairs un-delimited math/Greek/symbols)
+  let content = normalizeLatexText(rawText);
 
   // 1. Normalize linebreaks from LaTeX notation: \newline, .\newline, or stray leading 'newline'
   content = content.replace(/\.?\\newline/gi, '<br/>');
   content = content.replace(/(^|<br\/>|\n|[.;:])\s*newline\b\s*/gi, '$1<br/>');
 
-  // 2. Normalize display brackets with LaTeX commands inside: e.g. '[ math \]' or '[ \frac{...} ]' -> '\[ math \]'
+  // 2. Normalize display brackets with LaTeX commands inside
   content = content.replace(/(^|\s)\[\s*([^\[\]]*?\\[a-zA-Z]+[^\[\]]*?)\s*\\?\]/g, '$1\\[$2\\]');
   content = content.replace(/(^|\s)\[\s*([^\[\]]+?)\s*\\\]/g, '$1\\[$2\\]');
 
@@ -265,7 +341,7 @@ function renderLatexString(rawText) {
     return `<div class="katex-display-fallback">${cleanTex}</div>`;
   });
 
-  // 5. Render Display Math: \[...\] (and consume optional trailing \ from LLM generation)
+  // 5. Render Display Math: \[...\]
   content = content.replace(/\\\[([\s\S]*?)\\\](?:\\)?/g, (match, tex) => {
     const cleanTex = cleanFormula(tex);
     if (window.katex) {
@@ -313,9 +389,14 @@ function renderLatexString(rawText) {
 
 /**
  * Universal math renderer for DOM elements
+ * Safe against double-rendering already processed KaTeX nodes
  */
 function renderMathInElement(element) {
   if (!element) return;
+
+  // Guard: if element already contains rendered KaTeX, avoid destructive re-rendering
+  if (element.classList && element.classList.contains('katex')) return;
+  if (element.querySelector && element.querySelector('.katex')) return;
 
   if (!window.katex) {
     pendingMathQueue.add(element);
@@ -334,6 +415,7 @@ function renderMathInElement(element) {
 
   element.innerHTML = renderLatexString(element.innerHTML);
 }
+
 
 // -----------------------------------------------------------------------------
 // 1. ROLE & NAVIGATION SWITCHING
@@ -1890,7 +1972,6 @@ function renderStudentQuestion() {
       });
 
       optListEl.appendChild(optItem);
-      renderMathInElement(optItem);
     });
   }
 }
@@ -2497,7 +2578,6 @@ function renderActiveNtaQuestion() {
       });
 
       optList.appendChild(item);
-      renderMathInElement(item);
     });
   }
 }
