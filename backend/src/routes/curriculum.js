@@ -534,7 +534,11 @@ router.post('/generate-test', async (req, res) => {
     const durationMinutes = mode === 'QUIZ' ? count * 2 : (mode === 'ASSIGNMENT' ? count * 4 : count * 3);
     const totalMarks = count * 4;
     // Ensure 100% of questions in the test have authentic, scientifically rich options (Never generic Option A/B)
-    selectedQuestions.forEach(q => ensureQuestionHasRichOptions(q));
+    selectedQuestions.forEach(q => {
+      q.subject = canonicalSubject;
+      q.subjectKey = resolvedSubjectKey;
+      ensureQuestionHasRichOptions(q);
+    });
 
     const newAssessment = {
       id: `asgn_${Date.now()}`,
@@ -570,6 +574,9 @@ router.post('/generate-test', async (req, res) => {
           submissionId: `sub_${newAssessment.id}_${stu.id.slice(0, 8)}`,
           assessmentId: newAssessment.id,
           assessmentTitle: finalTitle,
+          subject: canonicalSubject,
+          subjectKey: resolvedSubjectKey,
+          chapterName: chapterName,
           studentId: stu.id,
           studentName: stu.full_name,
           rollNumber: stu.roll_number,
@@ -716,6 +723,9 @@ router.post('/simulate-attempts', (req, res) => {
         submissionId: `sub_${assessment.id}_${stu.id || idx}_${Date.now()}`,
         assessmentId: assessment.id,
         assessmentTitle: assessment.title,
+        subject: assessment.subject || 'Biology',
+        subjectKey: assessment.subjectKey || 'BIOLOGY',
+        chapterName: assessment.chapterName || '',
         studentId: stu.id,
         studentName: stu.full_name || stu.name,
         rollNumber: stu.roll_number || stu.roll || `12-NM-0${idx + 1}`,

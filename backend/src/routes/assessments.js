@@ -16,6 +16,7 @@ const { EXAM_BLUEPRINTS, analyzeBankCoverage, generatePatternMatchedExam } = req
 const { generatePersonalizedRemedialAssignment, verifyStudentFormula } = require('../services/remedialAssignmentService');
 const { generateAssignmentDocxBuffer } = require('../services/docxExportService');
 const { ensureQuestionHasRichOptions } = require('../services/questionOptionEngine');
+const { quizTool, testTool, assignmentTool } = require('../services/pipelineTools');
 
 // 1. GET /api/assessments - List all test assignments
 router.get('/', (req, res) => {
@@ -222,7 +223,9 @@ router.post('/:id/submit', async (req, res) => {
       questionBreakdown.push({
         questionIndex: i + 1,
         questionId: q.id,
-        subtopic: q.subtopic,
+        subtopic: q.subtopic || q.topic || assessment.chapterName || 'General',
+        topic: q.topic || assessment.chapterName || assessment.subject || 'General',
+        subject: assessment.subject || 'Biology',
         selectedOption: selected,
         correctAnswer: expectedAnswer,
         isCorrect,
@@ -252,6 +255,9 @@ router.post('/:id/submit', async (req, res) => {
       submissionId: `sub_${id}_${studentId}_${Date.now()}`,
       assessmentId: id,
       assessmentTitle: assessment.title,
+      subject: assessment.subject || 'Biology',
+      subjectKey: assessment.subjectKey || 'BIOLOGY',
+      chapterName: assessment.chapterName || '',
       studentId,
       studentName: studentName || studentUser?.full_name || 'Aryan Sharma',
       rollNumber: studentUser?.roll_number || '12-NM-01',
@@ -261,7 +267,7 @@ router.post('/:id/submit', async (req, res) => {
       totalMarks,
       percentage,
       totalTimeSpentSeconds: totalTimeSpent,
-      smartCardSummary: `Scored ${percentage}% on ${assessment.title}. Mastered ${mastered.length} subtopics, needs recap on ${recap.length}, critical weakness on ${weak.length}.`,
+      smartCardSummary: `Scored ${percentage}% on ${assessment.title} (${assessment.subject || 'Science'}). Mastered ${mastered.length} subtopics, needs recap on ${recap.length}, critical weakness on ${weak.length}.`,
       questionBreakdown: questionBreakdown.map(qb => {
         let errorType = 'NONE';
         if (!qb.isCorrect) {
@@ -281,12 +287,17 @@ router.post('/:id/submit', async (req, res) => {
     inMemoryStore.submissions.unshift(submissionRecord);
 
     // 4. Generate Personalized Remedial Assignment based on exact questions missed & formulas
+    // STRICT CONTEXT: Preserves subject, subjectKey, grade, and chapterName!
     const personalizedAssignment = generatePersonalizedRemedialAssignment({
       studentId,
       studentName: studentName || studentUser?.full_name || 'Aryan Sharma',
       rollNumber: studentUser?.roll_number || '11-S-24',
       assessmentId: id,
       assessmentTitle: assessment.title,
+      subject: assessment.subject || 'Biology',
+      subjectKey: assessment.subjectKey || 'BIOLOGY',
+      grade: assessment.grade || '12',
+      chapterName: assessment.chapterName || '',
       questionBreakdown
     });
 
@@ -299,6 +310,9 @@ router.post('/:id/submit', async (req, res) => {
       results: {
         assessmentId: id,
         assessmentTitle: assessment.title,
+        subject: assessment.subject || 'Biology',
+        subjectKey: assessment.subjectKey || 'BIOLOGY',
+        chapterName: assessment.chapterName || '',
         studentId,
         studentName,
         totalQuestions: assessment.questions.length,
@@ -331,7 +345,6 @@ router.get('/remedial/:id', (req, res) => {
     const assignments = inMemoryStore.remedialAssignments || [];
     const found = assignments.find(a => a.assignmentId === id);
     if (!found) {
-      // If not found by exact ID, return the latest or generate a default one
       if (assignments.length > 0) return res.json({ success: true, assignment: assignments[0] });
       return res.status(404).json({ success: false, error: 'Remedial assignment not found' });
     }
@@ -344,9 +357,9 @@ router.get('/remedial/:id', (req, res) => {
 // 4b. POST /api/assessments/remedial/verify-formula - Verify student formula input with LaTeX feedback
 router.post('/remedial/verify-formula', (req, res) => {
   try {
-    const { subtopic = 'Spherical Mirrors', formulaInput, studentInput } = req.body;
+    const { subtopic = 'Verhulst-Pearl Logistic Growth Equation', formulaInput, studentInput, subject = 'Biology' } = req.body;
     const input = formulaInput || studentInput || '';
-    const evaluation = verifyStudentFormula(subtopic, input);
+    const evaluation = verifyStudentFormula(subtopic, input, subject);
     res.json({ success: true, ...evaluation });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -360,8 +373,12 @@ router.post('/remedial/generate', (req, res) => {
       studentId = 'b0000000-0000-0000-0000-000000000001',
       studentName = 'Aryan Sharma',
       rollNumber = '11-S-24',
-      assessmentId = 'asgn_10_sci_01',
-      assessmentTitle = 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      assessmentId = 'asgn_01',
+      assessmentTitle = 'Classroom Assessment',
+      subject = 'Biology',
+      subjectKey = 'BIOLOGY',
+      grade = '12',
+      chapterName = '',
       questionBreakdown = []
     } = req.body;
 
@@ -371,6 +388,10 @@ router.post('/remedial/generate', (req, res) => {
       rollNumber,
       assessmentId,
       assessmentTitle,
+      subject,
+      subjectKey,
+      grade,
+      chapterName,
       questionBreakdown
     });
 
@@ -378,6 +399,36 @@ router.post('/remedial/generate', (req, res) => {
     inMemoryStore.remedialAssignments.unshift(assignment);
 
     res.json({ success: true, assignment });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4c-1. Pipeline Tool Endpoints: quizTool, testTool, assignmentTool
+router.post('/tools/quiz', async (req, res) => {
+  try {
+    const quiz = await quizTool.createQuiz(req.body);
+    res.status(201).json({ success: true, tool: 'quizTool', quiz });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post('/tools/test', async (req, res) => {
+  try {
+    const test = await testTool.createTest(req.body);
+    res.status(201).json({ success: true, tool: 'testTool', test });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.post('/tools/remedial', (req, res) => {
+  try {
+    const remedial = assignmentTool.generateRemedialAssignment(req.body);
+    if (!inMemoryStore.remedialAssignments) inMemoryStore.remedialAssignments = [];
+    inMemoryStore.remedialAssignments.unshift(remedial);
+    res.status(201).json({ success: true, tool: 'assignmentTool', remedial });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

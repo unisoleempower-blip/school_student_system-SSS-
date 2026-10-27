@@ -204,67 +204,67 @@ const CURATED_OPTIONS_BANK = {
 
   // --- BIOLOGY ---
   snr_b_01: [
-    { key: 'A', latex: 'Single base substitution ($GAG \\rightarrow GUG$) replacing Glutamic acid with Valine at position 6 of $\\beta$-globin chain', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: 'Frameshift deletion replacing Valine with Lysine at position 6', is_correct: false, distractor_trap: 'Sickle cell anemia is a point mutation, not a frameshift deletion' },
-    { key: 'C', latex: 'Substitution of Valine with Glutamic acid ($GUG \\rightarrow GAG$)', is_correct: false, distractor_trap: 'Reversed mutant and normal codon sequences' },
-    { key: 'D', latex: 'Non-disjunction of chromosome 21 leading to aneuploidy', is_correct: false, distractor_trap: 'Confused sickle cell point mutation with Down syndrome' }
+    { key: 'A', latex: '(a) Special cellular thickenings at the synergid micropylar tip that guide pollen tube entry; (b) Sporopollenin resists high temperatures, strong acids/alkali, and enzymatic breakdown', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '(a) Nourishes the developing zygote after double fertilization; (b) Pectocellulose with high pectin methyl esterase resistance', is_correct: false, distractor_trap: 'Primary endosperm nucleus nourishes embryo; intine contains pectocellulose' },
+    { key: 'C', latex: '(a) Develops into protective seed coat testa and tegmen; (b) Lignocellulose with suberin crosslinks', is_correct: false, distractor_trap: 'Integuments of ovule form the seed coat' },
+    { key: 'D', latex: '(a) Directs antipodal cell proliferation; (b) Chitin polymer resistant to lysozyme', is_correct: false, distractor_trap: 'Antipodals are at chalazal pole; chitin is fungal wall' }
   ],
   snr_b_02: [
-    { key: 'A', latex: 'Inverted pyramid because standing crop biomass of short-lived phytoplankton is far smaller than that of long-lived fishes', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: 'Upright pyramid because producer biomass always exceeds consumer biomass', is_correct: false, distractor_trap: 'Ignored high turnover rate and rapid reproduction of marine phytoplankton' },
-    { key: 'C', latex: 'Spindle-shaped pyramid caused by hyperparasitic food webs', is_correct: false, distractor_trap: 'Tree ecosystems with parasites exhibit spindle shapes, not aquatic ecosystems' },
-    { key: 'D', latex: 'Constant biomass across all trophic levels due to 10% energy law', is_correct: false, distractor_trap: '10% law applies to energy transfer, which is strictly upright' }
+    { key: 'A', latex: '(i) High estrogen triggers LH surge causing ovulation on Day 14; (ii) Corpus luteum secretes progesterone to maintain vascular endometrium; (iii) Corpus luteum degeneration and progesterone withdrawal', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '(i) High progesterone triggers LH surge causing menstruation; (ii) Graafian follicle secretes FSH; (iii) Sudden estrogen surge breaks endometrium', is_correct: false, distractor_trap: 'Inverted hormone roles: progesterone maintains endometrium and estrogen triggers LH surge' },
+    { key: 'C', latex: '(i) GnRH drop induces LH surge; (ii) Corpus albicans actively secretes progesterone; (iii) Implantation failure releases relaxin', is_correct: false, distractor_trap: 'Corpus albicans is non-secretory degenerate scar tissue' },
+    { key: 'D', latex: '(i) Prolactin induces LH surge; (ii) Anterior pituitary secretes progesterone; (iii) Excess hCG disintegrates uterine wall', is_correct: false, distractor_trap: 'Ovary/corpus luteum secretes progesterone, not pituitary; hCG maintains corpus luteum' }
   ],
   snr_b_03: [
-    { key: 'A', latex: 'Frequency of recessive allele $q = \\sqrt{0.09} = 0.3$, dominant $p = 0.7$; Heterozygous carriers $2pq = 2(0.7)(0.3) = 0.42$ ($42\\%$)', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: 'Heterozygotes $= 0.18$ ($18\\%$)', is_correct: false, distractor_trap: 'Calculated $2q^2$ instead of $2pq$' },
-    { key: 'C', latex: 'Heterozygotes $= 0.21$ ($21\\%$)', is_correct: false, distractor_trap: 'Omitted factor of 2 in binomial expansion ($pq$ instead of $2pq$)' },
-    { key: 'D', latex: 'Heterozygotes $= 0.49$ ($49\\%$)', is_correct: false, distractor_trap: 'Calculated homozygous dominant frequency $p^2$ instead of heterozygotes' }
+    { key: 'A', latex: '(a) Non-medicated (Lippes loop), Copper-releasing (CuT, Multiload 375), Hormone-releasing (LNG-20, Progestasert); (b) $Cu^{2+}$ ions suppress sperm motility and fertilizing capacity', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '(a) Barrier IUDs, Chemical IUDs, Surgical IUDs; (b) Copper creates a permanent mechanical barrier across Fallopian tubes', is_correct: false, distractor_trap: 'IUDs are not surgical ligation barriers' },
+    { key: 'C', latex: '(a) Oral IUDs, Transdermal IUDs, Injectable IUDs; (b) Copper increases sperm motility to exhaust energy reserves', is_correct: false, distractor_trap: 'IUDs are intrauterine devices; copper suppresses sperm motility, not increases' },
+    { key: 'D', latex: '(a) Phagocytic IUDs, Vasectomy IUDs, Tubectomy IUDs; (b) Copper destroys follicle reserves in the ovaries', is_correct: false, distractor_trap: 'Confused IUDs with sterilization surgeries' }
   ],
   snr_b_04: [
-    { key: 'A', latex: 'Special cellular thickenings at synergid micropylar tip that guide entry of pollen tube into embryo sac', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: 'Directly nourishes developing zygote after double fertilization', is_correct: false, distractor_trap: 'Primary endosperm nucleus (PEN) nourishes developing embryo' },
-    { key: 'C', latex: 'Develops into protective seed coat testa and tegmen', is_correct: false, distractor_trap: 'Integuments of ovule form the seed coat' },
-    { key: 'D', latex: 'Prevents self-pollination in chasmogamous flowers', is_correct: false, distractor_trap: 'Overlooked chemotropic guidance function of filiform apparatus' }
+    { key: 'A', latex: '(a) Point mutation ($GAG \\rightarrow GUG$) substituting Glutamic acid with Valine at position 6 of $\\beta$-globin; (b) Sickle-cell is qualitative (defective globin), Thalassemia is quantitative (reduced globin synthesis)', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '(a) Frameshift deletion of codon 6 replacing Valine with Lysine; (b) Sickle-cell is quantitative, Thalassemia is qualitative', is_correct: false, distractor_trap: 'Reversed qualitative vs quantitative classifications' },
+    { key: 'C', latex: '(a) Point mutation substituting Valine with Glutamic acid ($GUG \\rightarrow GAG$); (b) Both are X-linked recessive disorders', is_correct: false, distractor_trap: 'Reversed mutant/normal codons; sickle-cell and thalassemia are autosomal recessive' },
+    { key: 'D', latex: '(a) Chromosomal non-disjunction of chromosome 11; (b) Thalassemia is caused by an extra copy of $\\beta$-globin gene', is_correct: false, distractor_trap: 'Thalassemia is caused by deletion or mutation reducing synthesis, not duplication' }
   ],
   snr_b_05: [
-    { key: 'A', latex: 'Non-medicated (Lippes loop), Copper-releasing (CuT, Cu7, Multiload 375), Hormone-releasing (Progestasert, LNG-20)', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: 'Barrier IUDs, Chemical IUDs, Surgical IUDs', is_correct: false, distractor_trap: 'Incorrect clinical classification of intrauterine contraceptive devices' },
-    { key: 'C', latex: 'Oral IUDs, Transdermal IUDs, Injectable IUDs', is_correct: false, distractor_trap: 'IUDs are intrauterine devices, not oral or injectable agents' },
-    { key: 'D', latex: 'Spermicidal IUDs, Phagocytic IUDs, Vasectomy IUDs', is_correct: false, distractor_trap: 'Mixed surgical sterilization with mechanical IUD mechanisms' }
+    { key: 'A', latex: '(a)(i) Repressor binds operator blocking RNA pol, (ii) Inducer (allolactose) inactivates repressor; (b) $z$ ($\\beta$-galactosidase), $y$ (permease), $a$ (transacetylase); (c) Negative because repressor shuts off transcription', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '(a)(i) Lactose acts as corepressor, (ii) Operator transcribes without promoter; (b) $z$ (permease), $y$ ($\\beta$-galactosidase), $a$ (helicase); (c) Negative because lactose degrades mRNA', is_correct: false, distractor_trap: 'Swapped $z$ and $y$ gene products; allolactose is an inducer, not a corepressor' },
+    { key: 'C', latex: '(a)(i) RNA polymerase binds operator directly, (ii) Repressor hydrolyzes lactose; (b) $z, y, a$ encode ribosomal subunits; (c) Negative due to ATP hydrolysis', is_correct: false, distractor_trap: 'RNA polymerase binds promoter, not operator' },
+    { key: 'D', latex: '(a)(i) Glucose activates repressor, (ii) Lactose binds RNA polymerase; (b) $z$ (transacetylase), $y$ (ligase), $a$ (topoisomerase); (c) Negative because cAMP inhibits promoter', is_correct: false, distractor_trap: 'Incorrect structural gene enzymes and mechanisms' }
   ],
   snr_b_06: [
-    { key: 'A', latex: 'Inducer (allolactose) binds repressor protein, inactivating it and freeing operator for RNA polymerase to transcribe lac $z, y, a$', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: 'Lactose binds promoter directly without repressor protein involvement', is_correct: false, distractor_trap: 'Operator is the regulatory binding site for repressor protein' },
-    { key: 'C', latex: 'Repressor protein acts as a positive transcription factor in absence of lactose', is_correct: false, distractor_trap: 'Lac operon is under negative inducible regulation' },
-    { key: 'D', latex: 'Lac $z$ encodes permease and lac $y$ encodes $\\beta$-galactosidase', is_correct: false, distractor_trap: 'Inverted structural gene products ($z$ = $\\beta$-galactosidase, $y$ = permease)' }
+    { key: 'A', latex: '(i) $p = 1 - 0.2 = 0.8$, (ii) $AA = p^2 = 0.64$ ($64\\%$), (iii) $Aa = 2pq = 2(0.8)(0.2) = 0.32$ ($32\\%$)', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '(i) $p = 0.8$, (ii) $AA = 0.64$ ($64\\%$), (iii) $Aa = pq = 0.16$ ($16\\%$)', is_correct: false, distractor_trap: 'Omitted factor of 2 in binomial expansion for heterozygotes ($pq$ instead of $2pq$)' },
+    { key: 'C', latex: '(i) $p = 0.4$, (ii) $AA = 0.16$ ($16\\%$), (iii) $Aa = 0.48$ ($48\\%$)', is_correct: false, distractor_trap: 'Calculated $p = 1 - \\sqrt{0.2}$ incorrectly treating $0.2$ as $q^2$' },
+    { key: 'D', latex: '(i) $p = 0.8$, (ii) $AA = 0.32$ ($32\\%$), (iii) $Aa = 0.64$ ($64\\%$)', is_correct: false, distractor_trap: 'Swapped homozygous dominant and heterozygous percentages' }
   ],
   snr_b_07: [
-    { key: 'A', latex: '$\\frac{dN}{dt} = rN\\left(\\frac{K - N}{K}\\right)$ (Sigmoid growth curve exhibiting environmental carrying capacity $K$)', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: '$\\frac{dN}{dt} = rN$ (Exponential J-shaped growth curve under unlimited resources)', is_correct: false, distractor_trap: 'Omitted environmental resistance factor $(K-N)/K$' },
-    { key: 'C', latex: '$\\frac{dN}{dt} = \\frac{rN}{K}$', is_correct: false, distractor_trap: 'Incorrect dimensional differential equation' },
-    { key: 'D', latex: '$\\frac{dN}{dt} = K - rN$', is_correct: false, distractor_trap: 'Linear degradation model' }
+    { key: 'A', latex: '(a) Sporozoites infect liver cells, multiply asexually, attack RBCs which burst releasing toxic Haemozoin (causing chills/fever); (b) Fertilization in mosquito gut, sporozoites stored in salivary glands', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '(a) Sporozoites infect RBCs directly, producing melanin pigment; (b) Fertilization occurs in human bloodstream, sporozoites stored in mosquito stomach', is_correct: false, distractor_trap: 'Sporozoites infect liver cells first; sexual stage occurs in mosquito gut, not human blood' },
+    { key: 'C', latex: '(a) Gametocytes infect liver cells releasing bilirubin; (b) Fertilization in female mosquito ovaries, sporozoites stored in proboscis', is_correct: false, distractor_trap: 'Sporozoites infect humans; mature sporozoites are stored in salivary glands' },
+    { key: 'D', latex: '(a) Merozoites inject haemozoin directly into spleen; (b) Fertilization in salivary glands, stored in Malpighian tubules', is_correct: false, distractor_trap: 'Ruptured RBCs release haemozoin into blood; fertilization occurs in gut' }
   ],
   snr_b_08: [
-    { key: 'A', latex: '(i) $Monascus\\,purpureus$ (blood cholesterol lowering), (ii) $Trichoderma\\,polysporum$ (immunosuppressant), (iii) $Streptococcus$ (clot buster)', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: '(i) $Aspergillus\\,niger$, (ii) $Clostridium\\,butylicum$, (iii) $Lactobacillus$', is_correct: false, distractor_trap: 'Listed organic acid producers instead of bioactive medical molecules' },
-    { key: 'C', latex: '(i) $Streptococcus$, (ii) $Monascus\\,purpureus$, (iii) $Trichoderma\\,polysporum$', is_correct: false, distractor_trap: 'Permuted matching of microorganism sources with therapeutic applications' },
-    { key: 'D', latex: '(i) $Penicillium\\,notatum$, (ii) $Saccharomyces\\,cerevisiae$, (iii) $Acetobacter$', is_correct: false, distractor_trap: 'Traditional fermentation microbes rather than targeted bioactive products' }
+    { key: 'A', latex: '(i) $Monascus\\,purpureus$ (blood cholesterol lowering), (ii) $Trichoderma\\,polysporum$ (immunosuppressant in organ transplants), (iii) $Streptococcus$ (clot buster for myocardial infarction)', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '(i) $Aspergillus\\,niger$ (citric acid), (ii) $Clostridium\\,butylicum$ (butyric acid), (iii) $Lactobacillus$ (lactic acid)', is_correct: false, distractor_trap: 'Listed organic acid producers rather than medical bioactive molecules' },
+    { key: 'C', latex: '(i) $Streptococcus$, (ii) $Monascus\\,purpureus$, (iii) $Trichoderma\\,polysporum$', is_correct: false, distractor_trap: 'Mismatched microorganisms with therapeutic roles' },
+    { key: 'D', latex: '(i) $Penicillium\\,notatum$, (ii) $Saccharomyces\\,cerevisiae$, (iii) $Acetobacter\\,aceti$', is_correct: false, distractor_trap: 'Traditional fermentation microbes rather than targeted bioactive products' }
   ],
   snr_b_09: [
-    { key: 'A', latex: 'Insertional inactivation disrupts $tet^R$; recombinants grow on ampicillin but die on tetracycline replica plate', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: 'Insertional inactivation disrupts $amp^R$; recombinants grow on tetracycline but die on ampicillin plate', is_correct: false, distractor_trap: 'Confused $Bam\\text{HI}$ location with $Pst\\text{I}/Pvu\\text{I}$ located in $amp^R$' },
-    { key: 'C', latex: 'Both $amp^R$ and $tet^R$ are inactivated; recombinants die on both antibiotic media', is_correct: false, distractor_trap: 'Assumed insertional inactivation damages both selectable markers' },
-    { key: 'D', latex: 'Plasmid gains resistance to kanamycin while retaining tetracycline resistance', is_correct: false, distractor_trap: 'Confused pBR322 selectable markers with Ti plasmid markers' }
+    { key: 'A', latex: '(a) Foreign DNA insertion disrupts $tet^R$ coding sequence causing loss of tetracycline resistance; (b) Recombinants grow on ampicillin plate but fail to grow (die) on tetracycline replica plate', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '(a) Insertion disrupts $amp^R$ gene causing loss of ampicillin resistance; (b) Recombinants grow on tetracycline but die on ampicillin plate', is_correct: false, distractor_trap: 'BamHI is located in $tet^R$, not $amp^R$; PstI/PvuI are in $amp^R$' },
+    { key: 'C', latex: '(a) Insertion inactivates both $amp^R$ and $tet^R$ simultaneously; (b) Recombinants die on both antibiotic media', is_correct: false, distractor_trap: 'Only the gene containing the cloning site is inactivated' },
+    { key: 'D', latex: '(a) Insertion induces spontaneous mutation in origin of replication (ori); (b) Recombinants grow on chloramphenicol media', is_correct: false, distractor_trap: 'ori is unaffected, allowing autonomous plasmid replication' }
   ],
   snr_b_10: [
-    { key: 'A', latex: '$Agrobacterium$ vector introduces nematode genes producing sense & anti-sense RNA; dsRNA silences nematode mRNA via RNAi', is_correct: true, distractor_trap: null },
-    { key: 'B', latex: 'Vector introduces Bt endotoxin Cry protein crystals that perforate nematode midgut epithelial cells', is_correct: false, distractor_trap: 'Confused RNAi gene silencing with Bacillus thuringiensis Cry toxin mechanism' },
-    { key: 'C', latex: 'Recombinant virus produces monoclonal antibodies that neutralize nematode salivary secretions', is_correct: false, distractor_trap: 'Confused post-transcriptional gene silencing with passive immunization' },
-    { key: 'D', latex: 'Single-stranded DNA probe binds nematode ribosomes to inhibit translation', is_correct: false, distractor_trap: 'Confused dsRNA silencing with antisense DNA oligomers' }
+    { key: 'A', latex: '$Agrobacterium$ vector introduced nematode-specific genes producing sense & anti-sense RNA; forming dsRNA that triggers RNAi, silencing specific nematode mRNA and preventing infestation', is_correct: true, distractor_trap: null },
+    { key: 'B', latex: '$Bacillus\\,thuringiensis$ vector introduced Cry1Ac endotoxin crystals that dissolve in alkaline nematode gut creating perforations', is_correct: false, distractor_trap: 'Confused RNAi gene silencing with Bt cotton Cry endotoxin' },
+    { key: 'C', latex: 'Retroviral vector introduced monoclonal antibodies neutralizing nematode saliva enzymes directly', is_correct: false, distractor_trap: 'RNAi is cellular post-transcriptional gene silencing, not antibody immunotherapy' },
+    { key: 'D', latex: 'Plasmid vector synthesized single-stranded antisense DNA that degraded host plant ribosomes', is_correct: false, distractor_trap: 'dsRNA silences nematode mRNA, not host plant ribosomes' }
   ],
   snr_b_11: [
-    { key: 'A', latex: '$\\frac{dN}{dt} = rN\\left(\\frac{K - N}{K}\\right)$; Sigmoid S-shaped curve because environmental carrying capacity $K$ and resources are finite', is_correct: true, distractor_trap: null },
+    { key: 'A', latex: '$\\frac{dN}{dt} = rN\\left(\\frac{K - N}{K}\\right)$ ($N$ = population density, $r$ = intrinsic rate, $K$ = carrying capacity); Sigmoid S-shaped curve because environmental carrying capacity $K$ is finite', is_correct: true, distractor_trap: null },
     { key: 'B', latex: '$\\frac{dN}{dt} = rN$; J-shaped exponential curve because natural populations face zero environmental resistance', is_correct: false, distractor_trap: 'Described unlimited exponential growth model without carrying capacity' },
     { key: 'C', latex: '$\\frac{dN}{dt} = \\frac{rN}{K}$; Parabolic bell curve reaching carrying capacity without deceleration', is_correct: false, distractor_trap: 'Dimensional error in logistic growth differential equation' },
     { key: 'D', latex: '$\\frac{dN}{dt} = r(K - N)$; Linear asymptote curve without initial exponential lag phase', is_correct: false, distractor_trap: 'Omitted population density multiplier $N$' }
@@ -276,7 +276,7 @@ const CURATED_OPTIONS_BANK = {
     { key: 'D', latex: 'Biomass pyramid is upright; Energy pyramid is inverted because carnivores generate metabolic energy', is_correct: false, distractor_trap: 'Violates thermodynamic conservation of energy' }
   ],
   snr_b_13: [
-    { key: 'A', latex: 'Normal: $S = C A^Z$, Log: $\\log S = \\log C + Z \\log A$; $Z = 0.1\\text{--}0.2$ for local regions, steeper $Z = 0.6\\text{--}1.2$ for continents', is_correct: true, distractor_trap: null },
+    { key: 'A', latex: 'Normal: $S = C A^Z$, Log: $\\log S = \\log C + Z \\log A$; $Z = 0.1\\text{--}0.2$ for local regions, steeper $Z = 0.6\\text{--}1.2$ for entire continents', is_correct: true, distractor_trap: null },
     { key: 'B', latex: 'Normal: $S = Z A^C$, Log: $\\log S = \\log Z + C \\log A$; $Z = 0.6\\text{--}1.2$ for local regions, flatter for continents', is_correct: false, distractor_trap: 'Inverted constants $C$ and $Z$' },
     { key: 'C', latex: 'Normal: $S = C + Z A$, Log: $\\log S = \\log C \\cdot \\log A$; $Z$ remains constant at $1.0$ at all geographical scales', is_correct: false, distractor_trap: 'Assumed linear species-area model' },
     { key: 'D', latex: 'Normal: $S = \\frac{C}{A^Z}$, Log: $\\log S = \\log C - Z \\log A$; $Z$ is negative due to habitat fragmentation', is_correct: false, distractor_trap: 'Inverted area dependence into an inverse power law' }
@@ -339,32 +339,53 @@ function ensureQuestionHasRichOptions(q) {
   const rawAns = (q.correct_answer_latex || q.correct_answer || '').trim();
   const topic = q.subtopic || q.topic || q.chapter || 'Core Principle';
   const cleanAns = sanitizeOptionLatex(rawAns);
+  const subjectName = (q.subject || q.discipline || '').toLowerCase();
+  const isBiology = subjectName.includes('bio') || (q.branch && ['BOTANY', 'ZOOLOGY'].includes(q.branch.toUpperCase()));
 
   if (cleanAns && cleanAns.length > 0 && !/^Option\s+[A-D]$/i.test(cleanAns)) {
-    // If cleanAns contains an equals sign, e.g. $k = 4$ or $x = 1$, construct clear mathematical distractors
-    const hasMath = cleanAns.includes('$') || /\\(?:frac|sqrt|[a-zA-Z]+)/.test(cleanAns);
-    if (hasMath) {
+    if (isBiology) {
+      // Biologically appropriate options (no sign conventions or inverse math)
       q.options_latex = [
         { key: 'A', latex: cleanAns, is_correct: true, distractor_trap: null },
-        { key: 'B', latex: `Reciprocal relation: $1 / (${cleanAns.replace(/\$/g, '')})$`, is_correct: false, distractor_trap: 'Inverted formula relationship' },
-        { key: 'C', latex: `Zero magnitude at equilibrium in ${topic}`, is_correct: false, distractor_trap: 'Assumed cancellation at equilibrium' },
-        { key: 'D', latex: `Opposite sign convention: $-(${cleanAns.replace(/\$/g, '')})$`, is_correct: false, distractor_trap: 'Cartesian sign convention error' }
+        { key: 'B', latex: `Alternate regulatory feedback mechanism in ${topic}`, is_correct: false, distractor_trap: 'Confused with reciprocal physiological pathway' },
+        { key: 'C', latex: `Non-specific systemic response independent of ${topic}`, is_correct: false, distractor_trap: 'Failed to identify targeted molecular/ecological mechanism' },
+        { key: 'D', latex: `Pre-zygotic developmental block in ${topic}`, is_correct: false, distractor_trap: 'Confused anatomical or cellular barrier with physiological process' }
+      ];
+    } else {
+      // Mathematics & Physics: check for mathematical formulas
+      const hasMath = cleanAns.includes('$') || /\\(?:frac|sqrt|[a-zA-Z]+)/.test(cleanAns);
+      if (hasMath) {
+        q.options_latex = [
+          { key: 'A', latex: cleanAns, is_correct: true, distractor_trap: null },
+          { key: 'B', latex: `Reciprocal relation: $1 / (${cleanAns.replace(/\$/g, '')})$`, is_correct: false, distractor_trap: 'Inverted formula relationship' },
+          { key: 'C', latex: `Zero magnitude at equilibrium in ${topic}`, is_correct: false, distractor_trap: 'Assumed cancellation at equilibrium' },
+          { key: 'D', latex: `Opposite sign convention: $-(${cleanAns.replace(/\$/g, '')})$`, is_correct: false, distractor_trap: 'Cartesian sign convention error' }
+        ];
+      } else {
+        q.options_latex = [
+          { key: 'A', latex: cleanAns, is_correct: true, distractor_trap: null },
+          { key: 'B', latex: `Inversely proportional magnitude relative to ${cleanAns}`, is_correct: false, distractor_trap: 'Inverted formula relationship' },
+          { key: 'C', latex: `Null value or zero magnitude in ${topic}`, is_correct: false, distractor_trap: 'Assumed cancellation at equilibrium' },
+          { key: 'D', latex: `Opposite sign convention: -(${cleanAns})`, is_correct: false, distractor_trap: 'Cartesian sign convention error' }
+        ];
+      }
+    }
+  } else {
+    if (isBiology) {
+      q.options_latex = [
+        { key: 'A', latex: `Primary physiological mechanism characteristic of ${topic}`, is_correct: true, distractor_trap: null },
+        { key: 'B', latex: `Auxiliary homeostatic pathway active in ${topic}`, is_correct: false, distractor_trap: 'Overlooked primary cellular pathway' },
+        { key: 'C', latex: `Constitutive transcription independent of ${topic}`, is_correct: false, distractor_trap: 'Ignored inducible regulatory mechanism' },
+        { key: 'D', latex: `Sympatric divergence constraint in ${topic}`, is_correct: false, distractor_trap: 'Confused ecological isolation with physiological event' }
       ];
     } else {
       q.options_latex = [
-        { key: 'A', latex: cleanAns, is_correct: true, distractor_trap: null },
-        { key: 'B', latex: `Inversely proportional magnitude relative to ${cleanAns}`, is_correct: false, distractor_trap: 'Inverted formula relationship' },
-        { key: 'C', latex: `Null value or zero magnitude in ${topic}`, is_correct: false, distractor_trap: 'Assumed cancellation at equilibrium' },
-        { key: 'D', latex: `Opposite sign convention: -(${cleanAns})`, is_correct: false, distractor_trap: 'Cartesian sign convention error' }
+        { key: 'A', latex: `Consistent with standard principles of ${topic}`, is_correct: true, distractor_trap: null },
+        { key: 'B', latex: `Inversely proportional relation across ${topic}`, is_correct: false, distractor_trap: 'Reciprocal misconception' },
+        { key: 'C', latex: `Independent of external parameters in ${topic}`, is_correct: false, distractor_trap: 'Overlooked boundary dependency' },
+        { key: 'D', latex: `Conservation law violation in ${topic}`, is_correct: false, distractor_trap: 'Ignored thermodynamic / field constraints' }
       ];
     }
-  } else {
-    q.options_latex = [
-      { key: 'A', latex: `Consistent with standard principles of ${topic}`, is_correct: true, distractor_trap: null },
-      { key: 'B', latex: `Inversely proportional relation across ${topic}`, is_correct: false, distractor_trap: 'Reciprocal misconception' },
-      { key: 'C', latex: `Independent of external parameters in ${topic}`, is_correct: false, distractor_trap: 'Overlooked boundary dependency' },
-      { key: 'D', latex: `Conservation law violation in ${topic}`, is_correct: false, distractor_trap: 'Ignored thermodynamic / field constraints' }
-    ];
   }
 
   q.options = q.options_latex;

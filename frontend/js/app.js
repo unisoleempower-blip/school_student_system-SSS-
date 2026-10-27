@@ -2938,7 +2938,7 @@ async function startAssignedTest(assessmentSummary) {
   examState.questions = (fullAssessment.questions || []).map((q, idx) => ({
     id: q.id,
     num: idx + 1,
-    subject: fullAssessment.subject || 'Science',
+    subject: fullAssessment.subject || 'Biology',
     topic: q.topic || q.chapter || 'Topic',
     subtopic: q.subtopic || 'General',
     question_latex: q.question_latex,
@@ -2950,6 +2950,15 @@ async function startAssignedTest(assessmentSummary) {
       }
       const ans = (q.correct_answer_latex || q.correct_answer || '').trim();
       const topic = q.subtopic || q.topic || 'Concept';
+      const isBio = (fullAssessment.subject || '').toLowerCase().includes('bio');
+      if (isBio) {
+        return [
+          { key: 'A', latex: ans || `Primary physiological mechanism characteristic of ${topic}` },
+          { key: 'B', latex: `Alternate regulatory feedback pathway in ${topic}` },
+          { key: 'C', latex: `Non-specific systemic response independent of ${topic}` },
+          { key: 'D', latex: `Pre-zygotic developmental block in ${topic}` }
+        ];
+      }
       return [
         { key: 'A', latex: ans || `Satisfies foundational criteria for ${topic}` },
         { key: 'B', latex: `Inverse variation across ${topic}` },
@@ -2957,7 +2966,7 @@ async function startAssignedTest(assessmentSummary) {
         { key: 'D', latex: `Cartesian sign convention inversion in ${topic}` }
       ];
     })(),
-    correctKey: q.correct_answer || 'B',
+    correctKey: q.correct_answer || (q.options_latex?.find(o => o.is_correct)?.key) || 'A',
     socratic_hints: q.socratic_hints || [],
     benchmark_time_seconds: q.benchmark_time_seconds || 90
   }));
@@ -3055,7 +3064,11 @@ async function openPersonalizedRemedialModal() {
   const modal = document.getElementById('modalPersonalizedRemedial');
   if (!modal) return;
 
-  // If no active assignment exists yet, fetch or generate one from the backend
+  const curSubj = state.activeAssessment?.subject || (teacherBuilderState?.selectedSubjectKey === 'BIOLOGY' ? 'Biology' : (teacherBuilderState?.selectedSubjectKey === 'CHEMISTRY' ? 'Chemistry' : 'Biology'));
+  const curSubjKey = state.activeAssessment?.subjectKey || (curSubj === 'Biology' ? 'BIOLOGY' : (curSubj === 'Chemistry' ? 'CHEMISTRY' : 'PHYSICS'));
+  const curTitle = state.activeAssessment?.title || `${curSubj} Diagnostic Assessment`;
+
+  // If no active assignment exists yet, fetch or generate one from the backend preserving current subject
   if (!state.activeRemedialAssignment) {
     try {
       const res = await fetch(`${getApiBaseUrl()}/api/assessments/remedial/generate`, {
@@ -3065,30 +3078,23 @@ async function openPersonalizedRemedialModal() {
           studentId: 'b0000000-0000-0000-0000-000000000001',
           studentName: 'Aryan Sharma',
           rollNumber: '11-S-24',
-          assessmentId: state.lastSubmittedAssessmentId || 'asgn_10_sci_01',
-          assessmentTitle: state.activeAssessment?.title || 'Class 10 Science: Light & Electricity Assessment',
+          assessmentId: state.lastSubmittedAssessmentId || 'asgn_cur_01',
+          assessmentTitle: curTitle,
+          subject: curSubj,
+          subjectKey: curSubjKey,
+          grade: state.activeAssessment?.grade || '12',
+          chapterName: state.activeAssessment?.chapterName || '',
           questionBreakdown: [
             {
               questionIndex: 1,
-              topic: 'Light – Reflection and Refraction',
-              subtopic: 'Spherical Mirrors',
-              selectedOption: 'C',
-              correctAnswer: 'B',
-              isCorrect: false,
-              timeSpentSeconds: 110,
-              benchmarkSeconds: 90,
-              mistakeClassification: { explanation: 'Sign convention error: took real image as positive' }
-            },
-            {
-              questionIndex: 3,
-              topic: 'Electricity',
-              subtopic: 'Joule Heating & Resistance',
+              topic: curSubj === 'Biology' ? 'Organisms and Populations' : (curSubj === 'Chemistry' ? 'Electrochemistry' : 'Optics'),
+              subtopic: curSubj === 'Biology' ? 'Verhulst-Pearl Logistic Growth Equation' : (curSubj === 'Chemistry' ? 'Standard Gibbs Free Energy & Cell Potential' : 'Spherical Mirrors'),
               selectedOption: 'B',
               correctAnswer: 'A',
               isCorrect: false,
-              timeSpentSeconds: 125,
+              timeSpentSeconds: 110,
               benchmarkSeconds: 90,
-              mistakeClassification: { explanation: 'Forgot to convert 2 hours to seconds (7200s)' }
+              mistakeClassification: { explanation: curSubj === 'Biology' ? 'Omitted environmental carrying capacity resistance factor (K-N)/K' : 'Formula error' }
             }
           ]
         })
@@ -3131,44 +3137,60 @@ function renderPersonalizedRemedialAssignment(assignment) {
   const hostelEl = document.getElementById('remHostelDirective');
   const parentEl = document.getElementById('remParentDirective');
 
-  if (titleEl) titleEl.innerText = assignment.title || 'Personalized Remedial Assignment';
+  const subj = (assignment.subject || 'Biology').toLowerCase();
+  const subjBadge = assignment.subject || 'Biology';
+
+  if (titleEl) titleEl.innerText = assignment.title || `Personalized Remedial Assignment (${subjBadge})`;
   if (badgeEl && assignment.student) {
-    badgeEl.innerText = `${assignment.student.name || 'Aryan Sharma'} • Roll: ${assignment.student.rollNumber || '11-S-24'}`;
+    badgeEl.innerText = `${assignment.student.name || 'Aryan Sharma'} • Roll: ${assignment.student.rollNumber || '11-S-24'} • [${subjBadge}]`;
   }
 
   if (summaryEl && assignment.performanceSummary) {
     const s = assignment.performanceSummary;
-    summaryEl.innerHTML = `Diagnostic telemetry analyzed <strong>${s.totalQuestions || 3} questions</strong> (${s.correctCount || 1} correct, <strong>${s.wrongCount || 2} wrong</strong>). Identified <strong>${assignment.formulaDrills?.length || 1} core formula gap(s)</strong> and distractor traps. Complete the formula write-in drills and targeted questions below to achieve 100% mastery.`;
+    summaryEl.innerHTML = `Diagnostic telemetry analyzed <strong>${s.totalQuestions || 3} questions</strong> (${s.correctCount || 1} correct, <strong>${s.wrongCount || 2} wrong</strong>) in <strong>${subjBadge}</strong>. Identified <strong>${assignment.formulaDrills?.length || 1} core concept/formula gap(s)</strong> and distractor traps. Complete the write-in recall drills and targeted practice questions below to achieve 100% mastery.`;
   }
 
-  // 1. Render Part 1: Interactive "Write That Formula" Drills
+  // Define subject-tailored quick insert palettes and placeholder examples
+  let quickSymbols = [];
+  let placeholderText = '';
+
+  if (subj.includes('bio')) {
+    quickSymbols = ['dN/dt', 'rN((K-N)/K)', 'p^2 + 2pq + q^2 = 1', 'p + q = 1', 'S = C A^Z', 'log S = log C + Z log A', 'GAG -> GUG', 'allolactose', 'dsRNA', 'tet^R', 'Cu2+'];
+    placeholderText = 'Write formula / principle here, e.g. dN/dt = rN((K-N)/K) or p^2 + 2pq + q^2 = 1 or allolactose';
+  } else if (subj.includes('chem')) {
+    quickSymbols = ['Delta G = -nFE', 'k = (2.303/t)log([A]_0/[A])', 'Delta T_f = K_f * m', 'E_cell = E0 - (0.0591/n)log Q', 'pH = -log[H+]'];
+    placeholderText = 'Write formula here, e.g. Delta G = -nFE or k = (2.303/t)log([A]_0/[A])';
+  } else if (subj.includes('math')) {
+    quickSymbols = ['D = b^2 - 4ac', 'x = (-b ± sqrt(D))/(2a)', 'd = |(b1 × b2)·(a2 - a1)|/|b1 × b2|', 'P(A|B) = P(A ∩ B)/P(B)', 'det(A)'];
+    placeholderText = 'Write formula here, e.g. D = b^2 - 4ac or P(A|B) = P(A∩B)/P(B)';
+  } else {
+    quickSymbols = ['1/f = 1/v + 1/u', 'm = -v/u', 'n = c/v', 'H = I^2 R t', 'H = V^2/R * t', 'tau = r × F = I alpha'];
+    placeholderText = 'Write formula here, e.g. 1/f = 1/v + 1/u or n = c/v or H = I^2 R t';
+  }
+
+  // 1. Render Part 1: Interactive "Write That Formula / Principle" Drills
   if (formulaContainer && assignment.formulaDrills) {
     formulaContainer.innerHTML = assignment.formulaDrills.map((drill, idx) => `
       <div class="glass-card" style="padding: 14px 18px; border-left: 4px solid #a855f7; background: rgba(168, 85, 247, 0.04); border-radius: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
           <strong style="color: #c084fc; font-size: 0.9rem;">${drill.subtopic}: ${drill.formulaName}</strong>
-          <span class="pilot-tag" style="background: rgba(236, 72, 153, 0.15); color: #ec4899; font-size: 0.72rem;">Formula Write-In Recall</span>
+          <span class="pilot-tag" style="background: rgba(236, 72, 153, 0.15); color: #ec4899; font-size: 0.72rem;">${subjBadge} Recall Drill</span>
         </div>
         <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0 0 10px 0;">${drill.prompt}</p>
 
         <!-- Quick Symbol Palette -->
         <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px;">
           <span style="font-size: 0.72rem; color: var(--text-muted); align-self: center;">Quick Insert:</span>
-          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, '1/f')">1/f</button>
-          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, '1/v')">1/v</button>
-          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, '1/u')">1/u</button>
-          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, ' = ')">=</button>
-          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, ' + ')">+</button>
-          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, 'n = c/v')">n = c/v</button>
-          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, 'H = V^2/R * t')">H = V^2/R * t</button>
-          <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, 'H = I^2 R t')">H = I^2 R t</button>
+          ${quickSymbols.map(sym => `
+            <button type="button" class="btn-secondary" style="font-size: 0.72rem; padding: 2px 8px; cursor: pointer;" onclick="insertFormulaSymbol(${idx}, '${sym.replace(/'/g, "\\'")}')">${sym}</button>
+          `).join('')}
         </div>
 
         <!-- Formula Text Input & Check Button -->
         <div style="display: flex; gap: 8px; align-items: stretch;">
-          <input type="text" id="formulaInput_${idx}" class="form-input" style="flex: 1; font-family: monospace; font-size: 0.88rem; padding: 8px 12px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(168, 85, 247, 0.4);" placeholder="Write formula here, e.g. 1/f = 1/v + 1/u or n = c/v">
-          <button type="button" class="btn-primary" onclick="handleVerifyFormula(${idx}, '${drill.subtopic}')" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.82rem; padding: 8px 16px; white-space: nowrap; cursor: pointer;">
-            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Verify Formula
+          <input type="text" id="formulaInput_${idx}" class="form-input" style="flex: 1; font-family: monospace; font-size: 0.88rem; padding: 8px 12px; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(168, 85, 247, 0.4);" placeholder="${placeholderText}">
+          <button type="button" class="btn-primary" onclick="handleVerifyFormula(${idx}, '${drill.subtopic}', '${assignment.subject || 'Biology'}')" style="background: linear-gradient(135deg, #10b981, #059669); font-size: 0.82rem; padding: 8px 16px; white-space: nowrap; cursor: pointer;">
+            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Verify Equation
           </button>
         </div>
 
@@ -3183,8 +3205,8 @@ function renderPersonalizedRemedialAssignment(assignment) {
     targetContainer.innerHTML = assignment.remedialQuestions.map((q, qIdx) => `
       <div class="glass-card" id="remQCard_${qIdx}" style="padding: 14px 18px; border-left: 4px solid #10b981; border-radius: 8px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
-          <strong style="color: #10b981; font-size: 0.88rem;">Targeted Question #${qIdx + 1}: ${q.subtopic || 'Concept Remediation'}</strong>
-          <span style="font-size: 0.72rem; color: var(--text-muted);">${q.drillOrigin || 'Practice on that formula'}</span>
+          <strong style="color: #10b981; font-size: 0.88rem;">${subjBadge} Practice Q#${qIdx + 1}: ${q.subtopic || 'Concept Remediation'}</strong>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">${q.drillOrigin || `Targeted practice for ${subjBadge}`}</span>
         </div>
         <div class="remedial-q-text" style="font-size: 0.88rem; line-height: 1.5; margin-bottom: 12px; color: var(--text-primary);">
           ${renderLatexString(q.questionLatex)}
@@ -3205,12 +3227,12 @@ function renderPersonalizedRemedialAssignment(assignment) {
   // 3. Render Pedagogical Action Directives
   if (hostelEl && assignment.dualActionPlan?.hostelPrepAction) {
     const h = assignment.dualActionPlan.hostelPrepAction;
-    hostelEl.innerHTML = `${h.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">⏰ Slot: ${h.timeSlot || '7:30 PM Prep'} &bull; Priority: ${h.priority || 'HIGH'}</span>`;
+    hostelEl.innerHTML = `<strong>${h.faculty || `${subjBadge} Proctor`}:</strong> ${h.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">⏰ Slot: ${h.timeSlot || '7:30 PM Prep'} &bull; Priority: ${h.priority || 'HIGH'}</span>`;
   }
 
   if (parentEl && assignment.dualActionPlan?.parentHomeAction) {
     const p = assignment.dualActionPlan.parentHomeAction;
-    parentEl.innerHTML = `${p.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">🎯 Focus Topic: ${p.focusConcept || 'Formulas & Sign Conventions'}</span>`;
+    parentEl.innerHTML = `${p.directive} <br><span style="font-size:0.72rem; opacity:0.85; margin-top:3px; display:inline-block;">🎯 Focus Topic: ${p.focusConcept || `${subjBadge} Principles`}</span>`;
   }
 
   // Render LaTeX math inside modal cards
@@ -3228,7 +3250,7 @@ function insertFormulaSymbol(drillIdx, symbol) {
   input.focus();
 }
 
-async function handleVerifyFormula(drillIdx, subtopic) {
+async function handleVerifyFormula(drillIdx, subtopic, subject = 'Biology') {
   const input = document.getElementById(`formulaInput_${drillIdx}`);
   const feedbackEl = document.getElementById(`formulaFeedback_${drillIdx}`);
   if (!input || !feedbackEl) return;
@@ -3239,7 +3261,7 @@ async function handleVerifyFormula(drillIdx, subtopic) {
     feedbackEl.style.background = 'rgba(239, 68, 68, 0.12)';
     feedbackEl.style.border = '1px solid rgba(239, 68, 68, 0.3)';
     feedbackEl.style.color = '#ef4444';
-    feedbackEl.innerHTML = '⚠️ Please write the formula in the input box first before verifying.';
+    feedbackEl.innerHTML = '⚠️ Please write the formula or principle in the input box first before verifying.';
     return;
   }
 
@@ -3254,7 +3276,7 @@ async function handleVerifyFormula(drillIdx, subtopic) {
     const res = await fetch(`${getApiBaseUrl()}/api/assessments/remedial/verify-formula`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ subtopic, formulaInput: val })
+      body: JSON.stringify({ subtopic, formulaInput: val, subject })
     });
 
     const data = await res.json();
