@@ -8,6 +8,7 @@ const router = express.Router();
 const { inMemoryStore } = require('../config/database');
 const { CURRICULUM_TAXONOMY, getSubjectTaxonomy, listAvailableSubjects } = require('../services/curriculumTaxonomy');
 const { generateLlmQuestion } = require('../services/llmQuestionEngine');
+const { ensureQuestionHasRichOptions } = require('../services/questionOptionEngine');
 
 // 1. GET /api/curriculum/subjects - List all available subject syllabi
 router.get('/subjects', (req, res) => {
@@ -532,6 +533,8 @@ router.post('/generate-test', async (req, res) => {
     const finalTitle = title || `Class ${grade} (${section.replace('12-', '').replace('10-', '')}) ${canonicalSubject}: ${chapterName} ${modeLabel}`;
     const durationMinutes = mode === 'QUIZ' ? count * 2 : (mode === 'ASSIGNMENT' ? count * 4 : count * 3);
     const totalMarks = count * 4;
+    // Ensure 100% of questions in the test have authentic, scientifically rich options (Never generic Option A/B)
+    selectedQuestions.forEach(q => ensureQuestionHasRichOptions(q));
 
     const newAssessment = {
       id: `asgn_${Date.now()}`,

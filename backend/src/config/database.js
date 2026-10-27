@@ -1990,6 +1990,23 @@ async function query(text, params = []) {
   return { rows: [], rowCount: 0 };
 }
 
+// Ensure 100% of pre-seeded questions have rich, scientifically accurate options (No "Option A, Option B" dummy text)
+try {
+  const { ensureQuestionHasRichOptions } = require('../services/questionOptionEngine');
+  if (inMemoryStore.subjectBanks) {
+    Object.values(inMemoryStore.subjectBanks).forEach(bank => {
+      if (Array.isArray(bank)) {
+        bank.forEach(q => ensureQuestionHasRichOptions(q));
+      }
+    });
+  }
+  if (Array.isArray(inMemoryStore.questions)) {
+    inMemoryStore.questions.forEach(q => ensureQuestionHasRichOptions(q));
+  }
+} catch (e) {
+  console.warn('[DATABASE] Options enrichment notice:', e.message);
+}
+
 module.exports = {
   initDatabase,
   query,

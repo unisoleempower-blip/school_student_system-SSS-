@@ -1120,9 +1120,14 @@
                 Tailored "Write That Formula" interactive drills and practice questions for concepts missed by this student.
               </p>
             </div>
-            <button type="button" class="btn-primary" onclick="openStudentRemedialFromModal()" style="font-size: 0.85rem; padding: 8px 18px; background: linear-gradient(135deg, #7c3aed, #db2777); font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);">
-              <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Open Personalized Remedial Drill
-            </button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" class="btn-primary" onclick="openStudentRemedialFromModal()" style="font-size: 0.85rem; padding: 8px 18px; background: linear-gradient(135deg, #7c3aed, #db2777); font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);">
+                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Open Personalized Remedial Drill
+              </button>
+              <button type="button" class="btn-secondary" onclick="downloadCurrentDrilldownDocx()" style="font-size: 0.85rem; padding: 8px 16px; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #60a5fa; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="download" style="width: 14px; height: 14px;"></i> Download Plain DOCX
+              </button>
+            </div>
           </div>
 
           <!-- Question-by-Question Timing & Mistake Analysis -->
@@ -1588,6 +1593,9 @@
       <div style="padding: 12px 18px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 8px;">
         <span style="font-size: 0.75rem; color: var(--text-muted);">Real-time stream recorded to Kafka Bus</span>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn-secondary" id="btnDownloadTestDocx" onclick="downloadCurrentTestDocx()" style="font-size: 0.82rem; padding: 7px 14px; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #60a5fa; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="download" style="width: 14px; height: 14px;"></i> Download Plain DOCX (.docx)
+          </button>
           <button class="btn-primary" id="btnOpenPersonalizedRemedial" onclick="openPersonalizedRemedialModal()" style="font-size: 0.82rem; padding: 7px 16px; background: linear-gradient(135deg, #8b5cf6, #ec4899); font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);">
             <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Personalized Remedial Assignment
           </button>
@@ -1689,9 +1697,12 @@
       <!-- Modal Footer -->
       <div style="padding: 12px 20px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 10px;">
         <span style="font-size: 0.75rem; color: var(--text-muted);" id="remStatusFooter">Saved to Student Learning Record</span>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="btn-secondary" id="btnDownloadRemedialDocx" onclick="downloadRemedialDocx()" style="font-size: 0.82rem; padding: 7px 14px; background: rgba(16, 185, 129, 0.15); border: 1px solid #10b981; color: #34d399; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="download" style="width: 14px; height: 14px;"></i> Download Plain DOCX (.docx)
+          </button>
           <button class="btn-secondary" onclick="printPersonalizedRemedialAssignment()" style="font-size: 0.82rem; padding: 7px 14px; cursor: pointer;">
-            <i data-lucide="printer" style="width: 14px; height: 14px;"></i> Print / Save Remedial Worksheet
+            <i data-lucide="printer" style="width: 14px; height: 14px;"></i> Print / Save Worksheet
           </button>
           <button class="btn-primary" onclick="closePersonalizedRemedialModal()" style="font-size: 0.82rem; padding: 7px 16px; background: linear-gradient(135deg, #7c3aed, #a855f7); font-weight: 700; cursor: pointer;">
             <i data-lucide="check" style="width: 14px; height: 14px;"></i> Done & Return

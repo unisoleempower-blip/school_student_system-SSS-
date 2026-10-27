@@ -14,6 +14,7 @@ const { getAllClass10Questions } = require('../services/class10PyqBank');
 const { generateLlmQuestion } = require('../services/llmQuestionEngine');
 const { EXAM_BLUEPRINTS, analyzeBankCoverage, generatePatternMatchedExam } = require('../services/examPatternAnalyzer');
 const { generatePersonalizedRemedialAssignment, verifyStudentFormula } = require('../services/remedialAssignmentService');
+const { generateAssignmentDocxBuffer } = require('../services/docxExportService');
 
 // 1. GET /api/assessments - List all test assignments
 router.get('/', (req, res) => {
@@ -373,6 +374,65 @@ router.post('/remedial/generate', (req, res) => {
     inMemoryStore.remedialAssignments.unshift(assignment);
 
     res.json({ success: true, assignment });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4d. POST /api/assessments/remedial/export-docx - Export personalized remedial assignment as plain Microsoft Word (.docx)
+router.post('/remedial/export-docx', async (req, res) => {
+  try {
+    const payload = req.body.assignment || req.body;
+    const studentName = payload.studentName || 'Student';
+    const filename = `HAPS_Remedial_${studentName.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.docx`;
+    const docxBuffer = await generateAssignmentDocxBuffer(payload);
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', docxBuffer.length);
+    res.send(docxBuffer);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4e. POST /api/assessments/export-docx - Export any test / quiz / worksheet as plain Microsoft Word (.docx)
+router.post('/export-docx', async (req, res) => {
+  try {
+    const payload = req.body.assessment || req.body;
+    const title = payload.title || 'Assignment';
+    const filename = `HAPS_${title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.docx`;
+    const docxBuffer = await generateAssignmentDocxBuffer(payload);
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', docxBuffer.length);
+    res.send(docxBuffer);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4f. GET /api/assessments/:id/export-docx - Download test / remedial assignment by ID as Word document (.docx)
+router.get('/:id/export-docx', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const all = [
+      ...(inMemoryStore.assessments || []),
+      ...(inMemoryStore.remedialAssignments || [])
+    ];
+    const found = all.find(a => a.id === id || a.assignmentId === id);
+    if (!found) {
+      return res.status(404).json({ success: false, error: 'Assessment not found' });
+    }
+    const title = found.title || 'Assignment';
+    const filename = `HAPS_${title.replace(/[^a-zA-Z0-9]/g, '_')}_${Date.now()}.docx`;
+    const docxBuffer = await generateAssignmentDocxBuffer(found);
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', docxBuffer.length);
+    res.send(docxBuffer);
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

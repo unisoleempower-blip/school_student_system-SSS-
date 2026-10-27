@@ -2862,14 +2862,21 @@ async function startAssignedTest(assessmentSummary) {
     topic: q.topic || q.chapter || 'Topic',
     subtopic: q.subtopic || 'General',
     question_latex: q.question_latex,
-    options: (q.options_latex && q.options_latex.length > 0)
-      ? q.options_latex
-      : [
-          { key: 'A', latex: 'Option A' },
-          { key: 'B', latex: 'Option B' },
-          { key: 'C', latex: 'Option C' },
-          { key: 'D', latex: 'Option D' }
-        ],
+    options: (() => {
+      const existingOpts = (q.options_latex && q.options_latex.length >= 2) ? q.options_latex : (q.options || []);
+      const isGeneric = existingOpts.length > 0 && existingOpts.every(o => /^Option\s+[A-D]$/i.test((o.latex || o.text || '').trim()));
+      if (existingOpts.length >= 2 && !isGeneric) {
+        return existingOpts;
+      }
+      const ans = (q.correct_answer_latex || q.correct_answer || '').trim();
+      const topic = q.subtopic || q.topic || 'Concept';
+      return [
+        { key: 'A', latex: ans || `Satisfies foundational criteria for ${topic}` },
+        { key: 'B', latex: `Inverse variation across ${topic}` },
+        { key: 'C', latex: `Zero magnitude under boundary equilibrium in ${topic}` },
+        { key: 'D', latex: `Cartesian sign convention inversion in ${topic}` }
+      ];
+    })(),
     correctKey: q.correct_answer || 'B',
     socratic_hints: q.socratic_hints || [],
     benchmark_time_seconds: q.benchmark_time_seconds || 90
@@ -3251,13 +3258,118 @@ function printPersonalizedRemedialAssignment() {
   window.print();
 }
 
-// Expose remedial functions globally to window for HTML buttons
+// ==============================================================================
+// DOWNLOAD PLAIN DOCX ASSIGNMENT & WORKSHEET (MICROSOFT WORD FORMAT)
+// ==============================================================================
+async function triggerDocxBlobDownload(endpoint, payload, fallbackFilename) {
+  try {
+    const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      throw new Error(`DOCX export failed with HTTP ${res.status}`);
+    }
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = fallbackFilename;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    }, 100);
+  } catch (err) {
+    console.error('Failed to download DOCX:', err);
+    alert(`⚠️ Failed to download DOCX assignment: ${err.message}`);
+  }
+}
+
+async function downloadCurrentTestDocx() {
+  const asgn = state.activeAssessment || {};
+  const diag = state.latestDiagnosticResults || {};
+  const student = state.activeStudent || { name: 'Aryan Sharma', roll: '12-NM-01' };
+
+  const payload = {
+    title: asgn.title || 'Student Diagnostic Test & Assignment',
+    subject: asgn.subject || 'Chemistry',
+    grade: asgn.grade || '12',
+    section: asgn.section || '12-NonMed',
+    studentName: student.name || 'Aryan Sharma',
+    rollNumber: student.roll || '12-NM-01',
+    targetExam: asgn.targetExam || 'JEE / CBSE Board',
+    performanceSummary: {
+      accuracyPercentage: diag.accuracyPercentage || Math.round(((diag.totalMarks || 12) / 12) * 100),
+      totalQuestions: (asgn.questions || []).length || 3,
+      correctCount: diag.totalCorrect || 2,
+      wrongCount: diag.totalWrong || 1
+    },
+    questions: asgn.questions || (examState.questions || []),
+    conceptGaps: diag.conceptGaps || [],
+    formulaDrills: state.activeRemedialAssignment?.formulaDrills || [],
+    dualActionPlan: state.activeRemedialAssignment?.dualActionPlan || {
+      hostelPrepAction: { directive: 'Conduct focused 15-minute review of missed concepts during 7:30 PM evening prep.' },
+      parentHomeAction: { directive: 'Encourage student to explain key formula derivations during weekend call.' }
+    }
+  };
+
+  const filename = `HAPS_${(payload.title || 'Assignment').replace(/[^a-zA-Z0-9]/g, '_')}.docx`;
+  await triggerDocxBlobDownload('/api/assessments/export-docx', { assessment: payload }, filename);
+}
+
+async function downloadRemedialDocx() {
+  const rem = state.activeRemedialAssignment;
+  if (!rem) {
+    await openPersonalizedRemedialModal();
+  }
+  const assignmentToDownload = state.activeRemedialAssignment || {
+    title: 'Personalized Remedial Assignment & Formula Drills',
+    studentName: 'Aryan Sharma',
+    rollNumber: '12-NM-01',
+    grade: '12',
+    section: '12-NonMed'
+  };
+
+  const filename = `HAPS_Remedial_${(assignmentToDownload.studentName || 'Student').replace(/[^a-zA-Z0-9]/g, '_')}_Assignment.docx`;
+  await triggerDocxBlobDownload('/api/assessments/remedial/export-docx', { assignment: assignmentToDownload }, filename);
+}
+
+async function downloadCurrentDrilldownDocx() {
+  const student = state.activeStudent || { name: 'Aryan Sharma', roll: '12-NM-01' };
+  const payload = {
+    title: `${student.name} – Subject Mastery & Diagnostic Progress Review`,
+    studentName: student.name,
+    rollNumber: student.roll,
+    grade: '12',
+    section: '12-NonMed',
+    subject: state.activeTeacherFaculty || 'Chemistry',
+    questions: examState.questions || [],
+    formulaDrills: state.activeRemedialAssignment?.formulaDrills || [],
+    dualActionPlan: {
+      hostelPrepAction: { directive: 'Review formula sign rules and solve 2 targeted remedial questions during study hall.' },
+      parentHomeAction: { directive: 'Check concept understanding via Feynman explanation.' }
+    }
+  };
+  const filename = `HAPS_${student.name.replace(/[^a-zA-Z0-9]/g, '_')}_Progress_Assignment.docx`;
+  await triggerDocxBlobDownload('/api/assessments/export-docx', { assessment: payload }, filename);
+}
+
+// Expose remedial & export functions globally to window for HTML buttons
 window.openPersonalizedRemedialModal = openPersonalizedRemedialModal;
 window.closePersonalizedRemedialModal = closePersonalizedRemedialModal;
 window.insertFormulaSymbol = insertFormulaSymbol;
 window.handleVerifyFormula = handleVerifyFormula;
 window.handleRemedialOptionSelect = handleRemedialOptionSelect;
 window.printPersonalizedRemedialAssignment = printPersonalizedRemedialAssignment;
+window.downloadCurrentTestDocx = downloadCurrentTestDocx;
+window.downloadRemedialDocx = downloadRemedialDocx;
+window.downloadCurrentDrilldownDocx = downloadCurrentDrilldownDocx;
 
 async function loadAndRenderSmartReport(studentId = 'b0000000-0000-0000-0000-000000000001') {
   try {
