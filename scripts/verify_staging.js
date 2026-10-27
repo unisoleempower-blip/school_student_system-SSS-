@@ -322,7 +322,8 @@ runTest('Teacher Phone & Expertise Authentication (/api/curriculum/auth/teacher-
   const lookupRes = makeRequest('/api/curriculum/faculty/lookup?phone=9816010003');
   if (!lookupRes.success) throw new Error(`Phone lookup request failed: ${lookupRes.error}`);
   const lookupData = JSON.parse(lookupRes.body);
-  if (!lookupData.success || !lookupData.faculty || lookupData.faculty.subjectKey !== 'BIOLOGY') {
+  const teacherObj = lookupData.teacher || lookupData.faculty;
+  if (!lookupData.success || !teacherObj || teacherObj.subjectKey !== 'BIOLOGY') {
     throw new Error('Expected phone lookup for 9816010003 to resolve Biology faculty');
   }
 

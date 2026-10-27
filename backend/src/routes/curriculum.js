@@ -624,7 +624,7 @@ router.get('/faculty/lookup', (req, res) => {
     const users = inMemoryStore.users || [];
     const teacher = users.find(u => u.role === 'TEACHER' && (u.phone === cleanPhone || (u.phone && u.phone.replace(/\D/g, '') === cleanPhone)));
     if (teacher) {
-      return res.json({ success: true, exists: true, teacher });
+      return res.json({ success: true, exists: true, teacher, faculty: teacher });
     }
     return res.json({ success: true, exists: false });
   } catch (err) {
