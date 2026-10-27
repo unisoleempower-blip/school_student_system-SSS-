@@ -29,10 +29,122 @@
 <body>
 
   <!-- ========================================================================
+       TOP-LEFT 3-LINE SIDEBAR NAVIGATION DRAWER (BOARD, JEE, NEET, SIGN OUT)
+       ======================================================================== -->
+  <div class="sidebar-drawer-backdrop" id="sidebarNavBackdrop" onclick="closeSidebarDrawer()"></div>
+  <aside class="sidebar-nav-drawer" id="sidebarNavDrawer" aria-label="Main Navigation Menu">
+    <div class="drawer-header">
+      <div class="drawer-brand">
+        <div class="brand-logo-badge" style="width:34px; height:34px; font-size:0.95rem;">HAPS</div>
+        <div>
+          <div style="font-family:var(--font-heading); font-weight:700; font-size:0.92rem; color:var(--text-primary); line-height:1.2;">Him Academy</div>
+          <div style="font-size:0.7rem; color:var(--accent-cyan); font-weight:500;">Scholar Assistant</div>
+        </div>
+      </div>
+      <button type="button" class="btn-close-drawer" id="btnCloseSidebarDrawer" onclick="closeSidebarDrawer()" aria-label="Close Menu">
+        <i data-lucide="x" style="width:18px; height:18px;"></i>
+      </button>
+    </div>
+
+    <!-- Active Faculty Profile Card -->
+    <div class="drawer-faculty-card">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="drawer-faculty-avatar" id="drawerFacultyAvatar">
+          <i data-lucide="user-check" style="width:18px; height:18px; color:var(--accent-blue);"></i>
+        </div>
+        <div style="flex:1; min-width:0;">
+          <strong id="drawerFacultyName" style="font-size:0.88rem; display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Dr. Vikram Sharma</strong>
+          <span id="drawerFacultyRole" style="font-size:0.72rem; color:var(--text-secondary); display:block;">Senior Physics Faculty</span>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.06); font-size:0.74rem;">
+        <span style="color:var(--accent-emerald); font-weight:600;" id="drawerFacultySubject">Department: Physics</span>
+        <button type="button" class="btn-drawer-switch" onclick="closeSidebarDrawer(); openTeacherSignInModal();" title="Switch faculty profile">
+          Switch Faculty
+        </button>
+      </div>
+    </div>
+
+    <!-- CURRICULUM STREAMS: BOARD, JEE, NEET (as requested by user) -->
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i data-lucide="layers" style="width:13px; height:13px;"></i>
+        <span>Curriculum &amp; Exam Tracks</span>
+      </div>
+      <div class="drawer-stream-list">
+        <!-- Board -->
+        <button type="button" class="drawer-stream-btn" id="drawerStreamBoard" onclick="selectDrawerStream('BOARD')">
+          <div class="drawer-stream-icon" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24;">
+            <i data-lucide="book-open" style="width:16px; height:16px;"></i>
+          </div>
+          <div class="drawer-stream-text">
+            <strong>Board (CBSE &amp; HP Board)</strong>
+            <span>Classes 10, 11 &amp; 12 &bull; Step Rubrics &amp; Derivations</span>
+          </div>
+          <span class="drawer-stream-check" id="checkStreamBoard"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
+        </button>
+
+        <!-- JEE -->
+        <button type="button" class="drawer-stream-btn active" id="drawerStreamJee" onclick="selectDrawerStream('JEE')">
+          <div class="drawer-stream-icon" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8;">
+            <i data-lucide="compass" style="width:16px; height:16px;"></i>
+          </div>
+          <div class="drawer-stream-text">
+            <strong>JEE (Main &amp; Advanced)</strong>
+            <span>Classes 11 &amp; 12 Non-Med &bull; Analytical Speed Drills</span>
+          </div>
+          <span class="drawer-stream-check" id="checkStreamJee"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
+        </button>
+
+        <!-- NEET -->
+        <button type="button" class="drawer-stream-btn" id="drawerStreamNeet" onclick="selectDrawerStream('NEET')">
+          <div class="drawer-stream-icon" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">
+            <i data-lucide="dna" style="width:16px; height:16px;"></i>
+          </div>
+          <div class="drawer-stream-text">
+            <strong>NEET UG</strong>
+            <span>Classes 11 &amp; 12 Medical &bull; High-Velocity Recall</span>
+          </div>
+          <span class="drawer-stream-check" id="checkStreamNeet"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CLASS & ROSTER ACTIONS -->
+    <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i data-lucide="sliders" style="width:13px; height:13px;"></i>
+        <span>Class &amp; Student Actions</span>
+      </div>
+      <div class="drawer-nav-list">
+        <button type="button" class="drawer-nav-item" onclick="closeSidebarDrawer(); openCreateClassModal();">
+          <i data-lucide="folder-plus" style="width:15px; height:15px;"></i>
+          <span>Create New Class Section</span>
+        </button>
+        <button type="button" class="drawer-nav-item" onclick="closeSidebarDrawer(); openAddStudentModal();">
+          <i data-lucide="user-plus" style="width:15px; height:15px;"></i>
+          <span>Enroll Student into Class</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SIGN OUT (as requested by user) -->
+    <div class="drawer-footer">
+      <button type="button" class="btn-drawer-signout" id="btnDrawerSignOut" onclick="handleTeacherSignOut()">
+        <i data-lucide="log-out" style="width:16px; height:16px;"></i>
+        <span>Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ========================================================================
        TOP NAVIGATION BAR
        ======================================================================== -->
   <header class="top-navbar" id="mainHeader">
     <div class="brand-section">
+      <button type="button" class="btn-hamburger" id="btnNavHamburger" aria-label="Open Navigation Menu" title="Curriculum Tracks &amp; Faculty Menu" onclick="toggleSidebarDrawer()">
+        <i data-lucide="menu" style="width:20px; height:20px;"></i>
+      </button>
       <div class="brand-logo-badge" id="schoolLogo">HAPS</div>
       <div class="brand-info">
         <h1>Teacher Portal</h1>
@@ -115,12 +227,12 @@
         </div>
         <div class="faculty-switcher-pills" style="gap: 8px;">
           <button type="button" class="btn-faculty-pill active" id="btnOpenTeacherSignInModal" onclick="openTeacherSignInModal()" title="Switch teacher profile or departmental authentication" style="display:flex; align-items:center; gap:6px;">
-            <i data-lucide="log-in" style="width:14px;height:14px;"></i>
-            <span>Switch Faculty / Sign In</span>
+            <i data-lucide="users" style="width:14px;height:14px;"></i>
+            <span>Switch Faculty</span>
           </button>
-          <button type="button" class="btn-faculty-pill" id="btnOpenCreateClassModalTop" onclick="openCreateClassModal()" title="Create a new class / grade" style="display:flex; align-items:center; gap:6px;">
-            <i data-lucide="plus-circle" style="width:14px;height:14px;"></i>
-            <span>+ New Class</span>
+          <button type="button" class="btn-faculty-pill" id="btnOpenCreateClassModalTop" onclick="openCreateClassModal()" title="Create a new class section" style="display:flex; align-items:center; gap:6px;">
+            <i data-lucide="folder-plus" style="width:14px;height:14px;"></i>
+            <span>New Class</span>
           </button>
         </div>
       </div>
@@ -128,67 +240,18 @@
       <!-- TAB: CREATE TEST & QUIZZES (TEACHER SCOPED) -->
       <div class="teacher-tab-content" id="tabGenerator" style="display:none;">
         
-        <!-- TARGET EXAM STREAM SELECTOR (JEE, NEET, BOARD, OLYMPIAD) -->
-        <div class="target-streams-grid" id="teacherTargetStreams">
-          <div class="target-stream-card active active-jee" data-target-stream="JEE" id="cardStreamJee">
-            <div>
-              <div class="stream-card-header">
-                <span class="stream-title">JEE (Main &amp; Advanced)</span>
-                <span class="stream-icon-badge" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8;">
-                  <i data-lucide="compass" style="width:16px;height:16px;"></i>
-                </span>
-              </div>
-              <p class="stream-subtitle">Class 11 &amp; 12 Non-Med &bull; Physics, Chemistry &amp; Mathematics</p>
-            </div>
-            <span class="stream-pill-badge" style="background:rgba(56, 189, 248, 0.2); color:#38bdf8;">
-              +4 / -1 Marking &bull; 90s Speed Benchmark
-            </span>
+        <!-- COMPACT TRACK STATUS STRIP (REPLACES MESSY HORIZONTAL CARDS) -->
+        <div class="stream-compact-strip" id="streamCompactStrip">
+          <div class="stream-strip-left">
+            <span class="stream-strip-label">Curriculum Track:</span>
+            <span class="stream-active-badge" id="badgeActiveStreamName">JEE (Main &amp; Advanced)</span>
+            <span class="stream-strip-divider">&bull;</span>
+            <span class="stream-strip-hint">Select Board, JEE, or NEET from the top-left menu (&#9776;)</span>
           </div>
-
-          <div class="target-stream-card" data-target-stream="NEET" id="cardStreamNeet">
-            <div>
-              <div class="stream-card-header">
-                <span class="stream-title">NEET UG</span>
-                <span class="stream-icon-badge" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">
-                  <i data-lucide="dna" style="width:16px;height:16px;"></i>
-                </span>
-              </div>
-              <p class="stream-subtitle">Class 11 &amp; 12 Medical &bull; Biology (Botany &amp; Zoology), Chemistry, Physics</p>
-            </div>
-            <span class="stream-pill-badge" style="background:rgba(16, 185, 129, 0.2); color:#34d399;">
-              NCERT Line-by-Line &bull; 60s High Velocity
-            </span>
-          </div>
-
-          <div class="target-stream-card" data-target-stream="BOARD" id="cardStreamBoard">
-            <div>
-              <div class="stream-card-header">
-                <span class="stream-title">CBSE &amp; HP Board</span>
-                <span class="stream-icon-badge" style="background:rgba(245, 158, 11, 0.15); color:#fbbf24;">
-                  <i data-lucide="book-open" style="width:16px;height:16px;"></i>
-                </span>
-              </div>
-              <p class="stream-subtitle">Senior &amp; Secondary Boards &bull; Class 10, 11 &amp; 12 Board Blueprints</p>
-            </div>
-            <span class="stream-pill-badge" style="background:rgba(245, 158, 11, 0.2); color:#fbbf24;">
-              Step Rubrics &bull; Derivations &amp; Diagrams
-            </span>
-          </div>
-
-          <div class="target-stream-card" data-target-stream="OLYMPIAD" id="cardStreamOlympiad">
-            <div>
-              <div class="stream-card-header">
-                <span class="stream-title">Olympiad &amp; NTSE</span>
-                <span class="stream-icon-badge" style="background:rgba(192, 132, 252, 0.15); color:#c084fc;">
-                  <i data-lucide="award" style="width:16px;height:16px;"></i>
-                </span>
-              </div>
-              <p class="stream-subtitle">Foundation &amp; Competitive Excellence &bull; Class 9, 10 &amp; 11</p>
-            </div>
-            <span class="stream-pill-badge" style="background:rgba(192, 132, 252, 0.2); color:#c084fc;">
-              Higher-Order Thinking (HOTS) &bull; Multi-Tier Logic
-            </span>
-          </div>
+          <button type="button" class="stream-switch-menu-trigger" onclick="toggleSidebarDrawer()" title="Change curriculum track in top-left menu">
+            <i data-lucide="menu" style="width:13px; height:13px;"></i>
+            <span>Change Track</span>
+          </button>
         </div>
 
         <!-- TEACHER CLASS CONTEXT & SUBJECT SELECTOR BAR -->
@@ -203,15 +266,14 @@
                   <option value="11-Med">Class 11th (Medical) &bull; NEET &amp; Boards</option>
                   <option value="12-NonMed" selected>Class 12th (Non-Medical) &bull; JEE &amp; Boards</option>
                   <option value="12-Med">Class 12th (Medical) &bull; NEET &amp; Boards</option>
-                  <option value="10-Science-A">Class 10th (Section A) &bull; Secondary</option>
                 </select>
               </div>
 
               <!-- Filtered Subjects for this Class -->
               <div class="scope-field-group">
-                <span class="scope-label"><i data-lucide="book" style="width:13px; height:13px; vertical-align:middle;"></i> Select Subject</span>
+                <span class="scope-label"><i data-lucide="book" style="width:13px; height:13px; vertical-align:middle;"></i> Assigned Subject</span>
                 <div class="subject-pills-container" id="containerSubjectPills">
-                  <!-- Injected dynamically: Strictly scoped to the signed-in teacher's subject -->
+                  <!-- Injected dynamically: Strictly scoped to the signed-in teacher's subject ONLY -->
                 </div>
               </div>
             </div>
@@ -219,12 +281,12 @@
             <!-- Enrolled Students Counter, Add Student Button & Drawer Trigger -->
             <div style="display: flex; align-items: center; gap: 8px;">
               <button type="button" class="btn-add-student-pill" id="btnOpenCreateClassModal" onclick="openCreateClassModal()" title="Create or add a new class section">
-                <i data-lucide="plus" style="width:14px; height:14px;"></i>
-                <span>+ New Class</span>
+                <i data-lucide="folder-plus" style="width:14px; height:14px;"></i>
+                <span>New Class</span>
               </button>
               <button type="button" class="btn-add-student-pill" id="btnOpenAddStudentModal" onclick="openAddStudentModal()" title="Add / Enroll a new student into this class">
                 <i data-lucide="user-plus" style="width:14px; height:14px;"></i>
-                <span>+ Add Student</span>
+                <span>Add Student</span>
               </button>
               <button type="button" class="class-roster-preview-pill" id="btnToggleClassRosterPreview" title="Click to view enrolled class students">
                 <i data-lucide="users" style="width:14px; height:14px;"></i>

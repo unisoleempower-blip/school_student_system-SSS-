@@ -4814,8 +4814,11 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-function getFallbackClasses() {
-  return [
+function getFallbackClasses(teacherSubjKey) {
+  const sKey = (teacherSubjKey || teacherBuilderState.teacherSubjectKey || 'PHYSICS').toUpperCase();
+  const sName = sKey === 'PHYSICS' ? 'Physics' : (sKey === 'CHEMISTRY' ? 'Chemistry' : (sKey === 'BIOLOGY' ? 'Biology' : 'Mathematics'));
+
+  const allClasses = [
     {
       id: '11-NonMed',
       key: '11-NonMed',
@@ -4824,12 +4827,8 @@ function getFallbackClasses() {
       section: '11-NonMed',
       stream: 'NON_MEDICAL',
       badge: 'JEE & Boards',
-      defaultSubject: 'PHYSICS',
-      subjects: [
-        { key: 'PHYSICS', name: 'Physics', grade: '11' },
-        { key: 'CHEMISTRY', name: 'Chemistry', grade: '11' },
-        { key: 'MATHEMATICS', name: 'Mathematics', grade: '11' }
-      ],
+      defaultSubject: sKey,
+      subjects: [{ key: sKey, name: sName, grade: '11' }],
       students: [
         { id: '11-NM-01', name: 'Adarsh Katoch', roll: '11-NM-01' },
         { id: '11-NM-02', name: 'Pooja Sharma', roll: '11-NM-02' },
@@ -4845,12 +4844,8 @@ function getFallbackClasses() {
       section: '11-Med',
       stream: 'MEDICAL',
       badge: 'NEET & Boards',
-      defaultSubject: 'BIOLOGY',
-      subjects: [
-        { key: 'PHYSICS', name: 'Physics', grade: '11' },
-        { key: 'CHEMISTRY', name: 'Chemistry', grade: '11' },
-        { key: 'BIOLOGY', name: 'Biology', grade: '11' }
-      ],
+      defaultSubject: sKey,
+      subjects: [{ key: sKey, name: sName, grade: '11' }],
       students: [
         { id: '11-M-01', name: 'Riya Thakur', roll: '11-M-01' },
         { id: '11-M-02', name: 'Ayush Banyal', roll: '11-M-02' },
@@ -4866,12 +4861,8 @@ function getFallbackClasses() {
       section: '12-NonMed',
       stream: 'NON_MEDICAL',
       badge: 'JEE & Boards',
-      defaultSubject: 'PHYSICS',
-      subjects: [
-        { key: 'PHYSICS', name: 'Physics', grade: '12' },
-        { key: 'CHEMISTRY', name: 'Chemistry', grade: '12' },
-        { key: 'MATHEMATICS', name: 'Mathematics', grade: '12' }
-      ],
+      defaultSubject: sKey,
+      subjects: [{ key: sKey, name: sName, grade: '12' }],
       students: [
         { id: '12-NM-01', name: 'Aryan Sharma', roll: '12-NM-01' },
         { id: '12-NM-02', name: 'Rohit Negi', roll: '12-NM-02' },
@@ -4891,12 +4882,8 @@ function getFallbackClasses() {
       section: '12-Med',
       stream: 'MEDICAL',
       badge: 'NEET & Boards',
-      defaultSubject: 'BIOLOGY',
-      subjects: [
-        { key: 'PHYSICS', name: 'Physics', grade: '12' },
-        { key: 'CHEMISTRY', name: 'Chemistry', grade: '12' },
-        { key: 'BIOLOGY', name: 'Biology', grade: '12' }
-      ],
+      defaultSubject: sKey,
+      subjects: [{ key: sKey, name: sName, grade: '12' }],
       students: [
         { id: '12-M-01', name: 'Ananya Thakur', roll: '12-M-01' },
         { id: '12-M-02', name: 'Simran Kaur', roll: '12-M-02' },
@@ -4904,28 +4891,13 @@ function getFallbackClasses() {
         { id: '12-M-04', name: 'Pallavi Katoch', roll: '12-M-04' },
         { id: '12-M-05', name: 'Shreya Dogra', roll: '12-M-05' }
       ]
-    },
-    {
-      id: '10-Science-A',
-      key: '10-Science-A',
-      name: 'Class 10th (Section A)',
-      grade: '10',
-      section: '10-Science-A',
-      stream: 'FOUNDATION',
-      badge: 'Secondary',
-      defaultSubject: 'CLASS10_SCIENCE',
-      subjects: [
-        { key: 'CLASS10_SCIENCE', name: 'Science', grade: '10' },
-        { key: 'CLASS10_MATHEMATICS', name: 'Mathematics', grade: '10' }
-      ],
-      students: [
-        { id: '10-A-01', name: 'Rohit Verma', roll: '10-A-01' },
-        { id: '10-A-02', name: 'Aditya Chauhan', roll: '10-A-02' },
-        { id: '10-A-03', name: 'Tanvi Sood', roll: '10-A-03' },
-        { id: '10-A-04', name: 'Nikhil Rana', roll: '10-A-04' }
-      ]
     }
   ];
+
+  if (sKey === 'BIOLOGY') {
+    return allClasses.filter(c => c.stream === 'MEDICAL');
+  }
+  return allClasses;
 }
 
 async function setupTeacherTestBuilder() {
@@ -4946,51 +4918,14 @@ async function setupTeacherTestBuilder() {
   // 1. Fetch available classes & enrolled students
   await loadTeacherClassesList();
 
-  // 2. Target Exam Stream Card Click Handlers (JEE, NEET, BOARD, OLYMPIAD)
-  const streamCards = document.querySelectorAll('#teacherTargetStreams .target-stream-card');
-  streamCards.forEach(card => {
-    card.addEventListener('click', () => {
-      const stream = card.getAttribute('data-target-stream');
-      teacherBuilderState.targetStream = stream;
-
-      streamCards.forEach(c => {
-        c.classList.remove('active', 'active-jee', 'active-neet', 'active-board', 'active-olympiad');
-      });
-      card.classList.add('active', `active-${stream.toLowerCase()}`);
-
-      // Auto-align class & stream based on teacher's subject
-      const teacherSubj = teacherBuilderState.teacherSubjectKey || 'PHYSICS';
-      if (teacherSubj === 'BIOLOGY') {
-        teacherBuilderState.selectedClassId = stream === 'NEET' ? '11-Med' : '12-Med';
-      } else {
-        if (stream === 'JEE') {
-          teacherBuilderState.selectedClassId = '11-NonMed';
-        } else if (stream === 'NEET') {
-          teacherBuilderState.selectedClassId = '11-Med';
-        } else if (stream === 'BOARD') {
-          teacherBuilderState.selectedClassId = '12-NonMed';
-        } else if (stream === 'OLYMPIAD') {
-          teacherBuilderState.selectedClassId = '10-Science-A';
-        }
-      }
-
-      if (classSelect) {
-        classSelect.value = teacherBuilderState.selectedClassId;
-      }
-      updateTeacherClassScopeUI();
-    });
-  });
+  // 2. Sync active stream UI state
+  updateStreamSelectionUI(teacherBuilderState.targetStream || 'JEE');
 
   // 3. Class change listener
   classSelect.addEventListener('change', (e) => {
     teacherBuilderState.selectedClassId = e.target.value;
     const stream = e.target.value.includes('Med') && !e.target.value.includes('NonMed') ? 'NEET' : (e.target.value.includes('NonMed') ? 'JEE' : 'BOARD');
-    teacherBuilderState.targetStream = stream;
-    streamCards.forEach(c => {
-      const isMatch = c.getAttribute('data-target-stream') === stream;
-      c.classList.toggle('active', isMatch);
-      c.classList.toggle(`active-${stream.toLowerCase()}`, isMatch);
-    });
+    updateStreamSelectionUI(stream);
     updateTeacherClassScopeUI();
   });
 
@@ -5766,13 +5701,15 @@ function applyTeacherProfile(prof, notify = false) {
   if (badgeEl) badgeEl.innerHTML = `${prof.designation} &bull; Department of ${prof.subjectName}`;
   if (textEl) textEl.innerHTML = prof.streamText;
 
-  // Stream cards styling
-  const streamCards = document.querySelectorAll('#teacherTargetStreams .target-stream-card');
-  streamCards.forEach(c => {
-    const isMatch = c.getAttribute('data-target-stream') === prof.targetStream;
-    c.classList.toggle('active', isMatch);
-    c.classList.toggle(`active-${prof.targetStream.toLowerCase()}`, isMatch);
-  });
+  // Drawer faculty info update
+  const drawerName = document.getElementById('drawerFacultyName');
+  const drawerRole = document.getElementById('drawerFacultyRole');
+  const drawerSubj = document.getElementById('drawerFacultySubject');
+  if (drawerName) drawerName.innerText = prof.name;
+  if (drawerRole) drawerRole.innerText = prof.designation;
+  if (drawerSubj) drawerSubj.innerText = `Department: ${prof.subjectName}`;
+
+  updateStreamSelectionUI(prof.targetStream || 'JEE');
 
   // Reload classes filtered strictly by teacher subject
   loadTeacherClassesList();
@@ -5936,6 +5873,142 @@ async function submitAddStudentToClass(event) {
   }
 }
 
+// -----------------------------------------------------------------------------
+// TOP-LEFT 3-LINE SIDEBAR DRAWER & STREAM SWITCHER CONTROLS
+// -----------------------------------------------------------------------------
+
+function toggleSidebarDrawer() {
+  const drawer = document.getElementById('sidebarNavDrawer');
+  const backdrop = document.getElementById('sidebarNavBackdrop');
+  if (!drawer || !backdrop) return;
+  const isOpen = drawer.classList.contains('open');
+  if (isOpen) {
+    closeSidebarDrawer();
+  } else {
+    openSidebarDrawer();
+  }
+}
+
+function openSidebarDrawer() {
+  const drawer = document.getElementById('sidebarNavDrawer');
+  const backdrop = document.getElementById('sidebarNavBackdrop');
+  if (drawer) drawer.classList.add('open');
+  if (backdrop) backdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  initLucideIcons();
+}
+
+function closeSidebarDrawer() {
+  const drawer = document.getElementById('sidebarNavDrawer');
+  const backdrop = document.getElementById('sidebarNavBackdrop');
+  if (drawer) drawer.classList.remove('open');
+  if (backdrop) backdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function updateStreamSelectionUI(stream = 'JEE') {
+  teacherBuilderState.targetStream = stream;
+
+  // 1. Update compact strip badge in main view
+  const badgeStream = document.getElementById('badgeActiveStreamName');
+  if (badgeStream) {
+    if (stream === 'BOARD') {
+      badgeStream.innerText = 'Board (CBSE & HP Board)';
+      badgeStream.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+      badgeStream.style.color = '#fbbf24';
+      badgeStream.style.background = 'rgba(245, 158, 11, 0.12)';
+    } else if (stream === 'NEET') {
+      badgeStream.innerText = 'NEET UG';
+      badgeStream.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+      badgeStream.style.color = '#34d399';
+      badgeStream.style.background = 'rgba(16, 185, 129, 0.12)';
+    } else {
+      badgeStream.innerText = 'JEE (Main & Advanced)';
+      badgeStream.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+      badgeStream.style.color = '#38bdf8';
+      badgeStream.style.background = 'rgba(56, 189, 248, 0.12)';
+    }
+  }
+
+  // 2. Update drawer stream buttons active state & checkmarks
+  const btnBoard = document.getElementById('drawerStreamBoard');
+  const btnJee = document.getElementById('drawerStreamJee');
+  const btnNeet = document.getElementById('drawerStreamNeet');
+  const checkBoard = document.getElementById('checkStreamBoard');
+  const checkJee = document.getElementById('checkStreamJee');
+  const checkNeet = document.getElementById('checkStreamNeet');
+
+  if (btnBoard) btnBoard.classList.toggle('active', stream === 'BOARD');
+  if (btnJee) btnJee.classList.toggle('active', stream === 'JEE');
+  if (btnNeet) btnNeet.classList.toggle('active', stream === 'NEET');
+
+  if (checkBoard) checkBoard.style.display = stream === 'BOARD' ? 'inline-flex' : 'none';
+  if (checkJee) checkJee.style.display = stream === 'JEE' ? 'inline-flex' : 'none';
+  if (checkNeet) checkNeet.style.display = stream === 'NEET' ? 'inline-flex' : 'none';
+
+  // 3. Fallback for older stream cards if present in DOM
+  const streamCards = document.querySelectorAll('#teacherTargetStreams .target-stream-card');
+  streamCards.forEach(c => {
+    const isMatch = c.getAttribute('data-target-stream') === stream;
+    c.classList.toggle('active', isMatch);
+    c.classList.toggle(`active-${stream.toLowerCase()}`, isMatch);
+  });
+}
+
+function selectDrawerStream(stream) {
+  updateStreamSelectionUI(stream);
+  
+  if (teacherBuilderState.classes && teacherBuilderState.classes.length > 0) {
+    let matchedClass = null;
+    if (stream === 'NEET') {
+      matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('MED') && !(c.stream || '').includes('NON'));
+    } else if (stream === 'JEE') {
+      matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('NON_MEDICAL') || (c.name || '').includes('Non-Med'));
+    } else if (stream === 'BOARD') {
+      matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('FOUNDATION') || (c.grade === '10'));
+    }
+
+    if (matchedClass) {
+      teacherBuilderState.selectedClassId = matchedClass.id;
+      const classSelect = document.getElementById('selectTeacherClassScope');
+      if (classSelect) classSelect.value = matchedClass.id;
+      updateTeacherClassScopeUI();
+    }
+  }
+
+  closeSidebarDrawer();
+}
+
+function handleTeacherSignOut() {
+  if (!confirm('Sign out from Him Academy Faculty Portal?')) {
+    return;
+  }
+
+  try {
+    localStorage.removeItem('haps_active_teacher');
+  } catch (e) {}
+
+  teacherBuilderState.activeTeacher = null;
+
+  const nameEl = document.getElementById('teacherFacultyName');
+  const badgeEl = document.getElementById('teacherFacultyBadge');
+  const textEl = document.getElementById('teacherFacultyStreamText');
+  const drawerName = document.getElementById('drawerFacultyName');
+  const drawerRole = document.getElementById('drawerFacultyRole');
+  const drawerSubj = document.getElementById('drawerFacultySubject');
+
+  if (nameEl) nameEl.innerText = 'Guest Faculty (Signed Out)';
+  if (badgeEl) badgeEl.innerHTML = 'Faculty Portal &bull; Session Inactive';
+  if (textEl) textEl.innerHTML = 'Sign in to access your subject curriculum, tests, and student rosters.';
+
+  if (drawerName) drawerName.innerText = 'Signed Out';
+  if (drawerRole) drawerRole.innerText = 'Please sign in';
+  if (drawerSubj) drawerSubj.innerText = 'No Subject Assigned';
+
+  closeSidebarDrawer();
+  openTeacherSignInModal();
+}
+
 // Global exposure for inline onclick handlers
 window.toggleChapterAccordion = toggleChapterAccordion;
 window.selectCurriculumSubject = selectCurriculumSubject;
@@ -5963,3 +6036,9 @@ window.openAddStudentModal = openAddStudentModal;
 window.closeAddStudentModal = closeAddStudentModal;
 window.submitAddStudentToClass = submitAddStudentToClass;
 window.initTeacherSession = initTeacherSession;
+window.toggleSidebarDrawer = toggleSidebarDrawer;
+window.openSidebarDrawer = openSidebarDrawer;
+window.closeSidebarDrawer = closeSidebarDrawer;
+window.updateStreamSelectionUI = updateStreamSelectionUI;
+window.selectDrawerStream = selectDrawerStream;
+window.handleTeacherSignOut = handleTeacherSignOut;
