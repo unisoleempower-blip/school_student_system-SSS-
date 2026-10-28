@@ -369,6 +369,34 @@ runTest('Biology Isolated Questions & Medical Students (/api/curriculum/question
   }
 });
 
+// TEST 13: Class 10th Faculty Authentication, 14-Chapter Syllabus & 438-Question Bank
+runTest('Class 10 Faculty Auth, 14-Chapter Syllabus & 438-Question Bank (/api/questions/class10-math-bank)', () => {
+  const lookupRes = makeRequest('/api/curriculum/faculty/lookup?phone=9816010010');
+  if (!lookupRes.success) throw new Error(`Class 10 lookup request failed: ${lookupRes.error}`);
+  const lookupData = JSON.parse(lookupRes.body);
+  const teacherObj = lookupData.teacher || lookupData.faculty;
+  if (!lookupData.success || !teacherObj || teacherObj.subjectKey !== 'CLASS10_MATHEMATICS') {
+    throw new Error('Expected phone lookup for 9816010010 to resolve Mrs. Meenakshi Sharma (CLASS10_MATHEMATICS)');
+  }
+  if (teacherObj.grade !== '10' && teacherObj.grade !== 10) {
+    throw new Error(`Expected teacherObj.grade to be 10, got ${teacherObj.grade}`);
+  }
+
+  const taxRes = makeRequest('/api/curriculum/taxonomy/CLASS10_MATHEMATICS?grade=10');
+  if (!taxRes.success) throw new Error(`Class 10 taxonomy request failed: ${taxRes.error}`);
+  const taxData = JSON.parse(taxRes.body);
+  if (!taxData.success || !Array.isArray(taxData.chapters) || taxData.chapters.length !== 14) {
+    throw new Error(`Expected 14 Class 10 NCERT Mathematics chapters, got ${taxData.chapters ? taxData.chapters.length : 0}`);
+  }
+
+  const bankRes = makeRequest('/api/questions/class10-math-bank');
+  if (!bankRes.success) throw new Error(`Class 10 question bank request failed: ${bankRes.error}`);
+  const bankData = JSON.parse(bankRes.body);
+  if (!bankData.success || bankData.totalQuestions !== 438) {
+    throw new Error(`Expected 438 totalQuestions in Class 10 math bank, got ${bankData.totalQuestions}`);
+  }
+});
+
 // -----------------------------------------------------------------------------
 // VERIFICATION REPORT & PRODUCTION GATE EXIT CODE
 // -----------------------------------------------------------------------------

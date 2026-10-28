@@ -62,7 +62,11 @@ const inMemoryStore = {
     { id: 'fac_phy_01', full_name: 'Dr. Vikram Sharma', role: 'TEACHER', phone: '9816010001', email: 'vikram.phy@haps.edu.in', subject: 'Physics', subjectKey: 'PHYSICS', department: 'PHYSICS', designation: 'Senior Physics Faculty & HOD', defaultClass: '11-NonMed', targetStream: 'JEE' },
     { id: 'fac_chem_01', full_name: 'Prof. Sunita Rao', role: 'TEACHER', phone: '9816010002', email: 'sunita.chem@haps.edu.in', subject: 'Chemistry', subjectKey: 'CHEMISTRY', department: 'CHEMISTRY', designation: 'Senior Chemistry Faculty', defaultClass: '11-NonMed', targetStream: 'JEE' },
     { id: 'fac_bio_01', full_name: 'Dr. Ananya Mukherjee', role: 'TEACHER', phone: '9816010003', email: 'ananya.bio@haps.edu.in', subject: 'Biology', subjectKey: 'BIOLOGY', department: 'BIOLOGY', designation: 'Senior Biology Faculty & NEET Coordinator', defaultClass: '11-Med', targetStream: 'NEET' },
-    { id: 'fac_math_01', full_name: 'Er. Rajesh Gupta', role: 'TEACHER', phone: '9816010004', email: 'rajesh.math@haps.edu.in', subject: 'Mathematics', subjectKey: 'MATHEMATICS', department: 'MATHEMATICS', designation: 'Senior Mathematics Faculty', defaultClass: '11-NonMed', targetStream: 'JEE' }
+    { id: 'fac_math_01', full_name: 'Er. Rajesh Gupta', role: 'TEACHER', phone: '9816010004', email: 'rajesh.math@haps.edu.in', subject: 'Mathematics', subjectKey: 'MATHEMATICS', department: 'MATHEMATICS', designation: 'Senior Mathematics Faculty', defaultClass: '11-NonMed', targetStream: 'JEE' },
+
+    // Class 10th Secondary Foundation Faculty (Maths & Science)
+    { id: 'fac_c10_math_01', full_name: 'Mrs. Meenakshi Sharma', role: 'TEACHER', phone: '9816010010', email: 'meenakshi.math10@haps.edu.in', subject: 'Mathematics', subjectKey: 'CLASS10_MATHEMATICS', department: 'MATHEMATICS', designation: 'Class 10th Mathematics Faculty & Board Coordinator', grade: '10', defaultClass: '10-Science-A', targetStream: 'CBSE_CLASS_10', streamText: 'Assigned Subject: Mathematics • Class 10 (CBSE & HP Board Foundation)' },
+    { id: 'fac_c10_sci_01', full_name: 'Er. Rakesh Thakur', role: 'TEACHER', phone: '9816010011', email: 'rakesh.sci10@haps.edu.in', subject: 'Science', subjectKey: 'CLASS10_SCIENCE', department: 'SCIENCE', designation: 'Class 10th Science Faculty & Board Coordinator', grade: '10', defaultClass: '10-Science-A', targetStream: 'CBSE_CLASS_10', streamText: 'Assigned Subject: Science • Class 10 (CBSE & HP Board Foundation)' }
   ],
   // Standard Institutional Classes
   classes: [

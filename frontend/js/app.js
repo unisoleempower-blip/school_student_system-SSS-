@@ -5034,10 +5034,12 @@ async function loadTeacherClassesList() {
     teacherBuilderState.classes = teacherBuilderState.classes.filter(c => {
       return (c.subjects || []).some(s => {
         const sKey = (s.key || '').toUpperCase();
-        if (teacherSubj === 'PHYSICS') return sKey === 'PHYSICS' || sKey === 'CLASS10_SCIENCE';
+        if (teacherSubj === 'CLASS10_MATHEMATICS') return sKey === 'CLASS10_MATHEMATICS';
+        if (teacherSubj === 'CLASS10_SCIENCE') return sKey === 'CLASS10_SCIENCE';
+        if (teacherSubj === 'PHYSICS') return sKey === 'PHYSICS';
         if (teacherSubj === 'BIOLOGY') return sKey === 'BIOLOGY';
-        if (teacherSubj === 'CHEMISTRY') return sKey === 'CHEMISTRY' || sKey === 'CLASS10_SCIENCE';
-        if (teacherSubj === 'MATHEMATICS') return sKey === 'MATHEMATICS' || sKey === 'CLASS10_MATHEMATICS';
+        if (teacherSubj === 'CHEMISTRY') return sKey === 'CHEMISTRY';
+        if (teacherSubj === 'MATHEMATICS') return sKey === 'MATHEMATICS';
         return sKey === teacherSubj;
       });
     });
@@ -5109,10 +5111,12 @@ function updateTeacherClassScopeUI() {
     // Strictly filter subjects so that ONLY the signed-in teacher's subject appears!
     const scopedSubjects = rawSubjects.filter(s => {
       const sKey = (s.key || '').toUpperCase();
-      if (teacherSubj === 'PHYSICS') return sKey === 'PHYSICS' || (currentClass.grade === '10' && sKey === 'CLASS10_SCIENCE');
+      if (teacherSubj === 'CLASS10_MATHEMATICS') return sKey === 'CLASS10_MATHEMATICS';
+      if (teacherSubj === 'CLASS10_SCIENCE') return sKey === 'CLASS10_SCIENCE';
+      if (teacherSubj === 'PHYSICS') return sKey === 'PHYSICS';
       if (teacherSubj === 'BIOLOGY') return sKey === 'BIOLOGY';
-      if (teacherSubj === 'CHEMISTRY') return sKey === 'CHEMISTRY' || (currentClass.grade === '10' && sKey === 'CLASS10_SCIENCE');
-      if (teacherSubj === 'MATHEMATICS') return sKey === 'MATHEMATICS' || (currentClass.grade === '10' && sKey === 'CLASS10_MATHEMATICS');
+      if (teacherSubj === 'CHEMISTRY') return sKey === 'CHEMISTRY';
+      if (teacherSubj === 'MATHEMATICS') return sKey === 'MATHEMATICS';
       return sKey === teacherSubj;
     });
 
@@ -5124,7 +5128,7 @@ function updateTeacherClassScopeUI() {
 
     const displayList = scopedSubjects.length > 0 
       ? scopedSubjects 
-      : [{ key: teacherSubj, name: teacherSubj.charAt(0) + teacherSubj.slice(1).toLowerCase(), grade: currentClass.grade }];
+      : [{ key: teacherSubj, name: teacherSubj === 'CLASS10_MATHEMATICS' ? 'Mathematics' : (teacherSubj === 'CLASS10_SCIENCE' ? 'Science' : teacherSubj.charAt(0) + teacherSubj.slice(1).toLowerCase()), grade: currentClass.grade }];
 
     pillsContainer.innerHTML = displayList.map(s => {
       return `
@@ -5152,10 +5156,14 @@ async function loadCurriculumForClassAndSubject(subjectKey, grade) {
 
   const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId);
   const currentSubj = currentClass?.subjects?.find(s => s.key === subjectKey);
-  const subjName = currentSubj ? currentSubj.name : subjectKey;
+  let subjName = currentSubj ? currentSubj.name : subjectKey;
+  if (subjectKey === 'CLASS10_MATHEMATICS') subjName = 'Mathematics';
+  if (subjectKey === 'CLASS10_SCIENCE') subjName = 'Science';
+
+  const isClass10 = String(grade) === '10' || subjectKey?.startsWith('CLASS10_') || currentClass?.grade === '10';
 
   if (headingTitle) {
-    headingTitle.innerHTML = `Class ${grade || '12'} ${subjName} &bull; Complete Chapter List`;
+    headingTitle.innerHTML = `${isClass10 ? 'Class 10' : ('Class ' + (grade || '12'))} ${subjName} &bull; Complete Chapter List`;
   }
 
   if (container) {
@@ -5256,12 +5264,20 @@ function renderCurriculumChaptersAccordion(filterQuery = '') {
               <span>${topics.length} Main Topics</span>
               <span>&bull;</span>
               <span>${totalSubtopics} Sub-topics</span>
+              ${ch.totalQuestionsInChapter ? `<span>&bull;</span><span style="color:#10b981; font-weight:700;"><i data-lucide="database" style="width:11px; height:11px; vertical-align:middle;"></i> ${ch.totalQuestionsInChapter} Bank Questions</span>` : ''}
               ${ch.discipline ? `<span class="stream-tag">${ch.discipline}</span>` : ''}
             </div>
           </div>
 
           <!-- Quick Action Buttons on Header -->
           <div class="chapter-header-actions" onclick="event.stopPropagation();">
+            <button type="button" class="btn-subtopic-quiz" 
+              onclick="openQbForChapter(${chNum}, event)"
+              style="padding:6px 12px; font-size:0.78rem;"
+              title="Browse questions for this chapter in the question bank">
+              <i data-lucide="database" style="width:13px; height:13px;"></i>
+              Browse Bank (${ch.totalQuestionsInChapter || 0})
+            </button>
             <button type="button" class="btn-gen-chapter-test" 
               onclick="openGenTestForChapterByNum(${chNum}, event)"
               title="Generate a full test covering all ${totalSubtopics} sub-topics of this chapter">
@@ -5301,6 +5317,7 @@ function renderCurriculumChaptersAccordion(filterQuery = '') {
                       <span class="topic-tag">${t.ncertSection ? `Sec ${t.ncertSection}` : `Topic ${tIdx + 1}`}</span>
                       <strong class="topic-title">${tTitle}</strong>
                       ${t.highYield ? `<span class="badge-highyield"><i data-lucide="flame" style="width:11px; height:11px;"></i> High Yield</span>` : ''}
+                      ${t.questionCount ? `<span style="font-size:0.75rem; color:#10b981; font-weight:700; margin-left:6px;"><i data-lucide="database" style="width:11px; height:11px; vertical-align:middle;"></i> ${t.questionCount} Questions</span>` : ''}
                     </div>
 
                     <div class="topic-actions">
@@ -5949,7 +5966,11 @@ async function submitTeacherLoginForm(event) {
     }
   } catch (err) {
     console.warn('Backend login fallback:', err.message);
-    const sName = subjectKey === 'BIOLOGY' ? 'Biology' : (subjectKey === 'PHYSICS' ? 'Physics' : (subjectKey === 'CHEMISTRY' ? 'Chemistry' : 'Mathematics'));
+    const isC10 = subjectKey?.startsWith('CLASS10_') || subjectKey === 'SCIENCE';
+    const sName = subjectKey === 'BIOLOGY' ? 'Biology' 
+      : (subjectKey === 'PHYSICS' ? 'Physics' 
+      : (subjectKey === 'CHEMISTRY' ? 'Chemistry' 
+      : (subjectKey === 'CLASS10_SCIENCE' || subjectKey === 'SCIENCE' ? 'Science' : 'Mathematics')));
     const localTeacher = {
       id: `fac_${subjectKey.toLowerCase()}_${cleanPhone}`,
       name: name,
@@ -5958,12 +5979,17 @@ async function submitTeacherLoginForm(event) {
       email: `${name.toLowerCase().replace(/[^a-z0-9]/g, '') || subjectKey.toLowerCase()}@haps.edu.in`,
       subjectKey: subjectKey,
       subjectName: sName,
-      designation: subjectKey === 'BIOLOGY' ? 'Senior Biology Faculty & NEET Coordinator' : `Senior ${sName} Faculty`,
-      defaultClass: subjectKey === 'BIOLOGY' ? '11-Med' : '11-NonMed',
-      targetStream: subjectKey === 'BIOLOGY' ? 'NEET' : 'JEE',
-      streamText: subjectKey === 'BIOLOGY'
-        ? 'Assigned Subject: Biology &bull; Classes 11 &amp; 12 Medical (NEET UG &amp; CBSE Boards)'
-        : `Assigned Subject: ${sName} &bull; Classes 11 &amp; 12 (${subjectKey === 'MATHEMATICS' ? 'JEE Main/Adv &amp; CBSE Boards' : 'NEET, JEE Main &amp; CBSE Boards'})`
+      grade: isC10 ? '10' : '11',
+      designation: isC10 
+        ? (sName === 'Science' ? 'Class 10th Science Faculty & Board Coordinator' : 'Class 10th Mathematics Faculty & Board Coordinator')
+        : (subjectKey === 'BIOLOGY' ? 'Senior Biology Faculty & NEET Coordinator' : `Senior ${sName} Faculty`),
+      defaultClass: isC10 ? '10-Science-A' : (subjectKey === 'BIOLOGY' ? '11-Med' : '11-NonMed'),
+      targetStream: isC10 ? 'CBSE_CLASS_10' : (subjectKey === 'BIOLOGY' ? 'NEET' : 'JEE'),
+      streamText: isC10
+        ? `Assigned Subject: ${sName} • Class 10 (CBSE & HP Board Foundation)`
+        : (subjectKey === 'BIOLOGY'
+          ? 'Assigned Subject: Biology &bull; Classes 11 &amp; 12 Medical (NEET UG &amp; CBSE Boards)'
+          : `Assigned Subject: ${sName} &bull; Classes 11 &amp; 12 (${subjectKey === 'MATHEMATICS' ? 'JEE Main/Adv &amp; CBSE Boards' : 'NEET, JEE Main &amp; CBSE Boards'})`)
     };
     applyTeacherProfile(localTeacher, true);
     closeTeacherSignInModal();
@@ -5990,6 +6016,8 @@ function quickSelectFaculty(subjectKey, name, phone) {
 
 function authenticateTeacher(subjectKey, teacherName, email) {
   const defaultPhones = {
+    'CLASS10_MATHEMATICS': '9816010010',
+    'CLASS10_SCIENCE': '9816010011',
     'PHYSICS': '9816010001',
     'CHEMISTRY': '9816010002',
     'BIOLOGY': '9816010003',
@@ -6003,10 +6031,11 @@ function submitCustomTeacherLogin(event) {
 }
 
 function applyTeacherProfile(prof, notify = false) {
+  const isClass10 = prof.defaultClass?.startsWith('10') || prof.grade === '10' || prof.subjectKey?.startsWith('CLASS10');
   teacherBuilderState.teacherSubjectKey = prof.subjectKey;
   teacherBuilderState.selectedSubjectKey = prof.subjectKey;
-  teacherBuilderState.selectedClassId = prof.defaultClass || (prof.subjectKey === 'BIOLOGY' ? '11-Med' : '11-NonMed');
-  teacherBuilderState.targetStream = prof.targetStream || (prof.subjectKey === 'BIOLOGY' ? 'NEET' : 'JEE');
+  teacherBuilderState.selectedClassId = prof.defaultClass || (isClass10 ? '10-Science-A' : (prof.subjectKey === 'BIOLOGY' ? '11-Med' : '11-NonMed'));
+  teacherBuilderState.targetStream = prof.targetStream || (isClass10 ? 'CBSE_CLASS_10' : (prof.subjectKey === 'BIOLOGY' ? 'NEET' : 'JEE'));
   teacherBuilderState.activeTeacher = prof;
 
   try {
@@ -6030,6 +6059,9 @@ function applyTeacherProfile(prof, notify = false) {
     if (prof.subjectKey === 'BIOLOGY') {
       stripFacultyDept.style.background = 'rgba(16,185,129,0.18)';
       stripFacultyDept.style.color = '#10b981';
+    } else if (isClass10) {
+      stripFacultyDept.style.background = 'rgba(245,158,11,0.18)';
+      stripFacultyDept.style.color = '#f59e0b';
     } else {
       stripFacultyDept.style.background = 'rgba(59,130,246,0.18)';
       stripFacultyDept.style.color = 'var(--accent-blue)';
@@ -6046,6 +6078,7 @@ function applyTeacherProfile(prof, notify = false) {
   if (headerTitle && (!state.activeRole || state.activeRole === 'teacher')) {
     const tabTitles = {
       'tabGenerator': `Create Tests & Quizzes • Department of ${prof.subjectName}`,
+      'tabQuestionBank': `Question Bank & PYQ Repository • Department of ${prof.subjectName}`,
       'tabClassAnalytics': `Class Progress Dashboard • Department of ${prof.subjectName}`,
       'tabStudents': `Students & Smart Cards • Department of ${prof.subjectName}`,
       'tabSmartReports': `Weekly Smart Report • Department of ${prof.subjectName}`,
@@ -6064,7 +6097,7 @@ function applyTeacherProfile(prof, notify = false) {
   if (drawerSubj) drawerSubj.innerText = `Department: ${prof.subjectName}`;
   if (drawerPhone) drawerPhone.innerText = prof.phone ? `Phone: ${prof.phone}` : '';
 
-  updateStreamSelectionUI(prof.targetStream || (prof.subjectKey === 'BIOLOGY' ? 'NEET' : 'JEE'));
+  updateStreamSelectionUI(prof.targetStream || (isClass10 ? 'CBSE_CLASS_10' : (prof.subjectKey === 'BIOLOGY' ? 'NEET' : 'JEE')));
 
   // 1. Reload classes filtered strictly by teacher subject
   loadTeacherClassesList();
@@ -6073,8 +6106,13 @@ function applyTeacherProfile(prof, notify = false) {
   loadClassAnalytics();
 
   // 3. Reload curriculum chapters strictly for teacher subject
-  const defaultGrade = prof.defaultClass?.startsWith('11') ? '11' : '12';
+  const defaultGrade = isClass10 ? '10' : (prof.defaultClass?.startsWith('11') ? '11' : '12');
   loadCurriculumForClassAndSubject(prof.subjectKey, defaultGrade);
+
+  // 4. Reload question bank if active or prefetch
+  if (state.activeTeacherTab === 'tabQuestionBank') {
+    loadQuestionBankView();
+  }
 
   if (notify) {
     alert(`Signed in as ${prof.name || prof.full_name} (${prof.designation}). Dashboard scoped strictly to Department of ${prof.subjectName}.`);
@@ -6469,3 +6507,417 @@ window.switchPortalRole = switchPortalRole;
 window.submitTeacherLoginForm = submitTeacherLoginForm;
 window.quickSelectFaculty = quickSelectFaculty;
 window.handlePhoneInputLookup = handlePhoneInputLookup;
+
+// ============================================================================
+// QUESTION BANK EXPLORER & PYQ REPOSITORY
+// ============================================================================
+
+state.questionBankData = [];
+state.currentQbSubjectKey = null;
+
+async function loadQuestionBankView(forceReload = false) {
+  const teacherSubj = teacherBuilderState.teacherSubjectKey || 'CLASS10_MATHEMATICS';
+  const isClass10 = teacherSubj.startsWith('CLASS10_') || teacherBuilderState.activeTeacher?.grade === '10' || teacherBuilderState.selectedClassId === '10-Science-A';
+  
+  // Elements
+  const headerTitle = document.getElementById('qbHeaderTitle');
+  const headerSubtitle = document.getElementById('qbHeaderSubtitle');
+  const badgeText = document.getElementById('qbBadgeText');
+  const chapterSelect = document.getElementById('selectQbChapter');
+  const container = document.getElementById('containerQbQuestions');
+  const statsLabel = document.getElementById('qbCountLabel');
+
+  if (!container) return;
+
+  // Set titles based on teacher subject
+  if (isClass10) {
+    if (teacherSubj === 'CLASS10_SCIENCE' || teacherSubj === 'SCIENCE') {
+      if (headerTitle) headerTitle.innerText = 'Class 10th Science Question Bank';
+      if (headerSubtitle) headerSubtitle.innerText = 'Curated Board PYQs (2018-2024), NCERT Examples & Exercises (Physics, Chemistry, Biology)';
+      if (badgeText) badgeText.innerText = 'Class 10th Foundation • CBSE & HP Board';
+    } else {
+      if (headerTitle) headerTitle.innerText = 'Class 10th Mathematics Question Bank';
+      if (headerSubtitle) headerSubtitle.innerText = '438 Curated Questions • 14 Chapters • Board PYQs (2018-2024), NCERT Examples & In-Text Exercises';
+      if (badgeText) badgeText.innerText = 'Class 10th Foundation • CBSE & HP Board';
+    }
+  } else {
+    const sName = teacherBuilderState.activeTeacher?.subjectName || teacherSubj;
+    if (headerTitle) headerTitle.innerText = `${sName} Question Bank & PYQ Repository`;
+    if (headerSubtitle) headerSubtitle.innerText = 'Senior Secondary (+1 & +2) Curated Questions • JEE / NEET / CBSE Boards';
+    if (badgeText) badgeText.innerText = `Senior Secondary Track • Department of ${sName}`;
+  }
+
+  // Populate chapter dropdown if empty or subject changed
+  if (chapterSelect && (chapterSelect.options.length <= 1 || state.currentQbSubjectKey !== teacherSubj)) {
+    if (isClass10 && (teacherSubj.includes('MATH') || teacherSubj === 'CLASS10_MATHEMATICS')) {
+      const mathChapters = [
+        { num: 1, name: 'Real Numbers' },
+        { num: 2, name: 'Polynomials' },
+        { num: 3, name: 'Pair of Linear Equations in Two Variables' },
+        { num: 4, name: 'Quadratic Equations' },
+        { num: 5, name: 'Arithmetic Progressions' },
+        { num: 6, name: 'Triangles' },
+        { num: 7, name: 'Coordinate Geometry' },
+        { num: 8, name: 'Introduction to Trigonometry' },
+        { num: 9, name: 'Some Applications of Trigonometry' },
+        { num: 10, name: 'Circles' },
+        { num: 11, name: 'Areas Related to Circles' },
+        { num: 12, name: 'Surface Areas and Volumes' },
+        { num: 13, name: 'Statistics' },
+        { num: 14, name: 'Probability' }
+      ];
+      chapterSelect.innerHTML = `<option value="ALL" selected>All 14 Chapters (${mathChapters.length} Chapters)</option>` +
+        mathChapters.map(c => `<option value="${c.num}">Ch ${c.num}: ${c.name}</option>`).join('');
+    } else if (teacherBuilderState.currentTaxonomy?.chapters) {
+      chapterSelect.innerHTML = `<option value="ALL" selected>All Chapters</option>` +
+        teacherBuilderState.currentTaxonomy.chapters.map(c => `<option value="${c.chapterNumber || c.id}">Ch ${c.chapterNumber || ''}: ${c.chapterName || c.title}</option>`).join('');
+    }
+  }
+
+  // If already loaded for this subject and not forcing reload, just re-filter
+  if (state.questionBankData.length > 0 && state.currentQbSubjectKey === teacherSubj && !forceReload) {
+    filterQuestionBankCards();
+    return;
+  }
+
+  // Show loading indicator
+  container.innerHTML = `
+    <div style="text-align:center; padding: 3rem 1rem; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-subtle);">
+      <i data-lucide="loader-2" class="spin" style="width:28px; height:28px; margin: 0 auto 12px; display:block; color:var(--accent-blue);"></i>
+      Loading authentic questions from repository...
+    </div>
+  `;
+  initLucideIcons();
+
+  try {
+    let url = '';
+    if (isClass10 && (teacherSubj === 'CLASS10_MATHEMATICS' || teacherSubj === 'MATHEMATICS')) {
+      url = `${getApiBaseUrl()}/api/questions/class10-math-bank?limit=450`;
+    } else if (isClass10 && (teacherSubj === 'CLASS10_SCIENCE' || teacherSubj === 'SCIENCE')) {
+      url = `${getApiBaseUrl()}/api/questions/subject-banks/class10_science`;
+    } else {
+      const bankKey = teacherSubj === 'PHYSICS' ? 'senior_physics' 
+        : teacherSubj === 'CHEMISTRY' ? 'senior_chemistry' 
+        : teacherSubj === 'BIOLOGY' ? 'senior_biology' 
+        : 'senior_mathematics';
+      url = `${getApiBaseUrl()}/api/questions/subject-banks/${bankKey}`;
+    }
+
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      state.questionBankData = data.questions || [];
+      state.currentQbSubjectKey = teacherSubj;
+    } else {
+      throw new Error(`API returned ${res.status}`);
+    }
+  } catch (err) {
+    console.warn('Failed to fetch from specialized endpoint, falling back to all questions:', err);
+    state.questionBankData = [];
+  }
+
+  filterQuestionBankCards();
+}
+
+function openQbForChapter(chNum, event) {
+  if (event) event.stopPropagation();
+  switchTeacherTab('tabQuestionBank');
+  const chSelect = document.getElementById('selectQbChapter');
+  if (chSelect) {
+    chSelect.value = String(chNum);
+  }
+  loadQuestionBankView().then(() => {
+    if (chSelect) {
+      chSelect.value = String(chNum);
+      filterQuestionBankCards();
+    }
+  });
+}
+
+function filterQuestionBankCards() {
+  const container = document.getElementById('containerQbQuestions');
+  const statsLabel = document.getElementById('qbCountLabel');
+  if (!container) return;
+
+  const chVal = document.getElementById('selectQbChapter')?.value || 'ALL';
+  const srcVal = document.getElementById('selectQbSource')?.value || 'ALL';
+  const diffVal = document.getElementById('selectQbDifficulty')?.value || 'ALL';
+  const fmtVal = document.getElementById('selectQbFormat')?.value || 'ALL';
+  const query = (document.getElementById('inputQbSearch')?.value || '').toLowerCase().trim();
+
+  let filtered = [...(state.questionBankData || [])];
+
+  if (chVal !== 'ALL') {
+    filtered = filtered.filter(q => {
+      if (q.chapter_number !== undefined) return String(q.chapter_number) === String(chVal);
+      const chName = (q.chapter_name || q.chapter || '').toLowerCase();
+      return chName.includes(`ch ${chVal}`) || chName.includes(`chapter ${chVal}`);
+    });
+  }
+
+  if (srcVal !== 'ALL') {
+    filtered = filtered.filter(q => {
+      const qSrc = (q.question_source || q.pyq_appearance || q.ncert_mapping?.pyq_tag || '').toUpperCase();
+      if (srcVal === 'PYQ') return qSrc.includes('PYQ') || qSrc.includes('BOARD') || qSrc.includes('CBSE 10') || qSrc.includes('HPBOSE');
+      if (srcVal === 'NCERT_EXAMPLE') return qSrc.includes('EXAMPLE');
+      if (srcVal === 'NCERT_EXERCISE') return qSrc.includes('EXERCISE') || qSrc.includes('EX ');
+      if (srcVal === 'CBSE_PATTERN') return qSrc.includes('PATTERN') || qSrc.includes('STANDARD') || qSrc.includes('BASIC');
+      return true;
+    });
+  }
+
+  if (diffVal !== 'ALL') {
+    filtered = filtered.filter(q => (q.difficulty || '').toUpperCase() === diffVal);
+  }
+
+  if (fmtVal !== 'ALL') {
+    filtered = filtered.filter(q => (q.question_type || q.format || '').toUpperCase() === fmtVal);
+  }
+
+  if (query) {
+    filtered = filtered.filter(q => {
+      const qText = (q.question_latex || q.questionText || '').toLowerCase();
+      const solText = (q.solution_latex || '').toLowerCase();
+      const topic = (q.topic || q.subtopic || q.chapter_name || '').toLowerCase();
+      const src = (q.question_source || q.pyq_appearance || '').toLowerCase();
+      return qText.includes(query) || solText.includes(query) || topic.includes(query) || src.includes(query);
+    });
+  }
+
+  if (statsLabel) {
+    statsLabel.innerHTML = `Showing <strong>${filtered.length}</strong> of <strong>${state.questionBankData.length}</strong> authentic questions in bank`;
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center; padding: 3rem 1.5rem; background:var(--bg-card); border-radius:var(--radius-md); border:1px dashed var(--border-subtle); color:var(--text-muted);">
+        <i data-lucide="search-x" style="width:32px; height:32px; margin:0 auto 10px; display:block; color:var(--text-muted);"></i>
+        No questions match the selected filters. Try changing chapter, source or search criteria.
+      </div>
+    `;
+    initLucideIcons();
+    return;
+  }
+
+  // Render first 40 questions for snappy performance with notice
+  const displayQuestions = filtered.slice(0, 40);
+
+  container.innerHTML = displayQuestions.map((q, idx) => {
+    const qId = q.id || `q_${idx}`;
+    const chNum = q.chapter_number || '';
+    const chName = q.chapter_name || q.chapter || 'Chapter';
+    const source = q.question_source || q.pyq_appearance || (q.ncert_mapping ? q.ncert_mapping.pyq_tag : 'CBSE Board Question');
+    const diff = (q.difficulty || 'MEDIUM').toUpperCase();
+    const marks = q.marks || (diff === 'EASY' ? 1 : (diff === 'HARD' ? 5 : 3));
+    const timeSec = q.benchmark_time_seconds || 90;
+
+    // Badge styling for source
+    const isPyq = source.toUpperCase().includes('BOARD') || source.toUpperCase().includes('PYQ');
+    const isExample = source.toUpperCase().includes('EXAMPLE');
+    const sourceBadgeStyle = isPyq
+      ? 'background:rgba(245, 158, 11, 0.12); color:#f59e0b; border:1px solid rgba(245, 158, 11, 0.35);'
+      : isExample
+      ? 'background:rgba(16, 185, 129, 0.12); color:#10b981; border:1px solid rgba(16, 185, 129, 0.35);'
+      : 'background:rgba(14, 165, 233, 0.12); color:#0ea5e9; border:1px solid rgba(14, 165, 233, 0.35);';
+
+    const diffBadgeStyle = diff === 'HARD'
+      ? 'background:rgba(239, 68, 68, 0.12); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3);'
+      : diff === 'EASY'
+      ? 'background:rgba(16, 185, 129, 0.12); color:#10b981; border:1px solid rgba(16, 185, 129, 0.3);'
+      : 'background:rgba(245, 158, 11, 0.12); color:#f59e0b; border:1px solid rgba(245, 158, 11, 0.3);';
+
+    const options = q.options_latex || [];
+
+    return `
+      <div class="glass-card" style="padding:16px 18px; margin-bottom:4px; border:1px solid var(--border-subtle); transition:all 0.2s ease;" id="qbCard_${qId}">
+        <!-- CARD TOP META BAR -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+            <span style="font-size:0.72rem; font-weight:800; color:var(--text-muted); background:var(--bg-secondary); padding:2px 7px; border-radius:4px; border:1px solid var(--border-subtle);">
+              #${idx + 1} &bull; ${qId}
+            </span>
+            <span style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); background:rgba(37,99,235,0.1); padding:2px 8px; border-radius:4px;">
+              Ch ${chNum}: ${escapeHtml(chName)}
+            </span>
+            <span style="font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:4px; ${sourceBadgeStyle}">
+              ${escapeHtml(source)}
+            </span>
+            <span style="font-size:0.7rem; font-weight:700; padding:2px 7px; border-radius:4px; ${diffBadgeStyle}">
+              ${diff}
+            </span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; font-size:0.74rem; color:var(--text-muted);">
+            <span><i data-lucide="award" style="width:12px; height:12px; vertical-align:middle;"></i> ${marks} Mark${marks > 1 ? 's' : ''}</span>
+            <span>&bull;</span>
+            <span><i data-lucide="clock" style="width:12px; height:12px; vertical-align:middle;"></i> ${timeSec}s</span>
+          </div>
+        </div>
+
+        <!-- QUESTION STATEMENT -->
+        <div class="qb-question-statement" style="font-size:0.92rem; color:var(--text-primary); line-height:1.6; margin-bottom:12px;">
+          ${renderLatexString(q.question_latex || q.questionText || '')}
+        </div>
+
+        <!-- OPTIONS GRID (IF AVAILABLE) -->
+        ${options.length > 0 ? `
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:8px; margin-bottom:12px;">
+            ${options.map((opt, oIdx) => {
+              const letter = String.fromCharCode(65 + oIdx);
+              const optText = typeof opt === 'object' ? (opt.latex || opt.text || '') : String(opt);
+              const isCorrect = (typeof opt === 'object' && opt.is_correct) || (q.correct_answer_latex === letter) || (q.correct_answer === letter);
+
+              return `
+                <div class="qb-option-tile" data-correct="${isCorrect ? 'true' : 'false'}" id="opt_${qId}_${oIdx}" style="padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:6px; font-size:0.86rem; display:flex; align-items:baseline; gap:8px;">
+                  <strong style="font-size:0.8rem; color:var(--accent-blue);">${letter}.</strong>
+                  <span style="flex:1;">${renderLatexString(optText)}</span>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        ` : ''}
+
+        <!-- COLLAPSIBLE STEP-BY-STEP SOLUTION -->
+        ${q.solution_latex ? `
+          <details style="margin-top:8px; background:rgba(0,0,0,0.18); border:1px solid var(--border-subtle); border-radius:6px; padding:8px 12px;">
+            <summary style="font-size:0.78rem; font-weight:700; color:var(--accent-blue); cursor:pointer; user-select:none; display:flex; align-items:center; gap:6px;">
+              <i data-lucide="check-circle" style="width:13px; height:13px; color:#10b981;"></i>
+              <span>View Step-by-Step Solution &amp; Answer (${q.correct_answer_latex || q.correct_answer || 'Correct'})</span>
+            </summary>
+            <div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border-subtle); font-size:0.86rem; color:var(--text-secondary); line-height:1.6;">
+              <div style="margin-bottom:6px;">
+                <strong style="color:var(--text-primary); font-size:0.8rem;">Correct Answer:</strong>
+                <span style="color:#10b981; font-weight:700; margin-left:4px;">${q.correct_answer_latex || q.correct_answer || 'Solution Attached'}</span>
+              </div>
+              <div class="qb-solution-body">
+                ${renderLatexString(q.solution_latex)}
+              </div>
+            </div>
+          </details>
+        ` : ''}
+
+        <!-- ACTIONS ROW -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-subtle);">
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button type="button" class="btn-secondary" onclick="copyQbLatexToClipboard('${qId}')" style="font-size:0.75rem; padding:5px 10px;" title="Copy clean LaTeX text to clipboard">
+              <i data-lucide="copy" style="width:12px; height:12px;"></i> Copy LaTeX
+            </button>
+            ${options.length > 0 ? `
+              <button type="button" class="btn-secondary" onclick="toggleQbCardAnswer('${qId}')" style="font-size:0.75rem; padding:5px 10px;" title="Highlight the correct option">
+                <i data-lucide="eye" style="width:12px; height:12px;"></i> Show Answer
+              </button>
+            ` : ''}
+          </div>
+          <button type="button" class="btn-primary" onclick="assignQbQuestionToClass('${qId}')" style="font-size:0.76rem; padding:5px 14px; background:linear-gradient(135deg, #2563eb, #1d4ed8); font-weight:700;">
+            <i data-lucide="zap" style="width:13px; height:13px;"></i> Create Flash Quiz with this Question
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (filtered.length > 40) {
+    container.innerHTML += `
+      <div style="text-align:center; padding:12px; color:var(--text-muted); font-size:0.82rem;">
+        Showing top 40 of ${filtered.length} questions. Use Chapter or Search filters above to explore all questions.
+      </div>
+    `;
+  }
+
+  initLucideIcons();
+}
+
+function toggleQbCardAnswer(cardId) {
+  const card = document.getElementById(`qbCard_${cardId}`);
+  if (!card) return;
+  const tiles = card.querySelectorAll('.qb-option-tile');
+  tiles.forEach(tile => {
+    const isCorrect = tile.getAttribute('data-correct') === 'true';
+    if (isCorrect) {
+      if (tile.style.borderColor === 'rgb(16, 185, 129)') {
+        tile.style.borderColor = 'var(--border-subtle)';
+        tile.style.background = 'var(--bg-secondary)';
+      } else {
+        tile.style.borderColor = '#10b981';
+        tile.style.background = 'rgba(16, 185, 129, 0.15)';
+      }
+    }
+  });
+}
+
+function copyQbLatexToClipboard(qId) {
+  const q = state.questionBankData?.find(item => item.id === qId);
+  if (!q) return;
+  const text = q.question_latex || q.questionText || '';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      alert(`Question LaTeX for ${qId} copied to clipboard.`);
+    }).catch(() => {
+      alert(`LaTeX: ${text}`);
+    });
+  } else {
+    alert(`LaTeX: ${text}`);
+  }
+}
+
+async function assignQbQuestionToClass(qId) {
+  const q = state.questionBankData?.find(item => item.id === qId);
+  if (!q) return;
+
+  const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId) || {};
+  const currentSubj = currentClass?.subjects?.find(s => s.key === teacherBuilderState.selectedSubjectKey);
+  const subjName = currentSubj ? currentSubj.name : (teacherBuilderState.activeTeacher?.subjectName || 'Mathematics');
+
+  const title = `Flash Quiz: ${q.chapter_name || q.chapter || subjName} (#${qId})`;
+
+  try {
+    const payload = {
+      classKey: teacherBuilderState.selectedClassId,
+      grade: currentClass.grade || '10',
+      section: currentClass.section || currentClass.key || teacherBuilderState.selectedClassId,
+      subjectKey: teacherBuilderState.selectedSubjectKey,
+      subjectName: subjName,
+      chapterNumber: q.chapter_number || 1,
+      chapterName: q.chapter_name || q.chapter || 'Chapter',
+      subtopics: [q.topic || 'Core Concept'],
+      mode: 'QUIZ',
+      questionCount: 1,
+      difficulty: q.difficulty || 'MEDIUM',
+      title: title,
+      autoAttempt: false
+    };
+
+    const res = await fetch(`${getApiBaseUrl()}/api/curriculum/generate-test`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.assessment) {
+        openQuizCreatedSuccessModal(data.assessment);
+      } else {
+        alert(`Flash Quiz for question ${qId} assigned to class successfully.`);
+      }
+    } else {
+      throw new Error(`Server returned ${res.status}`);
+    }
+  } catch (err) {
+    console.error('Error assigning question:', err);
+    alert('Notice: Could not assign question. Please check backend connection.');
+  }
+}
+
+window.handleTabActivated = function(tabId) {
+  state.activeTeacherTab = tabId;
+  if (tabId === 'tabQuestionBank') {
+    loadQuestionBankView();
+  }
+};
+
+window.loadQuestionBankView = loadQuestionBankView;
+window.filterQuestionBankCards = filterQuestionBankCards;
+window.openQbForChapter = openQbForChapter;
+window.toggleQbCardAnswer = toggleQbCardAnswer;
+window.copyQbLatexToClipboard = copyQbLatexToClipboard;
+window.assignQbQuestionToClass = assignQbQuestionToClass;

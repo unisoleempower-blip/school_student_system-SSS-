@@ -30,7 +30,17 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
     const { subjectKey } = req.params;
     const { grade } = req.query;
 
-    const taxonomy = getSubjectTaxonomy(subjectKey);
+    let targetSubjectKey = subjectKey;
+    const normKey = (subjectKey || '').toUpperCase().trim();
+    if (String(grade) === '10' || normKey === 'CLASS10_MATHEMATICS' || normKey === 'CLASS10_SCIENCE') {
+      if (normKey === 'MATHEMATICS' || normKey === 'MATHS' || normKey === 'CLASS10_MATHEMATICS') {
+        targetSubjectKey = 'CLASS10_MATHEMATICS';
+      } else if (normKey === 'SCIENCE' || normKey === 'CLASS10_SCIENCE') {
+        targetSubjectKey = 'CLASS10_SCIENCE';
+      }
+    }
+
+    const taxonomy = getSubjectTaxonomy(targetSubjectKey);
     if (!taxonomy) {
       return res.status(404).json({
         success: false,
@@ -40,7 +50,7 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
 
     // Filter chapters by grade if specified
     let chapters = taxonomy.chapters;
-    if (grade && grade !== 'ALL') {
+    if (grade && grade !== 'ALL' && String(grade) !== '10') {
       const byGrade = chapters.filter(ch => String(ch.grade) === String(grade));
       if (byGrade.length > 0) {
         chapters = byGrade;
@@ -49,13 +59,16 @@ router.get('/taxonomy/:subjectKey', (req, res) => {
 
     // Gather questions strictly for this subject from inMemoryStore
     const banks = inMemoryStore.subjectBanks || {};
-    const sKeyUpper = (subjectKey || '').toUpperCase().trim();
+    const sKeyUpper = (targetSubjectKey || subjectKey || '').toUpperCase().trim();
     let relevantBank = [];
     if (sKeyUpper === 'CHEMISTRY') relevantBank = banks.senior_chemistry || [];
     else if (sKeyUpper === 'BIOLOGY') relevantBank = banks.senior_biology || [];
-    else if (sKeyUpper === 'MATHEMATICS') relevantBank = banks.senior_mathematics || [];
+    else if (sKeyUpper === 'MATHEMATICS') {
+      if (String(grade) === '10') relevantBank = banks.class10_math_pyq_ncert || banks.class10_maths || [];
+      else relevantBank = banks.senior_mathematics || [];
+    }
     else if (sKeyUpper === 'PHYSICS') relevantBank = banks.senior_physics || [];
-    else if (sKeyUpper === 'CLASS10_MATHEMATICS') relevantBank = banks.class10_maths || [];
+    else if (sKeyUpper === 'CLASS10_MATHEMATICS') relevantBank = banks.class10_math_pyq_ncert || banks.class10_maths || [];
     else if (sKeyUpper === 'CLASS10_SCIENCE') relevantBank = banks.class10_science || [];
     else relevantBank = Object.values(banks).flat();
 
@@ -388,12 +401,16 @@ router.get('/classes', (req, res) => {
       enrichedClasses = enrichedClasses
         .filter(cls => cls.subjects && cls.subjects.some(s => {
           const sKey = (s.key || s.name || s || '').toString().toUpperCase();
+          if (reqSubjKey === 'CLASS10_MATHEMATICS') return sKey === 'CLASS10_MATHEMATICS';
+          if (reqSubjKey === 'CLASS10_SCIENCE') return sKey === 'CLASS10_SCIENCE';
           return sKey === reqSubjKey || (reqSubjKey === 'PHYSICS' && sKey === 'PHYSICS') || (reqSubjKey === 'CHEMISTRY' && sKey === 'CHEMISTRY') || (reqSubjKey === 'BIOLOGY' && sKey === 'BIOLOGY') || (reqSubjKey === 'MATHEMATICS' && sKey === 'MATHEMATICS');
         }))
         .map(cls => {
           const scopedSubjects = cls.subjects
             .filter(s => {
               const sKey = (s.key || s.name || s || '').toString().toUpperCase();
+              if (reqSubjKey === 'CLASS10_MATHEMATICS') return sKey === 'CLASS10_MATHEMATICS';
+              if (reqSubjKey === 'CLASS10_SCIENCE') return sKey === 'CLASS10_SCIENCE';
               return sKey === reqSubjKey;
             })
             .map(s => {
@@ -401,9 +418,9 @@ router.get('/classes', (req, res) => {
                 const sU = s.toUpperCase();
                 return {
                   key: sU,
-                  name: sU === 'PHYSICS' ? 'Physics' : sU === 'CHEMISTRY' ? 'Chemistry' : sU === 'BIOLOGY' ? 'Biology' : 'Mathematics',
-                  totalChapters: sU === 'PHYSICS' ? 14 : sU === 'CHEMISTRY' ? 10 : 13,
-                  icon: sU === 'PHYSICS' ? 'zap' : sU === 'CHEMISTRY' ? 'flask-conical' : sU === 'BIOLOGY' ? 'dna' : 'calculator'
+                  name: sU === 'PHYSICS' ? 'Physics' : sU === 'CHEMISTRY' ? 'Chemistry' : sU === 'BIOLOGY' ? 'Biology' : sU === 'CLASS10_SCIENCE' ? 'Science' : 'Mathematics',
+                  totalChapters: sU === 'PHYSICS' ? 14 : sU === 'CHEMISTRY' ? 10 : sU === 'BIOLOGY' ? 13 : sU === 'CLASS10_SCIENCE' ? 13 : 14,
+                  icon: sU === 'PHYSICS' ? 'zap' : sU === 'CHEMISTRY' ? 'flask-conical' : sU === 'BIOLOGY' ? 'dna' : sU === 'CLASS10_SCIENCE' ? 'atom' : 'calculator'
                 };
               }
               return s;
@@ -507,17 +524,13 @@ router.get('/faculty', (req, res) => {
 // Authenticates or registers teacher session with phone number, full name, and subject expertise
 function handleTeacherLogin(req, res) {
   try {
-    const { phone, name, subjectKey, facultyId, email } = req.body;
+    const { phone, name, subjectKey, facultyId, email, grade } = req.body;
     const users = inMemoryStore.users || [];
 
     // Sanitize phone (extract digits)
     const rawPhone = (phone || '').toString().trim();
     const cleanPhone = rawPhone.replace(/\D/g, '');
-    const sKeyUpper = (subjectKey || 'BIOLOGY').toString().toUpperCase().trim();
-    const sName = sKeyUpper === 'PHYSICS' ? 'Physics' 
-      : sKeyUpper === 'CHEMISTRY' ? 'Chemistry' 
-      : sKeyUpper === 'BIOLOGY' ? 'Biology' 
-      : 'Mathematics';
+    let sKeyUpper = (subjectKey || 'BIOLOGY').toString().toUpperCase().trim();
 
     let teacher = null;
 
@@ -541,7 +554,69 @@ function handleTeacherLogin(req, res) {
       teacher = users.find(u => u.role === 'TEACHER' && (u.subjectKey === sKeyUpper || u.department === sKeyUpper));
     }
 
-    const cleanName = (name && name.trim()) ? name.trim() : (teacher?.full_name || teacher?.name || `Faculty (${sName})`);
+    // If teacher already exists and request did not explicitly provide subjectKey, preserve their existing subjectKey
+    if (teacher && !subjectKey) {
+      sKeyUpper = (teacher.subjectKey || teacher.department || sKeyUpper).toUpperCase();
+    }
+
+    // Determine if Class 10 scope applies
+    const isClass10 = String(grade) === '10' 
+      || sKeyUpper.startsWith('CLASS10_')
+      || (teacher && (String(teacher.grade) === '10' || teacher.defaultClass === '10-Science-A' || teacher.subjectKey?.startsWith('CLASS10_')));
+
+    let sName = 'Physics';
+    let sKey = sKeyUpper;
+    let sDesignation = '';
+    let sDefaultClass = '11-NonMed';
+    let sTargetStream = 'JEE';
+    let sStreamText = '';
+
+    if (isClass10) {
+      if (sKeyUpper === 'CLASS10_SCIENCE' || sKeyUpper === 'SCIENCE' || sKeyUpper === 'PHYSICS' || sKeyUpper === 'CHEMISTRY') {
+        sKey = 'CLASS10_SCIENCE';
+        sName = 'Science';
+        sDesignation = 'Class 10th Science Faculty & Board Coordinator';
+        sDefaultClass = '10-Science-A';
+        sTargetStream = 'CBSE_CLASS_10';
+        sStreamText = 'Assigned Subject: Science • Class 10 (CBSE & HP Board Foundation)';
+      } else {
+        sKey = 'CLASS10_MATHEMATICS';
+        sName = 'Mathematics';
+        sDesignation = 'Class 10th Mathematics Faculty & Board Coordinator';
+        sDefaultClass = '10-Science-A';
+        sTargetStream = 'CBSE_CLASS_10';
+        sStreamText = 'Assigned Subject: Mathematics • Class 10 (CBSE & HP Board Foundation)';
+      }
+    } else {
+      if (sKeyUpper === 'PHYSICS') {
+        sName = 'Physics';
+        sDesignation = 'Senior Physics Faculty & HOD';
+        sDefaultClass = '11-NonMed';
+        sTargetStream = 'JEE';
+        sStreamText = 'Assigned Subject: Physics • Classes 11 & 12 (NEET, JEE Main & CBSE Boards)';
+      } else if (sKeyUpper === 'CHEMISTRY') {
+        sName = 'Chemistry';
+        sDesignation = 'Senior Chemistry Faculty';
+        sDefaultClass = '11-NonMed';
+        sTargetStream = 'JEE';
+        sStreamText = 'Assigned Subject: Chemistry • Classes 11 & 12 (NEET, JEE Main & CBSE Boards)';
+      } else if (sKeyUpper === 'BIOLOGY') {
+        sName = 'Biology';
+        sDesignation = 'Senior Biology Faculty & NEET Coordinator';
+        sDefaultClass = '11-Med';
+        sTargetStream = 'NEET';
+        sStreamText = 'Assigned Subject: Biology • Classes 11 & 12 Medical (NEET UG & CBSE Boards)';
+      } else {
+        sKey = 'MATHEMATICS';
+        sName = 'Mathematics';
+        sDesignation = 'Senior Mathematics Faculty';
+        sDefaultClass = '11-NonMed';
+        sTargetStream = 'JEE';
+        sStreamText = 'Assigned Subject: Mathematics • Classes 11 & 12 (JEE Main/Adv & CBSE Boards)';
+      }
+    }
+
+    const cleanName = (name && name.trim()) ? name.trim() : (teacher?.full_name || teacher?.name || (isClass10 ? `Faculty (${sName} Class 10)` : `Faculty (${sName})`));
 
     if (teacher) {
       // Update details if supplied
@@ -552,45 +627,33 @@ function handleTeacherLogin(req, res) {
       if (cleanPhone) {
         teacher.phone = cleanPhone;
       }
-      if (subjectKey) {
-        teacher.subjectKey = sKeyUpper;
-        teacher.subject = sName;
-        teacher.department = sKeyUpper;
-        teacher.subjectName = sName;
-        teacher.defaultClass = sKeyUpper === 'BIOLOGY' ? '11-Med' : '11-NonMed';
-        teacher.targetStream = sKeyUpper === 'BIOLOGY' ? 'NEET' : 'JEE';
-        teacher.designation = sKeyUpper === 'BIOLOGY' 
-          ? 'Senior Biology Faculty & NEET Coordinator' 
-          : sKeyUpper === 'PHYSICS' 
-          ? 'Senior Physics Faculty & HOD' 
-          : `Senior ${sName} Faculty`;
-        teacher.streamText = sKeyUpper === 'BIOLOGY'
-          ? 'Assigned Subject: Biology • Classes 11 & 12 Medical (NEET UG & CBSE Boards)'
-          : `Assigned Subject: ${sName} • Classes 11 & 12 (${sKeyUpper === 'MATHEMATICS' ? 'JEE Main/Adv & CBSE Boards' : 'NEET, JEE Main & CBSE Boards'})`;
-      }
+      teacher.subjectKey = sKey;
+      teacher.subject = sName;
+      teacher.subjectName = sName;
+      teacher.department = isClass10 ? (sKey === 'CLASS10_SCIENCE' ? 'SCIENCE' : 'MATHEMATICS') : sKeyUpper;
+      teacher.grade = isClass10 ? '10' : (teacher.grade || '11');
+      teacher.defaultClass = sDefaultClass;
+      teacher.targetStream = sTargetStream;
+      teacher.designation = teacher.designation || sDesignation;
+      teacher.streamText = sStreamText;
     } else {
       // Create new teacher profile
       teacher = {
-        id: `fac_${sKeyUpper.toLowerCase()}_${cleanPhone || Date.now()}`,
+        id: `fac_${sKey.toLowerCase()}_${cleanPhone || Date.now()}`,
         full_name: cleanName,
         name: cleanName,
         role: 'TEACHER',
         phone: cleanPhone || '9816010000',
-        email: email || `${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '') || sKeyUpper.toLowerCase()}@haps.edu.in`,
+        email: email || `${cleanName.toLowerCase().replace(/[^a-z0-9]/g, '') || sKey.toLowerCase()}@haps.edu.in`,
         subject: sName,
         subjectName: sName,
-        subjectKey: sKeyUpper,
-        department: sKeyUpper,
-        designation: sKeyUpper === 'BIOLOGY' 
-          ? 'Senior Biology Faculty & NEET Coordinator' 
-          : sKeyUpper === 'PHYSICS' 
-          ? 'Senior Physics Faculty & HOD' 
-          : `Senior ${sName} Faculty`,
-        defaultClass: sKeyUpper === 'BIOLOGY' ? '11-Med' : '11-NonMed',
-        targetStream: sKeyUpper === 'BIOLOGY' ? 'NEET' : 'JEE',
-        streamText: sKeyUpper === 'BIOLOGY' 
-          ? 'Assigned Subject: Biology • Classes 11 & 12 Medical (NEET UG & CBSE Boards)'
-          : `Assigned Subject: ${sName} • Classes 11 & 12 (${sKeyUpper === 'MATHEMATICS' ? 'JEE Main/Adv & CBSE Boards' : 'NEET, JEE Main & CBSE Boards'})`
+        subjectKey: sKey,
+        department: isClass10 ? (sKey === 'CLASS10_SCIENCE' ? 'SCIENCE' : 'MATHEMATICS') : sKeyUpper,
+        designation: sDesignation,
+        grade: isClass10 ? '10' : '11',
+        defaultClass: sDefaultClass,
+        targetStream: sTargetStream,
+        streamText: sStreamText
       };
       inMemoryStore.users.push(teacher);
     }
@@ -654,6 +717,9 @@ router.get('/students', (req, res) => {
       } else if (sKey === 'MATHEMATICS') {
         // Only students in Non-Medical or Foundation classes taking Mathematics
         students = students.filter(s => (s.section || '').includes('NonMed') || (s.section || '').includes('Science-A'));
+      } else if (sKey === 'CLASS10_MATHEMATICS' || sKey === 'CLASS10_SCIENCE') {
+        // Strictly Class 10 Foundation students
+        students = students.filter(s => String(s.grade) === '10' || (s.section || '').includes('Science-A'));
       }
     }
 
@@ -771,14 +837,15 @@ router.post('/generate-test', async (req, res) => {
       canonicalSubject = 'Biology';
       resolvedSubjectKey = 'BIOLOGY';
     } else if (sName.includes('math') || sKey.includes('MATH')) {
-      targetBank = String(grade) === '10' ? (banks.class10_maths || []) : (banks.senior_mathematics || []);
+      const isC10 = String(grade) === '10' || sKey === 'CLASS10_MATHEMATICS';
+      targetBank = isC10 ? (banks.class10_math_pyq_ncert || banks.class10_maths || []) : (banks.senior_mathematics || []);
       canonicalSubject = 'Mathematics';
-      resolvedSubjectKey = String(grade) === '10' ? 'CLASS10_MATHEMATICS' : 'MATHEMATICS';
+      resolvedSubjectKey = isC10 ? 'CLASS10_MATHEMATICS' : 'MATHEMATICS';
     } else if (sName.includes('phys') || sKey.includes('PHYS')) {
       targetBank = banks.senior_physics || [];
       canonicalSubject = 'Physics';
       resolvedSubjectKey = 'PHYSICS';
-    } else if (String(grade) === '10' && (sName.includes('sci') || sKey.includes('SCI'))) {
+    } else if ((String(grade) === '10' || sKey === 'CLASS10_SCIENCE') && (sName.includes('sci') || sKey.includes('SCI'))) {
       targetBank = banks.class10_science || [];
       canonicalSubject = 'Science';
       resolvedSubjectKey = 'CLASS10_SCIENCE';

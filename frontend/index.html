@@ -273,6 +273,7 @@
       } catch (e) {}
       var titles = {
         'tabGenerator': 'Create Tests & Quizzes • Department of ' + curSubject,
+        'tabQuestionBank': 'Question Bank & PYQ Repository • Department of ' + curSubject,
         'tabClassAnalytics': 'Class Progress Dashboard • Department of ' + curSubject,
         'tabStudents': 'Students & Smart Cards • Department of ' + curSubject,
         'tabSmartReports': 'Weekly Smart Report • Department of ' + curSubject,
@@ -346,6 +347,10 @@
         <button type="button" class="drawer-tab-btn active" data-tab="tabGenerator" onclick="switchTeacherTab('tabGenerator')">
           <i data-lucide="file-plus" style="width:16px; height:16px;"></i>
           <span>Create Tests &amp; Quizzes</span>
+        </button>
+        <button type="button" class="drawer-tab-btn" data-tab="tabQuestionBank" onclick="switchTeacherTab('tabQuestionBank')">
+          <i data-lucide="database" style="width:16px; height:16px;"></i>
+          <span>Question Bank &amp; PYQs</span>
         </button>
         <button type="button" class="drawer-tab-btn" data-tab="tabClassAnalytics" onclick="switchTeacherTab('tabClassAnalytics')">
           <i data-lucide="bar-chart-3" style="width:16px; height:16px;"></i>
@@ -517,6 +522,7 @@
         <button class="sub-tab-btn" id="tabBtnStudents" data-tab="tabStudents">Students &amp; Smart Cards</button>
         <button class="sub-tab-btn" id="tabBtnSmartReports" data-tab="tabSmartReports">Weekly Smart Report</button>
         <button class="sub-tab-btn active" id="tabBtnGenerator" data-tab="tabGenerator">Create Tests &amp; Quizzes</button>
+        <button class="sub-tab-btn" id="tabBtnQuestionBank" data-tab="tabQuestionBank">Question Bank &amp; PYQs</button>
         <button class="sub-tab-btn" id="tabBtnHandwritten" data-tab="tabHandwritten">Scan Paper Sheets</button>
       </div>
 
@@ -563,6 +569,7 @@
               <div class="scope-field-group">
                 <span class="scope-label"><i data-lucide="graduation-cap" style="width:13px; height:13px; vertical-align:middle;"></i> My Teaching Class</span>
                 <select class="form-select" id="selectTeacherClassScope" style="min-width: 250px; font-weight: 700; font-size: 0.9rem; padding: 7px 12px;">
+                  <option value="10-Science-A">Class 10th (Section A) &bull; Secondary Foundation</option>
                   <option value="11-NonMed">Class 11th (Non-Medical) &bull; JEE &amp; Boards</option>
                   <option value="11-Med">Class 11th (Medical) &bull; NEET &amp; Boards</option>
                   <option value="12-NonMed" selected>Class 12th (Non-Medical) &bull; JEE &amp; Boards</option>
@@ -621,6 +628,9 @@
             </p>
           </div>
           <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" class="btn-primary" onclick="switchTeacherTab('tabQuestionBank')" style="font-size: 0.8rem; padding: 6px 14px; background: linear-gradient(135deg, #2563eb, #1d4ed8); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; border-radius: var(--radius-sm); border: none; cursor: pointer; color: #fff;">
+              <i data-lucide="database" style="width:14px; height:14px;"></i> Question Bank &amp; PYQs
+            </button>
             <input type="text" id="searchChapterInput" placeholder="Filter chapters or topics..." style="background: var(--bg-card); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.82rem; min-width: 220px;">
           </div>
         </div>
@@ -630,6 +640,103 @@
           <!-- Dynamically populated via app.js -->
         </div>
 
+      </div>
+
+      <!-- TAB: QUESTION BANK & PYQS (CURATED AUTHENTIC QUESTIONS) -->
+      <div class="teacher-tab-content" id="tabQuestionBank" style="display:none;">
+        <div class="glass-card" style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 1rem;">
+            <div>
+              <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(37,99,235,0.12); color:var(--accent-blue); padding:3px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; margin-bottom:6px;" id="qbStreamBadge">
+                <i data-lucide="award" style="width:13px; height:13px;"></i>
+                <span id="qbBadgeText">Class 10th Foundation &bull; CBSE / HP Board</span>
+              </div>
+              <h2 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin: 0;" id="qbHeaderTitle">
+                Class 10th Mathematics Question Bank
+              </h2>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 4px 0 0 0;" id="qbHeaderSubtitle">
+                438 Curated Questions &bull; 14 Chapters &bull; Board PYQs (2018-2024), NCERT Examples &amp; In-Text Exercises
+              </p>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button type="button" class="btn-secondary" onclick="loadQuestionBankView(true)" style="font-size:0.8rem; padding:7px 14px;" title="Reload from question repository">
+                <i data-lucide="refresh-cw" style="width:13px; height:13px;"></i> Refresh
+              </button>
+              <button type="button" class="btn-primary" onclick="switchTeacherTab('tabGenerator')" style="font-size:0.8rem; padding:7px 16px; background:linear-gradient(135deg, #10b981, #059669); font-weight:700;">
+                <i data-lucide="file-plus" style="width:14px; height:14px;"></i> Create Test from Syllabus
+              </button>
+            </div>
+          </div>
+
+          <!-- QUESTION BANK FILTER BAR -->
+          <div style="background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:12px 14px; display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+            <div>
+              <label for="selectQbChapter" style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">
+                Chapter Scope
+              </label>
+              <select id="selectQbChapter" class="form-select" onchange="filterQuestionBankCards()" style="width:100%; font-size:0.82rem; padding:6px 10px; background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-subtle); border-radius:6px;">
+                <option value="ALL" selected>All 14 Chapters</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="selectQbSource" style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">
+                Question Origin / Source
+              </label>
+              <select id="selectQbSource" class="form-select" onchange="filterQuestionBankCards()" style="width:100%; font-size:0.82rem; padding:6px 10px; background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-subtle); border-radius:6px;">
+                <option value="ALL" selected>All Question Sources</option>
+                <option value="PYQ">Board PYQ (2018-2024)</option>
+                <option value="NCERT_EXAMPLE">NCERT Solved Example</option>
+                <option value="NCERT_EXERCISE">NCERT In-Text Exercise</option>
+                <option value="CBSE_PATTERN">CBSE Standard/Basic Pattern</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="selectQbDifficulty" style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">
+                Difficulty Level
+              </label>
+              <select id="selectQbDifficulty" class="form-select" onchange="filterQuestionBankCards()" style="width:100%; font-size:0.82rem; padding:6px 10px; background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-subtle); border-radius:6px;">
+                <option value="ALL" selected>All Difficulties</option>
+                <option value="EASY">Easy</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HARD">Hard</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="selectQbFormat" style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">
+                Question Format
+              </label>
+              <select id="selectQbFormat" class="form-select" onchange="filterQuestionBankCards()" style="width:100%; font-size:0.82rem; padding:6px 10px; background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-subtle); border-radius:6px;">
+                <option value="ALL" selected>All Question Formats</option>
+                <option value="MCQ_SINGLE">MCQ Single Choice</option>
+                <option value="ASSERTION_REASON">Assertion &amp; Reason</option>
+                <option value="SHORT_ANSWER">Short Answer (2-3 Marks)</option>
+                <option value="LONG_ANSWER">Long Answer (5 Marks)</option>
+                <option value="CASE_STUDY">Case Study / Passage</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="inputQbSearch" style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">
+                Live Keyword / Math Search
+              </label>
+              <input type="text" id="inputQbSearch" placeholder="Search concept, theorem..." oninput="filterQuestionBankCards()" style="width:100%; font-size:0.82rem; padding:6px 10px; background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-subtle); border-radius:6px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS BAR -->
+        <div id="qbStatsBar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; padding:0 4px; font-size:0.82rem; color:var(--text-secondary);">
+          <span id="qbCountLabel">Loading question repository...</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Standard KaTeX Math Formatting Enabled</span>
+        </div>
+
+        <!-- QUESTIONS CARDS CONTAINER -->
+        <div id="containerQbQuestions" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Dynamically populated via app.js -->
+        </div>
       </div>
 
       <!-- TAB 2: LIVE TELEMETRY & CONCEPT DIAGNOSTICS -->
@@ -2034,10 +2141,16 @@
                 Subject Expertise *
               </label>
               <select id="selectTeacherExpertise" name="subjectKey" required class="form-select" style="width:100%; padding:9px 12px; font-size:0.88rem; background:var(--bg-secondary); border:1px solid var(--border-subtle); color:var(--text-primary); border-radius:6px;">
-                <option value="BIOLOGY" selected>Biology (NEET UG &amp; Boards)</option>
-                <option value="PHYSICS">Physics (JEE &amp; Boards)</option>
-                <option value="CHEMISTRY">Chemistry (NEET / JEE &amp; Boards)</option>
-                <option value="MATHEMATICS">Mathematics (JEE &amp; Boards)</option>
+                <optgroup label="Secondary (Class 10th Foundation &amp; Boards)">
+                  <option value="CLASS10_MATHEMATICS">Class 10th Mathematics (CBSE &amp; HP Board)</option>
+                  <option value="CLASS10_SCIENCE">Class 10th Science (Physics, Chemistry, Biology)</option>
+                </optgroup>
+                <optgroup label="Senior Secondary (+1 &amp; +2)">
+                  <option value="BIOLOGY">Biology (NEET UG &amp; Boards)</option>
+                  <option value="PHYSICS">Physics (JEE &amp; Boards)</option>
+                  <option value="CHEMISTRY">Chemistry (NEET / JEE &amp; Boards)</option>
+                  <option value="MATHEMATICS">Mathematics (JEE &amp; Boards)</option>
+                </optgroup>
               </select>
             </div>
           </div>
@@ -2056,31 +2169,45 @@
             Or Quick-Select Registered Institutional Faculty:
           </label>
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+            <!-- Class 10th Mathematics -->
+            <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('CLASS10_MATHEMATICS', 'Mrs. Meenakshi Sharma', '9816010010')" style="padding:10px; background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.4); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Mrs. Meenakshi Sharma</strong>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Class 10th Maths &bull; Board Coordinator</span>
+              <span style="font-size:0.7rem; color:#f59e0b; font-weight:700;">98160 10010</span>
+            </button>
+
+            <!-- Class 10th Science -->
+            <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('CLASS10_SCIENCE', 'Er. Rakesh Thakur', '9816010011')" style="padding:10px; background:rgba(14, 165, 233, 0.1); border:1px solid rgba(14, 165, 233, 0.4); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
+              <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Er. Rakesh Thakur</strong>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Class 10th Science &bull; Board Coordinator</span>
+              <span style="font-size:0.7rem; color:#0ea5e9; font-weight:700;">98160 10011</span>
+            </button>
+
             <!-- Biology -->
             <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('BIOLOGY', 'Dr. Ananya Mukherjee', '9816010003')" style="padding:10px; background:rgba(236, 72, 153, 0.08); border:1px solid rgba(236, 72, 153, 0.3); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
               <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Dr. Ananya Mukherjee</strong>
-              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Biology &bull; NEET UG</span>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Senior Biology &bull; NEET UG</span>
               <span style="font-size:0.7rem; color:#ec4899; font-weight:600;">98160 10003</span>
             </button>
 
             <!-- Physics -->
             <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('PHYSICS', 'Dr. Vikram Sharma', '9816010001')" style="padding:10px; background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.3); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
               <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Dr. Vikram Sharma</strong>
-              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Physics &bull; JEE / HOD</span>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Senior Physics &bull; JEE / HOD</span>
               <span style="font-size:0.7rem; color:#3b82f6; font-weight:600;">98160 10001</span>
             </button>
 
             <!-- Chemistry -->
             <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('CHEMISTRY', 'Prof. Sunita Rao', '9816010002')" style="padding:10px; background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
               <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Prof. Sunita Rao</strong>
-              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Chemistry &bull; NEET / JEE</span>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Senior Chemistry &bull; NEET / JEE</span>
               <span style="font-size:0.7rem; color:#10b981; font-weight:600;">98160 10002</span>
             </button>
 
             <!-- Mathematics -->
             <button type="button" class="btn-faculty-card" onclick="quickSelectFaculty('MATHEMATICS', 'Er. Rajesh Gupta', '9816010004')" style="padding:10px; background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.3); border-radius:6px; text-align:left; cursor:pointer; transition:all 0.2s ease;">
               <strong style="font-size:0.84rem; color:var(--text-primary); display:block;">Er. Rajesh Gupta</strong>
-              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Mathematics &bull; JEE Main/Adv</span>
+              <span style="font-size:0.72rem; color:var(--text-muted); display:block;">Senior Maths &bull; JEE Main/Adv</span>
               <span style="font-size:0.7rem; color:#f59e0b; font-weight:600;">98160 10004</span>
             </button>
           </div>
