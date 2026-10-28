@@ -377,6 +377,7 @@ router.get('/class10-math-bank', (req, res) => {
 
     res.json({
       success: true,
+      totalQuestions: bank.length,
       totalBankQuestions: bank.length,
       filteredCount: filtered.length,
       limit: parsedLimit,

@@ -392,8 +392,9 @@ runTest('Class 10 Faculty Auth, 14-Chapter Syllabus & 438-Question Bank (/api/qu
   const bankRes = makeRequest('/api/questions/class10-math-bank');
   if (!bankRes.success) throw new Error(`Class 10 question bank request failed: ${bankRes.error}`);
   const bankData = JSON.parse(bankRes.body);
-  if (!bankData.success || bankData.totalQuestions !== 438) {
-    throw new Error(`Expected 438 totalQuestions in Class 10 math bank, got ${bankData.totalQuestions}`);
+  const total = bankData.totalQuestions || bankData.totalBankQuestions || (bankData.summary && bankData.summary.totalQuestions);
+  if (!bankData.success || total !== 438) {
+    throw new Error(`Expected 438 totalQuestions in Class 10 math bank, got ${total}`);
   }
 });
 
