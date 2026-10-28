@@ -480,13 +480,18 @@ function switchTeacherTab(targetTabId) {
   // Update header title
   const headerTitle = document.getElementById('headerNavTitle');
   const activeProf = teacherBuilderState.activeTeacher;
-  const subjName = activeProf ? activeProf.subjectName : 'Physics';
+  const isC10 = String(teacherBuilderState.selectedClassId || '').startsWith('10') || teacherBuilderState.teacherSubjectKey?.startsWith('CLASS10_');
+  const curSubjName = isC10
+    ? (teacherBuilderState.selectedSubjectKey === 'CLASS10_SCIENCE' ? 'Class 10th Science' : 'Class 10th Mathematics')
+    : (activeProf ? activeProf.subjectName : 'Physics');
+
   const tabTitles = {
-    'tabGenerator': `Create Tests & Quizzes • ${subjName}`,
-    'tabClassAnalytics': `Class Progress Dashboard • ${subjName}`,
-    'tabStudents': `Students & Smart Cards • ${subjName}`,
-    'tabSmartReports': `Weekly Smart Report • ${subjName}`,
-    'tabHandwritten': `Scan Paper Sheets • ${subjName}`
+    'tabGenerator': `Create Tests & Quizzes • ${curSubjName}`,
+    'tabQuestionBank': `Question Bank & PYQ Repository • ${curSubjName}`,
+    'tabClassAnalytics': `Class Progress Dashboard • ${curSubjName}`,
+    'tabStudents': `Students & Smart Cards • ${curSubjName}`,
+    'tabSmartReports': `Weekly Smart Report • ${curSubjName}`,
+    'tabHandwritten': `Scan Paper Sheets • ${curSubjName}`
   };
   if (headerTitle && tabTitles[targetTabId]) {
     headerTitle.innerText = tabTitles[targetTabId];
@@ -497,6 +502,10 @@ function switchTeacherTab(targetTabId) {
     if (!teacherBuilderState.currentTaxonomy) {
       setupTeacherTestBuilder();
     }
+  } else if (targetTabId === 'tabQuestionBank') {
+    if (typeof loadQuestionBankView === 'function') {
+      loadQuestionBankView(false);
+    }
   } else if (targetTabId === 'tabClassAnalytics') {
     const selectAssessment = document.getElementById('selectAnalyticsAssessment');
     const targetId = state.lastSubmittedAssessmentId || (selectAssessment && selectAssessment.value) || state.activeAssessment?.id;
@@ -505,6 +514,10 @@ function switchTeacherTab(targetTabId) {
     loadAndRenderSmartReport('b0000000-0000-0000-0000-000000000001');
   } else if (targetTabId === 'tabStudents' && currentAnalyticsData) {
     renderClassAnalytics(currentAnalyticsData);
+  }
+
+  if (window.handleTabActivated) {
+    try { window.handleTabActivated(targetTabId); } catch(e) {}
   }
 
   closeSidebarDrawer();
@@ -4863,9 +4876,29 @@ function escapeHtml(str) {
 
 function getFallbackClasses(teacherSubjKey) {
   const sKey = (teacherSubjKey || teacherBuilderState.teacherSubjectKey || 'PHYSICS').toUpperCase();
-  const sName = sKey === 'PHYSICS' ? 'Physics' : (sKey === 'CHEMISTRY' ? 'Chemistry' : (sKey === 'BIOLOGY' ? 'Biology' : 'Mathematics'));
+  const sName = sKey === 'PHYSICS' ? 'Physics' : (sKey === 'CHEMISTRY' ? 'Chemistry' : (sKey === 'BIOLOGY' ? 'Biology' : (sKey.startsWith('CLASS10_') ? (sKey === 'CLASS10_SCIENCE' ? 'Science' : 'Mathematics') : 'Mathematics')));
 
   const allClasses = [
+    {
+      id: '10-Science-A',
+      key: '10-Science-A',
+      name: 'Class 10th (Section A)',
+      grade: '10',
+      section: '10-Science-A',
+      stream: 'FOUNDATION',
+      badge: 'CBSE & HP Board Foundation',
+      defaultSubject: 'CLASS10_MATHEMATICS',
+      subjects: [
+        { key: 'CLASS10_MATHEMATICS', name: 'Mathematics', grade: '10', icon: 'calculator' },
+        { key: 'CLASS10_SCIENCE', name: 'Science', grade: '10', icon: 'atom' }
+      ],
+      students: [
+        { id: '10-A-01', name: 'Rohit Verma', roll: '10-A-01' },
+        { id: '10-A-02', name: 'Aditya Chauhan', roll: '10-A-02' },
+        { id: '10-A-03', name: 'Tanvi Sood', roll: '10-A-03' },
+        { id: '10-A-04', name: 'Nikhil Rana', roll: '10-A-04' }
+      ]
+    },
     {
       id: '11-NonMed',
       key: '11-NonMed',
@@ -4971,9 +5004,13 @@ async function setupTeacherTestBuilder() {
   // 3. Class change listener
   classSelect.addEventListener('change', (e) => {
     teacherBuilderState.selectedClassId = e.target.value;
-    const stream = e.target.value.includes('Med') && !e.target.value.includes('NonMed') ? 'NEET' : (e.target.value.includes('NonMed') ? 'JEE' : 'BOARD');
+    const isCls10 = String(e.target.value).startsWith('10');
+    const stream = isCls10 ? 'BOARD' : (e.target.value.includes('Med') && !e.target.value.includes('NonMed') ? 'NEET' : (e.target.value.includes('NonMed') ? 'JEE' : 'BOARD'));
     updateStreamSelectionUI(stream);
     updateTeacherClassScopeUI();
+    if (state.activeTeacherTab === 'tabQuestionBank') {
+      loadQuestionBankView(true);
+    }
   });
 
   // 3. Roster drawer toggle
@@ -5105,6 +5142,34 @@ function updateTeacherClassScopeUI() {
   // 2. Render Subject Pills: STRICTLY SCOPED TO SIGNED-IN TEACHER'S SUBJECT
   const pillsContainer = document.getElementById('containerSubjectPills');
   if (pillsContainer) {
+    const isClass10 = currentClass.grade === '10' || currentClass.id === '10-Science-A';
+    if (isClass10) {
+      if (!teacherBuilderState.selectedSubjectKey || !teacherBuilderState.selectedSubjectKey.startsWith('CLASS10_')) {
+        teacherBuilderState.selectedSubjectKey = 'CLASS10_MATHEMATICS';
+      }
+      pillsContainer.innerHTML = `
+        <button type="button" 
+          class="subject-pill-btn ${teacherBuilderState.selectedSubjectKey === 'CLASS10_MATHEMATICS' ? 'active' : ''}" 
+          data-subject-key="CLASS10_MATHEMATICS"
+          data-grade="10"
+          onclick="selectCurriculumSubject('CLASS10_MATHEMATICS', '10')">
+          <i data-lucide="calculator" style="width:14px; height:14px;"></i>
+          Mathematics (Class 10th)
+        </button>
+        <button type="button" 
+          class="subject-pill-btn ${teacherBuilderState.selectedSubjectKey === 'CLASS10_SCIENCE' ? 'active' : ''}" 
+          data-subject-key="CLASS10_SCIENCE"
+          data-grade="10"
+          onclick="selectCurriculumSubject('CLASS10_SCIENCE', '10')">
+          <i data-lucide="atom" style="width:14px; height:14px;"></i>
+          Science (Class 10th)
+        </button>
+      `;
+      initLucideIcons();
+      loadCurriculumForClassAndSubject(teacherBuilderState.selectedSubjectKey, '10');
+      return;
+    }
+
     const rawSubjects = currentClass.subjects || [];
     const teacherSubj = teacherBuilderState.teacherSubjectKey || 'PHYSICS';
 
@@ -5379,6 +5444,9 @@ function toggleChapterAccordion(chNum, event) {
 
 function selectCurriculumSubject(subjectKey, grade) {
   teacherBuilderState.selectedSubjectKey = subjectKey;
+  if (subjectKey.startsWith('CLASS10_')) {
+    teacherBuilderState.teacherSubjectKey = subjectKey;
+  }
   
   // Update pill active class
   document.querySelectorAll('.subject-pill-btn').forEach(btn => {
@@ -5387,6 +5455,10 @@ function selectCurriculumSubject(subjectKey, grade) {
 
   const currentClass = teacherBuilderState.classes.find(c => c.id === teacherBuilderState.selectedClassId);
   loadCurriculumForClassAndSubject(subjectKey, grade || currentClass?.grade || '12');
+
+  if (state.activeTeacherTab === 'tabQuestionBank') {
+    loadQuestionBankView(true);
+  }
 }
 
 function openCurriculumTestModal() {
@@ -6335,13 +6407,29 @@ function closeSidebarDrawer() {
 }
 
 function updateStreamSelectionUI(stream = 'JEE') {
+  const curClassId = teacherBuilderState.selectedClassId || '';
+  const currentClass = (teacherBuilderState.classes || []).find(c => c.id === curClassId);
+  const teacherSubj = (teacherBuilderState.teacherSubjectKey || '').toUpperCase();
+  const isClass10 = curClassId === '10-Science-A' 
+    || currentClass?.grade === '10' 
+    || String(curClassId).startsWith('10')
+    || teacherSubj.startsWith('CLASS10_') 
+    || teacherBuilderState.activeTeacher?.grade === '10';
+
+  // Normalize stream if in Class 10
+  if (isClass10) {
+    if (stream === 'JEE' || stream === 'NEET' || stream === 'CBSE_CLASS_10' || stream === 'FOUNDATION') {
+      stream = 'BOARD';
+    }
+  }
+
   teacherBuilderState.targetStream = stream;
 
   // 1. Update compact strip badge in main view if exists
   const badgeStream = document.getElementById('badgeActiveStreamName');
   if (badgeStream) {
     if (stream === 'BOARD') {
-      badgeStream.innerText = 'Board (CBSE & HP Board)';
+      badgeStream.innerText = isClass10 ? 'Board (CBSE & HP Board 10th)' : 'Board (CBSE & HP Board)';
       badgeStream.style.borderColor = 'rgba(245, 158, 11, 0.4)';
       badgeStream.style.color = '#fbbf24';
       badgeStream.style.background = 'rgba(245, 158, 11, 0.12)';
@@ -6351,7 +6439,7 @@ function updateStreamSelectionUI(stream = 'JEE') {
       badgeStream.style.color = '#34d399';
       badgeStream.style.background = 'rgba(16, 185, 129, 0.12)';
     } else if (stream === 'OLYMPIAD') {
-      badgeStream.innerText = 'Olympiad & Advanced';
+      badgeStream.innerText = isClass10 ? 'Olympiad & Foundation' : 'Olympiad & Advanced';
       badgeStream.style.borderColor = 'rgba(168, 85, 247, 0.4)';
       badgeStream.style.color = '#c084fc';
       badgeStream.style.background = 'rgba(168, 85, 247, 0.12)';
@@ -6372,16 +6460,62 @@ function updateStreamSelectionUI(stream = 'JEE') {
   const checkJee = document.getElementById('checkStreamJee');
   const checkNeet = document.getElementById('checkStreamNeet');
   const checkOlympiad = document.getElementById('checkStreamOlympiad');
+  const boardSubtext = document.getElementById('drawerStreamBoardSubtext');
+  const olympiadTitle = document.getElementById('drawerStreamOlympiadTitle');
+  const olympiadSubtext = document.getElementById('drawerStreamOlympiadSubtext');
 
-  if (btnBoard) btnBoard.classList.toggle('active', stream === 'BOARD');
-  if (btnJee) btnJee.classList.toggle('active', stream === 'JEE');
-  if (btnNeet) btnNeet.classList.toggle('active', stream === 'NEET');
-  if (btnOlympiad) btnOlympiad.classList.toggle('active', stream === 'OLYMPIAD');
+  if (isClass10) {
+    // STRICT ISOLATION FOR CLASS 10: HIDE JEE & NEET COMPLETELY!
+    if (btnJee) btnJee.style.display = 'none';
+    if (btnNeet) btnNeet.style.display = 'none';
+    if (btnBoard) {
+      btnBoard.style.display = 'flex';
+      btnBoard.classList.toggle('active', stream === 'BOARD');
+    }
+    if (btnOlympiad) {
+      btnOlympiad.style.display = 'flex';
+      btnOlympiad.classList.toggle('active', stream === 'OLYMPIAD');
+    }
+    if (boardSubtext) boardSubtext.innerText = 'Class 10th Foundation & Boards • Step Rubrics';
+    if (olympiadTitle) olympiadTitle.innerText = 'Olympiad & Foundation';
+    if (olympiadSubtext) olympiadSubtext.innerText = 'NTSE, Olympiads & Deep Reasoning';
+  } else {
+    // Senior secondary: Classes 11 & 12
+    if (btnBoard) {
+      btnBoard.style.display = 'flex';
+      btnBoard.classList.toggle('active', stream === 'BOARD');
+    }
+    if (boardSubtext) boardSubtext.innerText = 'Classes 10, 11 & 12 • Step Rubrics';
+    if (olympiadTitle) olympiadTitle.innerText = 'Olympiad & Advanced';
+    if (olympiadSubtext) olympiadSubtext.innerText = 'Deep Reasoning • Multi-Step Problems';
+
+    const isMedical = curClassId.includes('Med') && !curClassId.includes('NonMed');
+    const isNonMed = curClassId.includes('NonMed');
+
+    if (btnJee) {
+      btnJee.style.display = isMedical ? 'none' : 'flex';
+      btnJee.classList.toggle('active', stream === 'JEE');
+    }
+    if (btnNeet) {
+      btnNeet.style.display = isNonMed ? 'none' : 'flex';
+      btnNeet.classList.toggle('active', stream === 'NEET');
+    }
+    if (btnOlympiad) {
+      btnOlympiad.style.display = 'flex';
+      btnOlympiad.classList.toggle('active', stream === 'OLYMPIAD');
+    }
+  }
 
   if (checkBoard) checkBoard.style.display = stream === 'BOARD' ? 'inline-flex' : 'none';
   if (checkJee) checkJee.style.display = stream === 'JEE' ? 'inline-flex' : 'none';
   if (checkNeet) checkNeet.style.display = stream === 'NEET' ? 'inline-flex' : 'none';
   if (checkOlympiad) checkOlympiad.style.display = stream === 'OLYMPIAD' ? 'inline-flex' : 'none';
+
+  // Sync drawer class scope selector if present
+  const drawerClassSelect = document.getElementById('drawerSelectClassScope');
+  if (drawerClassSelect && curClassId) {
+    drawerClassSelect.value = curClassId;
+  }
 
   // 3. Fallback for older stream cards if present in DOM
   const streamCards = document.querySelectorAll('#teacherTargetStreams .target-stream-card');
@@ -6393,30 +6527,121 @@ function updateStreamSelectionUI(stream = 'JEE') {
 }
 
 function selectDrawerStream(stream) {
-  updateStreamSelectionUI(stream);
-  
-  if (teacherBuilderState.classes && teacherBuilderState.classes.length > 0) {
-    let matchedClass = null;
-    if (stream === 'NEET') {
-      matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('MED') && !(c.stream || '').includes('NON'));
-    } else if (stream === 'JEE') {
-      matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('NON_MEDICAL') || (c.name || '').includes('Non-Med'));
-    } else if (stream === 'BOARD') {
-      matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('FOUNDATION') || (c.grade === '10'));
-    } else if (stream === 'OLYMPIAD') {
-      matchedClass = teacherBuilderState.classes.find(c => (c.stream || '').includes('ADVANCED') || (c.stream || '').includes('OLYMPIAD'));
-    }
+  const isClass10 = teacherBuilderState.selectedClassId === '10-Science-A' 
+    || String(teacherBuilderState.selectedClassId || '').startsWith('10')
+    || (teacherBuilderState.teacherSubjectKey || '').startsWith('CLASS10_');
 
-    if (matchedClass) {
-      teacherBuilderState.selectedClassId = matchedClass.id;
+  if (isClass10 && (stream === 'JEE' || stream === 'NEET')) {
+    stream = 'BOARD';
+  }
+
+  if (stream === 'BOARD') {
+    const class10 = (teacherBuilderState.classes || []).find(c => c.id === '10-Science-A' || c.grade === '10');
+    if (class10) {
+      teacherBuilderState.selectedClassId = class10.id;
       const classSelect = document.getElementById('selectTeacherClassScope');
-      if (classSelect) classSelect.value = matchedClass.id;
-      updateTeacherClassScopeUI();
+      if (classSelect) classSelect.value = class10.id;
+      const drawerSelect = document.getElementById('drawerSelectClassScope');
+      if (drawerSelect) drawerSelect.value = class10.id;
+    } else {
+      handleDrawerClassChange('10-Science-A');
+      return;
     }
+  } else if (stream === 'OLYMPIAD') {
+    if (isClass10) {
+      updateStreamSelectionUI('OLYMPIAD');
+      updateTeacherClassScopeUI();
+      if (state.activeTeacherTab === 'tabQuestionBank') {
+        loadQuestionBankView(true);
+      }
+      closeSidebarDrawer();
+      return;
+    }
+  } else if (stream === 'JEE') {
+    const nonMedClass = (teacherBuilderState.classes || []).find(c => (c.stream || '').includes('NON_MEDICAL') || (c.name || '').includes('Non-Med'));
+    if (nonMedClass) {
+      teacherBuilderState.selectedClassId = nonMedClass.id;
+      const classSelect = document.getElementById('selectTeacherClassScope');
+      if (classSelect) classSelect.value = nonMedClass.id;
+      const drawerSelect = document.getElementById('drawerSelectClassScope');
+      if (drawerSelect) drawerSelect.value = nonMedClass.id;
+    }
+  } else if (stream === 'NEET') {
+    const medClass = (teacherBuilderState.classes || []).find(c => (c.stream || '').includes('MED') && !(c.stream || '').includes('NON'));
+    if (medClass) {
+      teacherBuilderState.selectedClassId = medClass.id;
+      const classSelect = document.getElementById('selectTeacherClassScope');
+      if (classSelect) classSelect.value = medClass.id;
+      const drawerSelect = document.getElementById('drawerSelectClassScope');
+      if (drawerSelect) drawerSelect.value = medClass.id;
+    }
+  }
+
+  updateStreamSelectionUI(stream);
+  updateTeacherClassScopeUI();
+
+  if (state.activeTeacherTab === 'tabQuestionBank') {
+    loadQuestionBankView(true);
   }
 
   closeSidebarDrawer();
 }
+
+function handleDrawerClassChange(classId) {
+  const isClass10 = String(classId).startsWith('10');
+  
+  if (isClass10) {
+    if (!teacherBuilderState.classes.some(c => c.id === '10-Science-A' || c.grade === '10')) {
+      teacherBuilderState.classes.unshift({
+        id: '10-Science-A',
+        key: '10-Science-A',
+        name: 'Class 10th (Section A)',
+        grade: '10',
+        section: '10-Science-A',
+        stream: 'FOUNDATION',
+        badge: 'CBSE & HP Board Foundation',
+        defaultSubject: 'CLASS10_MATHEMATICS',
+        subjects: [
+          { key: 'CLASS10_MATHEMATICS', name: 'Mathematics', grade: '10', icon: 'calculator' },
+          { key: 'CLASS10_SCIENCE', name: 'Science', grade: '10', icon: 'atom' }
+        ],
+        students: [
+          { id: '10-A-01', name: 'Rohit Verma', roll: '10-A-01' },
+          { id: '10-A-02', name: 'Aditya Chauhan', roll: '10-A-02' },
+          { id: '10-A-03', name: 'Tanvi Sood', roll: '10-A-03' },
+          { id: '10-A-04', name: 'Nikhil Rana', roll: '10-A-04' }
+        ]
+      });
+      const classSelect = document.getElementById('selectTeacherClassScope');
+      if (classSelect) {
+        classSelect.innerHTML = teacherBuilderState.classes.map(c => `
+          <option value="${c.id}" ${c.id === classId ? 'selected' : ''}>
+            ${c.name} &bull; ${c.badge || (c.stream ? c.stream.replace('_', ' ') : 'General')}
+          </option>
+        `).join('');
+      }
+    }
+    if (!teacherBuilderState.selectedSubjectKey || !teacherBuilderState.selectedSubjectKey.startsWith('CLASS10_')) {
+      teacherBuilderState.selectedSubjectKey = 'CLASS10_MATHEMATICS';
+    }
+  }
+
+  teacherBuilderState.selectedClassId = classId;
+  const mainClassSelect = document.getElementById('selectTeacherClassScope');
+  if (mainClassSelect) mainClassSelect.value = classId;
+  const drawerSelect = document.getElementById('drawerSelectClassScope');
+  if (drawerSelect) drawerSelect.value = classId;
+
+  const stream = isClass10 ? 'BOARD' : (classId.includes('Med') && !classId.includes('NonMed') ? 'NEET' : (classId.includes('NonMed') ? 'JEE' : 'BOARD'));
+
+  updateStreamSelectionUI(stream);
+  updateTeacherClassScopeUI();
+
+  if (state.activeTeacherTab === 'tabQuestionBank') {
+    loadQuestionBankView(true);
+  }
+}
+window.handleDrawerClassChange = handleDrawerClassChange;
 
 function handleTeacherSignOut() {
   if (!confirm('Sign out from Him Academy Faculty Portal?')) {
@@ -6516,13 +6741,34 @@ state.questionBankData = [];
 state.currentQbSubjectKey = null;
 
 async function loadQuestionBankView(forceReload = false) {
-  const teacherSubj = teacherBuilderState.teacherSubjectKey || 'CLASS10_MATHEMATICS';
-  const isClass10 = teacherSubj.startsWith('CLASS10_') || teacherBuilderState.activeTeacher?.grade === '10' || teacherBuilderState.selectedClassId === '10-Science-A';
-  
+  const curClassId = teacherBuilderState.selectedClassId || '';
+  const currentClass = (teacherBuilderState.classes || []).find(c => c.id === curClassId);
+  const isClass10 = curClassId === '10-Science-A' 
+    || currentClass?.grade === '10' 
+    || String(curClassId).startsWith('10')
+    || (teacherBuilderState.teacherSubjectKey || '').startsWith('CLASS10_') 
+    || teacherBuilderState.activeTeacher?.grade === '10';
+
+  let activeSubj = (teacherBuilderState.selectedSubjectKey || teacherBuilderState.teacherSubjectKey || '').toUpperCase();
+  if (isClass10) {
+    if (!activeSubj.startsWith('CLASS10_')) {
+      activeSubj = (activeSubj === 'SCIENCE' || activeSubj === 'BIOLOGY') ? 'CLASS10_SCIENCE' : 'CLASS10_MATHEMATICS';
+      teacherBuilderState.selectedSubjectKey = activeSubj;
+      teacherBuilderState.teacherSubjectKey = activeSubj;
+    }
+  } else {
+    if (activeSubj.startsWith('CLASS10_')) {
+      activeSubj = activeSubj === 'CLASS10_SCIENCE' ? 'PHYSICS' : 'MATHEMATICS';
+      teacherBuilderState.selectedSubjectKey = activeSubj;
+      teacherBuilderState.teacherSubjectKey = activeSubj;
+    }
+  }
+
   // Elements
   const headerTitle = document.getElementById('qbHeaderTitle');
   const headerSubtitle = document.getElementById('qbHeaderSubtitle');
   const badgeText = document.getElementById('qbBadgeText');
+  const subjectSelect = document.getElementById('selectQbSubject');
   const chapterSelect = document.getElementById('selectQbChapter');
   const container = document.getElementById('containerQbQuestions');
   const statsLabel = document.getElementById('qbCountLabel');
@@ -6531,9 +6777,9 @@ async function loadQuestionBankView(forceReload = false) {
 
   // Set titles based on teacher subject
   if (isClass10) {
-    if (teacherSubj === 'CLASS10_SCIENCE' || teacherSubj === 'SCIENCE') {
+    if (activeSubj === 'CLASS10_SCIENCE') {
       if (headerTitle) headerTitle.innerText = 'Class 10th Science Question Bank';
-      if (headerSubtitle) headerSubtitle.innerText = 'Curated Board PYQs (2018-2024), NCERT Examples & Exercises (Physics, Chemistry, Biology)';
+      if (headerSubtitle) headerSubtitle.innerText = 'Curated Board PYQs (2018-2024), NCERT Examples & Exercises';
       if (badgeText) badgeText.innerText = 'Class 10th Foundation • CBSE & HP Board';
     } else {
       if (headerTitle) headerTitle.innerText = 'Class 10th Mathematics Question Bank';
@@ -6541,15 +6787,32 @@ async function loadQuestionBankView(forceReload = false) {
       if (badgeText) badgeText.innerText = 'Class 10th Foundation • CBSE & HP Board';
     }
   } else {
-    const sName = teacherBuilderState.activeTeacher?.subjectName || teacherSubj;
+    const sName = teacherBuilderState.activeTeacher?.subjectName || activeSubj;
     if (headerTitle) headerTitle.innerText = `${sName} Question Bank & PYQ Repository`;
     if (headerSubtitle) headerSubtitle.innerText = 'Senior Secondary (+1 & +2) Curated Questions • JEE / NEET / CBSE Boards';
     if (badgeText) badgeText.innerText = `Senior Secondary Track • Department of ${sName}`;
   }
 
+  // Populate Subject Discipline dropdown
+  if (subjectSelect) {
+    if (isClass10) {
+      subjectSelect.innerHTML = `
+        <option value="CLASS10_MATHEMATICS" ${activeSubj === 'CLASS10_MATHEMATICS' ? 'selected' : ''}>Mathematics (Class 10th • 438 Qs)</option>
+        <option value="CLASS10_SCIENCE" ${activeSubj === 'CLASS10_SCIENCE' ? 'selected' : ''}>Science (Class 10th Foundation)</option>
+      `;
+    } else {
+      subjectSelect.innerHTML = `
+        <option value="PHYSICS" ${activeSubj === 'PHYSICS' ? 'selected' : ''}>Physics (Senior Secondary)</option>
+        <option value="CHEMISTRY" ${activeSubj === 'CHEMISTRY' ? 'selected' : ''}>Chemistry (Senior Secondary)</option>
+        <option value="MATHEMATICS" ${activeSubj === 'MATHEMATICS' ? 'selected' : ''}>Mathematics (Senior Secondary)</option>
+        <option value="BIOLOGY" ${activeSubj === 'BIOLOGY' ? 'selected' : ''}>Biology (Senior Secondary / NEET)</option>
+      `;
+    }
+  }
+
   // Populate chapter dropdown if empty or subject changed
-  if (chapterSelect && (chapterSelect.options.length <= 1 || state.currentQbSubjectKey !== teacherSubj)) {
-    if (isClass10 && (teacherSubj.includes('MATH') || teacherSubj === 'CLASS10_MATHEMATICS')) {
+  if (chapterSelect) {
+    if (isClass10 && activeSubj === 'CLASS10_MATHEMATICS') {
       const mathChapters = [
         { num: 1, name: 'Real Numbers' },
         { num: 2, name: 'Polynomials' },
@@ -6566,16 +6829,22 @@ async function loadQuestionBankView(forceReload = false) {
         { num: 13, name: 'Statistics' },
         { num: 14, name: 'Probability' }
       ];
-      chapterSelect.innerHTML = `<option value="ALL" selected>All 14 Chapters (${mathChapters.length} Chapters)</option>` +
+      const curVal = chapterSelect.value || 'ALL';
+      chapterSelect.innerHTML = `<option value="ALL">All 14 Chapters</option>` +
         mathChapters.map(c => `<option value="${c.num}">Ch ${c.num}: ${c.name}</option>`).join('');
+      if (curVal !== 'ALL' && mathChapters.some(c => String(c.num) === curVal)) {
+        chapterSelect.value = curVal;
+      }
     } else if (teacherBuilderState.currentTaxonomy?.chapters) {
-      chapterSelect.innerHTML = `<option value="ALL" selected>All Chapters</option>` +
+      const curVal = chapterSelect.value || 'ALL';
+      chapterSelect.innerHTML = `<option value="ALL">All Chapters</option>` +
         teacherBuilderState.currentTaxonomy.chapters.map(c => `<option value="${c.chapterNumber || c.id}">Ch ${c.chapterNumber || ''}: ${c.chapterName || c.title}</option>`).join('');
+      chapterSelect.value = curVal;
     }
   }
 
   // If already loaded for this subject and not forcing reload, just re-filter
-  if (state.questionBankData.length > 0 && state.currentQbSubjectKey === teacherSubj && !forceReload) {
+  if (state.questionBankData.length > 0 && state.currentQbSubjectKey === activeSubj && !forceReload) {
     filterQuestionBankCards();
     return;
   }
@@ -6591,14 +6860,16 @@ async function loadQuestionBankView(forceReload = false) {
 
   try {
     let url = '';
-    if (isClass10 && (teacherSubj === 'CLASS10_MATHEMATICS' || teacherSubj === 'MATHEMATICS')) {
-      url = `${getApiBaseUrl()}/api/questions/class10-math-bank?limit=450`;
-    } else if (isClass10 && (teacherSubj === 'CLASS10_SCIENCE' || teacherSubj === 'SCIENCE')) {
-      url = `${getApiBaseUrl()}/api/questions/subject-banks/class10_science`;
+    if (isClass10) {
+      if (activeSubj === 'CLASS10_SCIENCE') {
+        url = `${getApiBaseUrl()}/api/questions/subject-banks/class10_science`;
+      } else {
+        url = `${getApiBaseUrl()}/api/questions/class10-math-bank?limit=450`;
+      }
     } else {
-      const bankKey = teacherSubj === 'PHYSICS' ? 'senior_physics' 
-        : teacherSubj === 'CHEMISTRY' ? 'senior_chemistry' 
-        : teacherSubj === 'BIOLOGY' ? 'senior_biology' 
+      const bankKey = activeSubj === 'PHYSICS' ? 'senior_physics' 
+        : activeSubj === 'CHEMISTRY' ? 'senior_chemistry' 
+        : activeSubj === 'BIOLOGY' ? 'senior_biology' 
         : 'senior_mathematics';
       url = `${getApiBaseUrl()}/api/questions/subject-banks/${bankKey}`;
     }
@@ -6607,7 +6878,7 @@ async function loadQuestionBankView(forceReload = false) {
     if (res.ok) {
       const data = await res.json();
       state.questionBankData = data.questions || [];
-      state.currentQbSubjectKey = teacherSubj;
+      state.currentQbSubjectKey = activeSubj;
     } else {
       throw new Error(`API returned ${res.status}`);
     }
@@ -6618,6 +6889,30 @@ async function loadQuestionBankView(forceReload = false) {
 
   filterQuestionBankCards();
 }
+
+function handleQbSubjectChange(subjKey) {
+  teacherBuilderState.selectedSubjectKey = subjKey;
+  if (subjKey.startsWith('CLASS10_')) {
+    teacherBuilderState.teacherSubjectKey = subjKey;
+  }
+  loadQuestionBankView(true);
+}
+window.handleQbSubjectChange = handleQbSubjectChange;
+
+function resetQbFilters() {
+  const chSelect = document.getElementById('selectQbChapter');
+  const srcSelect = document.getElementById('selectQbSource');
+  const diffSelect = document.getElementById('selectQbDifficulty');
+  const fmtSelect = document.getElementById('selectQbFormat');
+  const searchInput = document.getElementById('inputQbSearch');
+  if (chSelect) chSelect.value = 'ALL';
+  if (srcSelect) srcSelect.value = 'ALL';
+  if (diffSelect) diffSelect.value = 'ALL';
+  if (fmtSelect) fmtSelect.value = 'ALL';
+  if (searchInput) searchInput.value = '';
+  filterQuestionBankCards();
+}
+window.resetQbFilters = resetQbFilters;
 
 function openQbForChapter(chNum, event) {
   if (event) event.stopPropagation();
@@ -6658,10 +6953,10 @@ function filterQuestionBankCards() {
   if (srcVal !== 'ALL') {
     filtered = filtered.filter(q => {
       const qSrc = (q.question_source || q.pyq_appearance || q.ncert_mapping?.pyq_tag || '').toUpperCase();
-      if (srcVal === 'PYQ') return qSrc.includes('PYQ') || qSrc.includes('BOARD') || qSrc.includes('CBSE 10') || qSrc.includes('HPBOSE');
+      if (srcVal === 'PYQ') return qSrc.includes('PYQ') || qSrc.includes('BOARD') || qSrc.includes('CBSE') || qSrc.includes('HPBOSE') || qSrc.includes('COMMON');
       if (srcVal === 'NCERT_EXAMPLE') return qSrc.includes('EXAMPLE');
-      if (srcVal === 'NCERT_EXERCISE') return qSrc.includes('EXERCISE') || qSrc.includes('EX ');
-      if (srcVal === 'CBSE_PATTERN') return qSrc.includes('PATTERN') || qSrc.includes('STANDARD') || qSrc.includes('BASIC');
+      if (srcVal === 'NCERT_EXERCISE') return qSrc.includes('EXERCISE') || qSrc.includes('EX ') || qSrc.includes('TEXTBOOK');
+      if (srcVal === 'CBSE_PATTERN') return qSrc.includes('PATTERN') || qSrc.includes('SAMPLE') || qSrc.includes('STANDARD') || qSrc.includes('BASIC');
       return true;
     });
   }
@@ -6671,7 +6966,16 @@ function filterQuestionBankCards() {
   }
 
   if (fmtVal !== 'ALL') {
-    filtered = filtered.filter(q => (q.question_type || q.format || '').toUpperCase() === fmtVal);
+    filtered = filtered.filter(q => {
+      const qFmt = (q.question_format || q.question_type || q.format || '').toUpperCase();
+      if (fmtVal === 'MCQ_SINGLE') return qFmt.includes('MCQ') || qFmt.includes('CHOICE');
+      if (fmtVal === 'ASSERTION_REASON') return qFmt.includes('ASSERTION');
+      if (fmtVal === 'SHORT_ANSWER') return qFmt.includes('SHORT') && !qFmt.includes('VERY');
+      if (fmtVal === 'VERY_SHORT_ANSWER') return qFmt.includes('VERY_SHORT') || qFmt.includes('VSA');
+      if (fmtVal === 'LONG_ANSWER') return qFmt.includes('LONG') || qFmt.includes('DERIVATION');
+      if (fmtVal === 'CASE_STUDY') return qFmt.includes('CASE');
+      return qFmt === fmtVal;
+    });
   }
 
   if (query) {
@@ -6692,7 +6996,11 @@ function filterQuestionBankCards() {
     container.innerHTML = `
       <div style="text-align:center; padding: 3rem 1.5rem; background:var(--bg-card); border-radius:var(--radius-md); border:1px dashed var(--border-subtle); color:var(--text-muted);">
         <i data-lucide="search-x" style="width:32px; height:32px; margin:0 auto 10px; display:block; color:var(--text-muted);"></i>
-        No questions match the selected filters. Try changing chapter, source or search criteria.
+        <div style="font-weight:700; color:var(--text-primary); margin-bottom:6px;">No questions match the selected filters</div>
+        <p style="font-size:0.82rem; margin-bottom:12px;">Try selecting another chapter, changing origin, or click below to reset.</p>
+        <button type="button" class="btn-secondary" onclick="resetQbFilters()" style="font-size:0.8rem; padding:6px 14px;">
+          <i data-lucide="rotate-ccw" style="width:13px; height:13px;"></i> Reset All Filters
+        </button>
       </div>
     `;
     initLucideIcons();

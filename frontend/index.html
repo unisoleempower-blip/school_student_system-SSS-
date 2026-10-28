@@ -371,8 +371,25 @@
       </div>
     </div>
 
-    <!-- CURRICULUM STREAMS: BOARD, JEE, NEET (as requested by user) -->
+    <!-- ACTIVE CLASS SCOPE (DIRECT SWITCHER IN DRAWER) -->
     <div class="drawer-section">
+      <div class="drawer-section-title">
+        <i data-lucide="graduation-cap" style="width:13px; height:13px;"></i>
+        <span>Active Class &amp; Grade Scope</span>
+      </div>
+      <div style="padding: 0 4px;">
+        <select id="drawerSelectClassScope" class="form-select" onchange="handleDrawerClassChange(this.value)" style="width: 100%; font-size: 0.82rem; font-weight: 700; padding: 7px 10px; background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);">
+          <option value="10-Science-A">Class 10th (Secondary Foundation)</option>
+          <option value="11-NonMed">Class 11th (Non-Medical)</option>
+          <option value="11-Med">Class 11th (Medical)</option>
+          <option value="12-NonMed">Class 12th (Non-Medical)</option>
+          <option value="12-Med">Class 12th (Medical)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- CURRICULUM STREAMS: BOARD, JEE, NEET (as requested by user) -->
+    <div class="drawer-section" id="drawerSectionTracks">
       <div class="drawer-section-title">
         <i data-lucide="layers" style="width:13px; height:13px;"></i>
         <span>Curriculum &amp; Exam Tracks</span>
@@ -384,14 +401,14 @@
             <i data-lucide="book-open" style="width:15px; height:15px;"></i>
           </div>
           <div class="drawer-stream-text">
-            <strong>Board (CBSE &amp; HP Board)</strong>
-            <span>Classes 10, 11 &amp; 12 &bull; Step Rubrics</span>
+            <strong id="drawerStreamBoardTitle">Board (CBSE &amp; HP Board)</strong>
+            <span id="drawerStreamBoardSubtext">Classes 10, 11 &amp; 12 &bull; Step Rubrics</span>
           </div>
           <span class="drawer-stream-check" id="checkStreamBoard"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
         </button>
 
         <!-- JEE -->
-        <button type="button" class="drawer-stream-btn active" id="drawerStreamJee" onclick="selectDrawerStream('JEE')">
+        <button type="button" class="drawer-stream-btn" id="drawerStreamJee" onclick="selectDrawerStream('JEE')">
           <div class="drawer-stream-icon" style="background:rgba(56, 189, 248, 0.15); color:#38bdf8;">
             <i data-lucide="compass" style="width:15px; height:15px;"></i>
           </div>
@@ -420,8 +437,8 @@
             <i data-lucide="award" style="width:15px; height:15px;"></i>
           </div>
           <div class="drawer-stream-text">
-            <strong>Olympiad &amp; Advanced</strong>
-            <span>Deep Reasoning &bull; Multi-Step Problems</span>
+            <strong id="drawerStreamOlympiadTitle">Olympiad &amp; Advanced</strong>
+            <span id="drawerStreamOlympiadSubtext">Deep Reasoning &bull; Multi-Step Problems</span>
           </div>
           <span class="drawer-stream-check" id="checkStreamOlympiad" style="display:none;"><i data-lucide="check" style="width:14px; height:14px;"></i></span>
         </button>
@@ -669,7 +686,17 @@
           </div>
 
           <!-- QUESTION BANK FILTER BAR -->
-          <div style="background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:12px 14px; display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:10px;">
+          <div style="background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:12px 14px; display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:10px;">
+            <div>
+              <label for="selectQbSubject" style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">
+                Subject Discipline
+              </label>
+              <select id="selectQbSubject" class="form-select" onchange="handleQbSubjectChange(this.value)" style="width:100%; font-size:0.82rem; padding:6px 10px; background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-subtle); border-radius:6px;">
+                <option value="CLASS10_MATHEMATICS" selected>Mathematics (Class 10th • 438 Qs)</option>
+                <option value="CLASS10_SCIENCE">Science (Class 10th)</option>
+              </select>
+            </div>
+
             <div>
               <label for="selectQbChapter" style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:4px;">
                 Chapter Scope
@@ -710,10 +737,11 @@
               </label>
               <select id="selectQbFormat" class="form-select" onchange="filterQuestionBankCards()" style="width:100%; font-size:0.82rem; padding:6px 10px; background:var(--bg-card); color:var(--text-primary); border:1px solid var(--border-subtle); border-radius:6px;">
                 <option value="ALL" selected>All Question Formats</option>
-                <option value="MCQ_SINGLE">MCQ Single Choice</option>
-                <option value="ASSERTION_REASON">Assertion &amp; Reason</option>
+                <option value="VERY_SHORT_ANSWER">Very Short Answer (1-2 Marks)</option>
                 <option value="SHORT_ANSWER">Short Answer (2-3 Marks)</option>
                 <option value="LONG_ANSWER">Long Answer (5 Marks)</option>
+                <option value="MCQ_SINGLE">MCQ Single Choice</option>
+                <option value="ASSERTION_REASON">Assertion &amp; Reason</option>
                 <option value="CASE_STUDY">Case Study / Passage</option>
               </select>
             </div>
