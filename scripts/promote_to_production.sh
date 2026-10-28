@@ -29,6 +29,9 @@ node scripts/test_teacher_auth_and_class_management.js
 node scripts/test_class10_sync_and_banks.js
 node scripts/test_question_bank_solution_studio.js
 node scripts/test_class_progress_dashboard.js
+node scripts/test_math_question_bank.js
+node scripts/test_latex_rendering_and_options.js
+node scripts/test_intuitive_solution_card.js
 echo "✅ Local diagnostic tests passed."
 echo ""
 

@@ -7120,79 +7120,198 @@ function quickFilterQbSource(srcKey) {
 function formatIntuitiveSteps(q) {
   const chNum = Number(q.chapter_number) || 1;
   const marks = Number(q.marks || q.marks_weightage || (q.difficulty === 'HARD' ? 5 : (q.difficulty === 'EASY' ? 1 : 3)));
-  const solutionText = q.solution_latex || 'Detailed step-by-step solution attached.';
-  const correctAnswer = q.correct_answer_latex || q.correct_answer || 'Verified';
+  const solutionText = (q.solution_latex || 'Detailed step-by-step solution attached.').trim();
+  const correctAnswer = (q.correct_answer_latex || q.correct_answer || 'Verified').trim();
+  const subjectLower = (q.subject || q.discipline || '').toLowerCase();
+  const isScience = subjectLower.includes('sci') || subjectLower.includes('phys') || subjectLower.includes('chem') || subjectLower.includes('bio');
 
   let principle = '';
+  let principleIntuition = '';
   let formulaLatex = '';
-  switch (chNum) {
-    case 1:
-      principle = 'Fundamental Theorem of Arithmetic & Prime Factorization';
-      formulaLatex = '\\text{HCF}(a, b) \\times \\text{LCM}(a, b) = a \\times b \\quad \\text{or} \\quad a = bq + r \\quad (0 \\le r < b)';
-      break;
-    case 2:
-      principle = 'Relationship Between Zeroes and Coefficients of Polynomials';
-      formulaLatex = '\\text{Sum: } \\alpha + \\beta = -\\frac{b}{a}, \\quad \\text{Product: } \\alpha\\beta = \\frac{c}{a}';
-      break;
-    case 3:
-      principle = 'Pair of Linear Equations in Two Variables (Consistency & Algebraic Elimination)';
-      formulaLatex = '\\frac{a_1}{a_2} \\neq \\frac{b_1}{b_2} \\implies \\text{Unique Solution}, \\quad \\frac{a_1}{a_2} = \\frac{b_1}{b_2} = \\frac{c_1}{c_2} \\implies \\text{Coincident Lines}';
-      break;
-    case 4:
-      principle = 'Quadratic Equation Standard Form & Quadratic Formula';
-      formulaLatex = 'ax^2 + bx + c = 0 \\implies x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}, \\quad D = b^2 - 4ac';
-      break;
-    case 5:
-      principle = 'General Term and Sum of Arithmetic Progression (AP)';
-      formulaLatex = 'a_n = a + (n - 1)d, \\quad S_n = \\frac{n}{2}[2a + (n - 1)d] = \\frac{n}{2}[a + l]';
-      break;
-    case 6:
-      principle = 'Basic Proportionality Theorem (Thales Theorem) & Similarity Criteria';
-      formulaLatex = '\\frac{AD}{DB} = \\frac{AE}{EC} \\quad (\\text{if } DE \\parallel BC), \\quad \\triangle ABC \\sim \\triangle DEF';
-      break;
-    case 7:
-      principle = 'Coordinate Geometry: Distance & Section Formulae';
-      formulaLatex = 'd = \\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}, \\quad P(x, y) = \\left(\\frac{m_1x_2 + m_2x_1}{m_1 + m_2}, \\frac{m_1y_2 + m_2y_1}{m_1 + m_2}\\right)';
-      break;
-    case 8:
-      principle = 'Trigonometric Ratios & Pythagorean Identities';
-      formulaLatex = '\\sin^2\\theta + \\cos^2\\theta = 1, \\quad 1 + \\tan^2\\theta = \\sec^2\\theta, \\quad 1 + \\cot^2\\theta = \\csc^2\\theta';
-      break;
-    case 9:
-      principle = 'Some Applications of Trigonometry: Line of Sight & Heights';
-      formulaLatex = '\\tan\\theta = \\frac{\\text{Height of Object (Perpendicular)}}{\\text{Horizontal Distance (Base)}}';
-      break;
-    case 10:
-      principle = 'Circle Tangents: Tangent Perpendicularity & External Tangent Equality';
-      formulaLatex = 'OP \\perp PT \\quad (\\text{Radius } \\perp \\text{ Tangent at point of contact}), \\quad PA = PB';
-      break;
-    case 11:
-      principle = 'Areas Related to Circles: Sectors and Segments';
-      formulaLatex = '\\text{Area of Sector} = \\frac{\\theta}{360^\\circ} \\times \\pi r^2, \\quad \\text{Arc Length} = \\frac{\\theta}{360^\\circ} \\times 2\\pi r';
-      break;
-    case 12:
-      principle = 'Surface Areas and Volumes of Solids and Combinations';
-      formulaLatex = 'V_{\\text{cyl}} = \\pi r^2 h, \\quad V_{\\text{cone}} = \\frac{1}{3}\\pi r^2 h, \\quad V_{\\text{sphere}} = \\frac{4}{3}\\pi r^3, \\quad \\text{CSA}_{\\text{cone}} = \\pi r l';
-      break;
-    case 13:
-      principle = 'Measures of Central Tendency: Mean, Median, Mode of Grouped Data';
-      formulaLatex = '\\bar{x} = \\frac{\\sum f_i x_i}{\\sum f_i}, \\quad \\text{Median} = l + \\left(\\frac{\\frac{N}{2} - cf}{f}\\right)h, \\quad \\text{Mode} = l + \\left(\\frac{f_1 - f_0}{2f_1 - f_0 - f_2}\\right)h';
-      break;
-    case 14:
-      principle = 'Classical Probability of an Event';
-      formulaLatex = 'P(E) = \\frac{\\text{Number of favorable outcomes}}{\\text{Total number of possible outcomes}}, \\quad 0 \\le P(E) \\le 1';
-      break;
-    default:
-      principle = 'Standard NCERT Class 10th Mathematical Formula';
-      formulaLatex = '\\text{Refer to standard Board syllabus formulations}';
+  let examTip = '';
+
+  if (isScience) {
+    const chLower = (q.chapter_name || q.chapter || '').toLowerCase();
+    if (chLower.includes('light') || chLower.includes('mirror') || chLower.includes('lens')) {
+      principle = 'Ray Optics: Spherical Mirrors & Lens Formula with Sign Convention';
+      principleIntuition = 'In spherical mirrors and lenses, apply the Cartesian sign convention strictly. Distances measured against the incident light are negative (object distance u is always negative). Focal length of a concave mirror is negative.';
+      formulaLatex = '\\frac{1}{v} + \\frac{1}{u} = \\frac{1}{f}, \\quad m = -\\frac{v}{u} = \\frac{h\'}{h} \\quad (\\text{Mirror})';
+      examTip = 'Examiner Warning: A negative magnification (m < 0) denotes a Real & Inverted image; positive magnification (m > 0) denotes a Virtual & Erect image.';
+    } else if (chLower.includes('elect') || chLower.includes('current')) {
+      principle = 'Ohm\'s Law, Circuit Resistance & Joule\'s Law of Heating';
+      principleIntuition = 'Electric current is directly proportional to potential difference (V = IR). When current flows through a resistance for time t, electrical energy is converted into heat energy.';
+      formulaLatex = 'V = IR, \\quad P = VI = I^2R = \\frac{V^2}{R}, \\quad H = P \\cdot t = I^2Rt';
+      examTip = 'Crucial Step: Always convert time from hours or minutes into seconds before calculating heat energy H in Joules (1 hr = 3600 s).';
+    } else if (chLower.includes('chem') || chLower.includes('reaction') || chLower.includes('metal')) {
+      principle = 'Law of Conservation of Mass & Stoichiometric Chemical Balancing';
+      principleIntuition = 'In a balanced chemical reaction, the number of atoms of each element on the reactant side must equal the number of atoms on the product side. Physical state symbols (s, l, g, aq) must be indicated.';
+      formulaLatex = '\\sum \\text{Atoms (Reactants)} = \\sum \\text{Atoms (Products)}';
+      examTip = 'Always write physical states (s, l, g, aq) and mention reaction conditions (heat, catalyst) above the reaction arrow to earn the full marking score.';
+    } else {
+      principle = 'Core Science & Biological Principles';
+      principleIntuition = 'Analyze the biological/chemical process sequentially, highlighting key anatomical structures, hormonal regulation, or molecular interactions.';
+      formulaLatex = '\\text{Observe balanced physiological & biochemical mechanisms}';
+      examTip = 'Use precise biological terminology and reference organ/cellular locations explicitly.';
+    }
+  } else {
+    // Mathematics 14-Chapter Detailed Pedagogical Taxonomy
+    switch (chNum) {
+      case 1:
+        principle = 'Real Numbers & Euclid\'s Division Lemma';
+        principleIntuition = 'To find the Highest Common Factor (HCF) of two positive integers, apply Euclid\'s Division Algorithm (a = bq + r). We repeatedly divide the divisor by the remainder until the remainder becomes zero. For irrationality proofs, assume the contrary (rationality) and derive a contradiction with coprimality.';
+        formulaLatex = 'a = bq + r \\quad (0 \\le r < b) \\quad \\text{and} \\quad \\text{HCF}(a, b) \\times \\text{LCM}(a, b) = a \\times b';
+        examTip = 'Examiner Warning: The HCF is the divisor at the zero-remainder step, never the quotient. In irrationality proofs, always explicitly state that a and b are coprime positive integers.';
+        break;
+      case 2:
+        principle = 'Polynomials & Relations Between Zeroes and Coefficients';
+        principleIntuition = 'To determine the zeroes of a quadratic polynomial ax² + bx + c, set P(x) = 0 and factorize by splitting the middle term. Then verify using the sum and product coefficient relations.';
+        formulaLatex = '\\text{Sum: } \\alpha + \\beta = -\\frac{b}{a}, \\quad \\text{Product: } \\alpha\\beta = \\frac{c}{a}';
+        examTip = 'Watch the negative sign in -b/a carefully! If the polynomial is x² - 5x + 6, b = -5, so -b/a = -(-5)/1 = +5.';
+        break;
+      case 3:
+        principle = 'Pair of Linear Equations in Two Variables';
+        principleIntuition = 'Solve two simultaneous equations by eliminating one variable through substitution or algebraic addition/subtraction. Then back-substitute to find the remaining variable.';
+        formulaLatex = '\\frac{a_1}{a_2} \\neq \\frac{b_1}{b_2} \\implies \\text{Unique Solution}, \\quad \\frac{a_1}{a_2} = \\frac{b_1}{b_2} = \\frac{c_1}{c_2} \\implies \\text{Infinitely Many Solutions}';
+        examTip = 'Always test your calculated (x, y) coordinates in BOTH original equations to confirm they satisfy both lines.';
+        break;
+      case 4:
+        principle = 'Quadratic Equations & Discriminant Nature of Roots';
+        principleIntuition = 'Express the equation in standard form ax² + bx + c = 0. Calculate discriminant D = b² - 4ac to ascertain whether real roots exist before applying the quadratic formula.';
+        formulaLatex = 'D = b^2 - 4ac, \\quad x = \\frac{-b \\pm \\sqrt{D}}{2a} \\quad (D \\ge 0)';
+        examTip = 'In real-world word problems (speed, age, dimensions), always reject negative roots and explicitly write a concluding sentence explaining why a negative value is inadmissible.';
+        break;
+      case 5:
+        principle = 'Arithmetic Progressions (AP): General Term and Sum';
+        principleIntuition = 'Identify the first term a and common difference d = a₂ - a₁. Use the nth term formula to find unknown indices or values, and the sum formula for aggregate totals.';
+        formulaLatex = 'a_n = a + (n - 1)d, \\quad S_n = \\frac{n}{2}[2a + (n - 1)d] = \\frac{n}{2}[a + l]';
+        examTip = 'Remember: The term count n must always be a positive integer (n ∈ N). If you calculate a fractional or negative n, re-check your arithmetic.';
+        break;
+      case 6:
+        principle = 'Triangles & Basic Proportionality Theorem (Thales\' Theorem)';
+        principleIntuition = 'When a line is drawn parallel to one side of a triangle intersecting the other two sides, it divides them in the same ratio (AD/DB = AE/EC). For similar triangles, corresponding angles are equal and corresponding sides are proportional.';
+        formulaLatex = '\\frac{AD}{DB} = \\frac{AE}{EC} \\quad (\\text{when } DE \\parallel BC), \\quad \\triangle ABC \\sim \\triangle DEF';
+        examTip = 'Write the triangle similarity statement with strictly corresponding vertices in order (e.g. ∆ABC ~ ∆PQR) before setting up side ratios.';
+        break;
+      case 7:
+        principle = 'Coordinate Geometry: Distance & Section Formulae';
+        principleIntuition = 'Calculate Euclidean distance between two points using the Pythagorean distance formula. To locate a point dividing a line segment in a given ratio m₁:m₂, apply the internal section formula.';
+        formulaLatex = 'd = \\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}, \\quad P(x, y) = \\left(\\frac{m_1x_2 + m_2x_1}{m_1 + m_2}, \\frac{m_1y_2 + m_2y_1}{m_1 + m_2}\\right)';
+        examTip = 'Be careful when squaring negative coordinate differences: (-5)² = +25, never -25.';
+        break;
+      case 8:
+        principle = 'Introduction to Trigonometry & Fundamental Identities';
+        principleIntuition = 'Use right-angled triangle definitions (SOH-CAH-TOA) and Pythagorean trigonometric identities. In identity proofs, convert complex ratios like tan, cot, sec, csc into terms of sin and cos.';
+        formulaLatex = '\\sin^2\\theta + \\cos^2\\theta = 1, \\quad 1 + \\tan^2\\theta = \\sec^2\\theta, \\quad 1 + \\cot^2\\theta = \\csc^2\\theta';
+        examTip = 'In identity proofs, transform the Left-Hand Side (LHS) step-by-step until it matches the Right-Hand Side (RHS). Never assume LHS = RHS at the start.';
+        break;
+      case 9:
+        principle = 'Applications of Trigonometry: Heights & Distances';
+        principleIntuition = 'Draw a schematic diagram representing the observer, the elevated/depressed target, and horizontal ground. Apply tan θ = Perpendicular / Base in the right triangle.';
+        formulaLatex = '\\tan\\theta = \\frac{\\text{Height of Object (Opposite)}}{\\text{Horizontal Distance (Adjacent)}}';
+        examTip = 'The angle of depression from a vantage point equals the angle of elevation from ground level (alternate interior angles). Draw the horizontal reference line at the eye level.';
+        break;
+      case 10:
+        principle = 'Circles: Tangent Perpendicularity & External Tangents';
+        principleIntuition = 'The tangent at any point of a circle is perpendicular to the radius through the point of contact (OP ⊥ PT). Tangents drawn from an external point to a circle are equal in length (PA = PB).';
+        formulaLatex = 'OP \\perp PT \\quad (\\angle OPT = 90^\\circ), \\quad PA = PB \\quad (\\text{from external point } P)';
+        examTip = 'Draw the radius to the point of contact immediately; it forms a right-angled triangle where Pythagoras theorem can be applied.';
+        break;
+      case 11:
+        principle = 'Areas Related to Circles: Sectors & Segments';
+        principleIntuition = 'A sector of angle θ is a fractional part (θ/360°) of the circular area πr². A segment is obtained by subtracting the area of the corresponding triangle from the sector area.';
+        formulaLatex = '\\text{Area of Sector} = \\frac{\\theta}{360^\\circ} \\times \\pi r^2, \\quad \\text{Arc Length} = \\frac{\\theta}{360^\\circ} \\times 2\\pi r';
+        examTip = 'Area of minor segment = Area of minor sector - Area of triangle. Unless specified otherwise, use π = 22/7.';
+        break;
+      case 12:
+        principle = 'Surface Areas and Volumes of Solids & Combinations';
+        principleIntuition = 'When solids are combined (e.g. hemisphere + cone), total volume is the arithmetic sum of individual volumes. Total surface area includes ONLY the exposed exterior surfaces.';
+        formulaLatex = 'V_{\\text{cone}} = \\frac{1}{3}\\pi r^2 h, \\quad V_{\\text{hemi}} = \\frac{2}{3}\\pi r^3, \\quad \\text{CSA}_{\\text{cone}} = \\pi r l \\quad (l = \\sqrt{r^2 + h^2})';
+        examTip = 'Do NOT add the flat contact surface areas when two solids are glued together, because those faces are hidden inside the combined solid.';
+        break;
+      case 13:
+        principle = 'Statistics: Measures of Central Tendency';
+        principleIntuition = 'For continuous grouped data, compute class marks xi = (lower + upper) / 2. Tabulate frequencies fi and products fi·xi to evaluate the mean.';
+        formulaLatex = '\\bar{x} = \\frac{\\sum f_i x_i}{\\sum f_i}, \\quad \\text{Median} = l + \\left(\\frac{\\frac{N}{2} - cf}{f}\\right)h';
+        examTip = 'In median calculation, cf is the cumulative frequency of the class PRECEDING the median class, not the median class itself.';
+        break;
+      case 14:
+        principle = 'Classical Probability of an Event';
+        principleIntuition = 'Probability is the ratio of favorable elementary outcomes to total possible equally likely outcomes in the sample space. The sum of complementary probabilities P(E) + P(not E) = 1.';
+        formulaLatex = 'P(E) = \\frac{\\text{Favorable Outcomes } n(E)}{\\text{Total Possible Outcomes } n(S)}, \\quad 0 \\le P(E) \\le 1';
+        examTip = 'Probabilities must always lie between 0 and 1 inclusive. Never leave a probability greater than 1 or negative.';
+        break;
+      default:
+        principle = 'Standard NCERT Class 10th Mathematical Formula';
+        principleIntuition = 'Apply the fundamental theorems and formulas prescribed by the NCERT curriculum.';
+        formulaLatex = '\\text{Refer to standard Board syllabus formulations}';
+        examTip = 'State standard formulas clearly and show intermediate calculation lines to secure step marks.';
+    }
   }
 
-  let rawSteps = solutionText.split(/\n+/).map(s => s.trim()).filter(Boolean);
-  if (rawSteps.length === 1 && rawSteps[0].includes('; ')) {
-    rawSteps = rawSteps[0].split('; ').map(s => s.trim()).filter(Boolean);
-  } else if (rawSteps.length === 1 && rawSteps[0].includes('. ')) {
-    rawSteps = rawSteps[0].split(/(?<=\.)\s+/).map(s => s.trim()).filter(Boolean);
+  // Math-safe sentence and step parser
+  let rawBlocks = [];
+  if (/^\s*1\.\s+/m.test(solutionText)) {
+    rawBlocks = solutionText.split(/(?:^|\n)(?=\d+\.\s+)/).map(s => s.trim()).filter(Boolean);
+  } else if (solutionText.includes('\n\n')) {
+    rawBlocks = solutionText.split(/\n\n+/).map(s => s.trim()).filter(Boolean);
+  } else if (solutionText.includes('\n')) {
+    rawBlocks = solutionText.split(/\n+/).map(s => s.trim()).filter(Boolean);
+  } else {
+    // Split sentences safely without breaking math $...$ delimiters
+    const sentences = [];
+    let cur = '';
+    let inMath = false;
+    for (let i = 0; i < solutionText.length; i++) {
+      const ch = solutionText[i];
+      if (ch === '$') inMath = !inMath;
+      cur += ch;
+      if (!inMath && (ch === '.' || ch === ';') && (i === solutionText.length - 1 || solutionText[i + 1] === ' ' || solutionText[i + 1] === '\n')) {
+        if (cur.trim()) sentences.push(cur.trim());
+        cur = '';
+      }
+    }
+    if (cur.trim()) sentences.push(cur.trim());
+    rawBlocks = sentences.length > 1 ? sentences : [solutionText];
   }
+
+  const total = rawBlocks.length;
+  const parsedSteps = rawBlocks.map((blk, idx) => {
+    let clean = blk.replace(/^\d+\.\s*/, '').trim();
+    let title = '';
+    const titleMatch = clean.match(/^\*\*([^*]+)\*\*:\s*([\s\S]*)$/);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+      clean = titleMatch[2].trim();
+    } else {
+      if (idx === 0) {
+        title = total === 1 ? 'Complete Working & Derivation' : 'Setup & Given Relationship';
+      } else if (idx === total - 1) {
+        title = 'Final Calculation & Deduction';
+      } else {
+        title = `Step-by-Step Derivation (Part ${idx + 1})`;
+      }
+    }
+
+    let stepRubric = '';
+    if (marks === 1) {
+      stepRubric = idx === 0 ? '½ Mark' : '½ Mark';
+    } else if (marks === 2) {
+      stepRubric = idx === 0 ? '½ Mark' : (idx === total - 1 ? '½ Mark' : '1 Mark');
+    } else if (marks === 3) {
+      stepRubric = idx === 0 ? '1 Mark' : (idx === total - 1 ? '½ Mark' : '1½ Marks');
+    } else {
+      stepRubric = idx === 0 ? '1 Mark' : (idx === total - 1 ? '1 Mark' : '1½ Marks');
+    }
+
+    return {
+      stepIndex: idx + 1,
+      title,
+      text: clean,
+      stepRubric
+    };
+  });
+
+  const rawSteps = parsedSteps.map(s => s.text);
 
   let rubric = [];
   if (marks === 1) {
@@ -7229,13 +7348,19 @@ function formatIntuitiveSteps(q) {
         'In geometry and algebra, write a one-line concluding sentence explicitly answering what the problem asked.'
       ];
 
+  const answerInterpretation = `Final verified answer: ${correctAnswer}. Following this sequence guarantees full marks according to CBSE & HPBOSE evaluation guidelines.`;
+
   return {
     principle,
+    principleIntuition,
     formulaLatex,
+    parsedSteps,
     rawSteps,
     correctAnswer,
+    answerInterpretation,
     rubric,
-    hints
+    hints,
+    examTip
   };
 }
 
@@ -7611,47 +7736,118 @@ function filterQuestionBankCards() {
           </div>
         ` : ''}
 
-        <!-- INTUITIVE STEP-BY-STEP SOLUTION ACCORDION -->
-        <details class="qb-solution-accordion" style="margin-top:10px; background:rgba(0,0,0,0.22); border:1px solid var(--border-subtle); border-radius:8px; overflow:hidden;">
-          <summary style="font-size:0.8rem; font-weight:700; color:var(--accent-blue); padding:10px 14px; cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02);">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <i data-lucide="check-circle" style="width:14px; height:14px; color:#10b981;"></i>
-              <span>View Step-by-Step Solution &amp; Answer (${escapeHtml(steps.correctAnswer)})</span>
-            </div>
-            <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">Formula &bull; Working &bull; Rubric</span>
-          </summary>
-          <div style="padding:12px 14px; border-top:1px solid var(--border-subtle); font-size:0.86rem; line-height:1.6;">
-            <!-- Step 1: Formula -->
-            <div style="margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed var(--border-subtle);">
-              <span style="font-size:0.72rem; font-weight:800; color:var(--accent-cyan); text-transform:uppercase;">Step 1: Formula / Principle</span>
-              <div style="color:var(--text-primary); font-size:0.84rem; margin-top:2px;">
-                ${escapeHtml(steps.principle)} &bull; ${renderLatexString(steps.formulaLatex)}
+        <!-- INTUITIVE STEP-BY-STEP SOLUTION CARD -->
+        <div class="qb-solution-mastercard" id="solutionCard_${qId}">
+          <!-- CARD HEADER -->
+          <div class="qb-solution-card-header">
+            <div class="qb-solution-card-title">
+              <span class="qb-solution-card-badge">
+                <i data-lucide="book-open-check" style="width:16px; height:16px;"></i>
+              </span>
+              <div>
+                <div style="font-size:0.92rem; font-weight:800; color:#93c5fd; font-family:'Outfit', sans-serif;">
+                  Step-by-Step Solution &amp; Pedagogical Walkthrough
+                </div>
+                <div style="font-size:0.73rem; color:var(--text-muted); margin-top:2px;">
+                  Complete conceptual explanation &bull; Board marking scheme &bull; Examiner tips
+                </div>
               </div>
             </div>
-            <!-- Step 2: Derivation -->
-            <div style="margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed var(--border-subtle);">
-              <span style="font-size:0.72rem; font-weight:800; color:var(--accent-blue); text-transform:uppercase;">Step 2: Step-by-Step Calculation</span>
-              <div style="margin-top:4px; display:flex; flex-direction:column; gap:4px;">
-                ${steps.rawSteps.map((line, sIdx) => `
-                  <div style="font-size:0.84rem; color:var(--text-primary);">
-                    <strong style="color:var(--accent-blue); font-size:0.76rem;">2.${sIdx + 1}</strong> ${renderLatexString(line)}
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:0.75rem; font-weight:700; color:#10b981; background:rgba(16,185,129,0.12); padding:3px 10px; border-radius:4px; border:1px solid rgba(16,185,129,0.3);">
+                Answer: ${renderLatexString(steps.correctAnswer)}
+              </span>
+              <button type="button" class="btn-secondary" onclick="toggleCardSolutionView('${qId}')" id="btnToggleSol_${qId}" style="font-size:0.72rem; padding:4px 9px;" title="Collapse or Expand Solution">
+                <i data-lucide="chevron-up" id="iconToggleSol_${qId}" style="width:13px; height:13px;"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- SOLUTION CONTENT BODY -->
+          <div id="solBody_${qId}" style="display:flex; flex-direction:column; gap:16px;">
+            <!-- STEP 1: FUNDAMENTAL PRINCIPLE & FORMULA -->
+            <div class="qb-solution-concept-box">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:0.72rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
+                  <i data-lucide="compass" style="width:14px; height:14px;"></i> Step 1: Fundamental Concept &amp; Governing Formula
+                </span>
+                <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); background:rgba(255,255,255,0.04); padding:2px 7px; border-radius:4px;">
+                  Foundation Step
+                </span>
+              </div>
+              <div style="font-size:0.88rem; color:var(--text-primary); line-height:1.65; margin-bottom:10px;">
+                <strong>Intuition:</strong> ${escapeHtml(steps.principleIntuition || steps.principle)}
+              </div>
+              <div style="background:rgba(0,0,0,0.25); border:1px dashed rgba(6,182,212,0.4); border-radius:6px; padding:10px 14px; font-size:0.94rem; color:#38bdf8;">
+                ${renderLatexString(steps.formulaLatex)}
+              </div>
+            </div>
+
+            <!-- STEP 2: LINE-BY-LINE MATHEMATICAL DERIVATION (WITH CLEAR GAPS) -->
+            <div>
+              <div style="font-size:0.72rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:inline-flex; align-items:center; gap:6px;">
+                <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Working (${steps.parsedSteps.length} Key Steps)
+              </div>
+              <div class="qb-solution-steps-flow">
+                ${steps.parsedSteps.map((s, sIdx) => `
+                  <div class="qb-solution-step-item">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                      <span class="qb-solution-step-badge">
+                        Step 2.${sIdx + 1}: ${escapeHtml(s.title)}
+                      </span>
+                      <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">
+                        ${s.stepRubric ? escapeHtml(s.stepRubric) : `Step ${sIdx + 1}`}
+                      </span>
+                    </div>
+                    <div style="font-size:0.9rem; color:var(--text-primary); line-height:1.7;">
+                      ${renderLatexString(s.text)}
+                    </div>
                   </div>
                 `).join('')}
               </div>
             </div>
-            <!-- Step 3: Verified Answer -->
-            <div style="margin-bottom:8px;">
-              <span style="font-size:0.72rem; font-weight:800; color:#10b981; text-transform:uppercase;">Step 3: Verified Answer</span>
-              <div style="color:#34d399; font-weight:700; margin-top:2px;">
-                ${renderLatexString(steps.correctAnswer)}
+
+            <!-- STEP 3: FINAL VERIFIED RESULT -->
+            <div class="qb-solution-answer-box">
+              <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; flex-shrink:0; margin-top:2px;">
+                <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
+              </span>
+              <div style="flex:1;">
+                <div style="font-size:0.72rem; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">
+                  Step 3: Final Verified Result &amp; Concluding Statement
+                </div>
+                <div style="font-size:1.02rem; font-weight:800; color:#ecfdf5; margin:4px 0 2px 0;">
+                  ${renderLatexString(steps.correctAnswer)}
+                </div>
+                <div style="font-size:0.82rem; color:#a7f3d0; line-height:1.5;">
+                  ${escapeHtml(steps.answerInterpretation || 'This result completes the derivation according to the prescribed NCERT and Board criteria.')}
+                </div>
               </div>
             </div>
-            <!-- Step 4: Step Rubric summary -->
-            <div style="background:rgba(245,158,11,0.06); padding:6px 10px; border-radius:4px; border-left:3px solid #f59e0b; font-size:0.76rem; color:var(--text-muted);">
-              <strong style="color:#fbbf24;">CBSE Step Rubric:</strong> ${steps.rubric.map(r => `${r.step.split(':')[0]} (${r.marks})`).join(' + ')}
+
+            <!-- STEP 4: BOARD MARKING SCHEME & EXAMINER ADVICE -->
+            <div class="qb-solution-exam-tip-box">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <span style="font-size:0.72rem; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
+                  <i data-lucide="award" style="width:14px; height:14px;"></i> Step 4: Official CBSE / HP Board Step Rubric (${marks} Mark${marks > 1 ? 's' : ''})
+                </span>
+                <span style="font-size:0.72rem; color:#f59e0b; font-weight:700;">Examiner Marking Guide</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem; color:var(--text-secondary); margin-bottom:10px;">
+                ${steps.rubric.map(r => `
+                  <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0; border-bottom:1px dashed rgba(255,255,255,0.06);">
+                    <span>${escapeHtml(r.step)}</span>
+                    <strong style="color:#fbbf24; margin-left:8px;">${r.marks}</strong>
+                  </div>
+                `).join('')}
+              </div>
+              <div style="display:flex; align-items:flex-start; gap:8px; font-size:0.82rem; color:#fde68a; line-height:1.55; padding-top:4px;">
+                <i data-lucide="alert-triangle" style="width:14px; height:14px; color:#fbbf24; flex-shrink:0; margin-top:2px;"></i>
+                <span><strong>Examiner Advice:</strong> ${escapeHtml(steps.examTip || 'Follow step-by-step arithmetic without skipping formula statements to secure maximum board credit.')}</span>
+              </div>
             </div>
           </div>
-        </details>
+        </div>
 
         <!-- ACTIONS ROW WITH STEP-BY-STEP SOLUTION STUDIO TRIGGER -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-subtle);">
@@ -7740,9 +7936,14 @@ function openStepSolutionStudio(qId) {
           </span>
           <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">Foundation Step</span>
         </div>
-        <div style="font-size:0.86rem; color:var(--text-primary); margin-bottom:8px;">
+        <div style="font-size:0.86rem; color:var(--text-primary); margin-bottom:6px;">
           <strong>Core Concept:</strong> ${escapeHtml(steps.principle)}
         </div>
+        ${steps.principleIntuition ? `
+          <div style="font-size:0.84rem; color:var(--text-secondary); line-height:1.6; margin-bottom:10px;">
+            <strong>Intuition:</strong> ${escapeHtml(steps.principleIntuition)}
+          </div>
+        ` : ''}
         <div style="background:rgba(6,182,212,0.08); border:1px dashed rgba(6,182,212,0.35); border-radius:6px; padding:10px 14px; font-size:0.92rem; color:#38bdf8;">
           ${renderLatexString(steps.formulaLatex)}
         </div>
@@ -7756,14 +7957,19 @@ function openStepSolutionStudio(qId) {
           </span>
           <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">Execution Step</span>
         </div>
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          ${steps.rawSteps.map((line, sIdx) => `
-            <div style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.18); padding:8px 12px; border-radius:6px; border:1px solid var(--border-subtle);">
-              <span style="font-size:0.75rem; font-weight:800; color:var(--accent-blue); background:rgba(37,99,235,0.15); padding:2px 7px; border-radius:4px; flex-shrink:0;">
-                2.${sIdx + 1}
-              </span>
-              <div style="font-size:0.88rem; line-height:1.6; color:var(--text-primary); flex:1;">
-                ${renderLatexString(line)}
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${steps.parsedSteps.map((s, sIdx) => `
+            <div style="background:rgba(0,0,0,0.22); padding:12px 14px; border-radius:6px; border:1px solid var(--border-subtle);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <span style="font-size:0.75rem; font-weight:800; color:var(--accent-blue); background:rgba(37,99,235,0.15); padding:2px 8px; border-radius:4px;">
+                  Step 2.${sIdx + 1}: ${escapeHtml(s.title)}
+                </span>
+                <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600;">
+                  ${s.stepRubric ? escapeHtml(s.stepRubric) : `Step ${sIdx + 1}`}
+                </span>
+              </div>
+              <div style="font-size:0.9rem; line-height:1.7; color:var(--text-primary);">
+                ${renderLatexString(s.text)}
               </div>
             </div>
           `).join('')}
@@ -7818,6 +8024,12 @@ function openStepSolutionStudio(qId) {
           </span>
           <span style="font-size:0.72rem; color:#c084fc; font-weight:700;">Classroom Coaching</span>
         </div>
+        ${steps.examTip ? `
+          <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:6px; padding:10px 14px; margin-bottom:10px; font-size:0.84rem; color:#fde68a; display:flex; align-items:flex-start; gap:8px;">
+            <i data-lucide="alert-triangle" style="width:14px; height:14px; color:#fbbf24; flex-shrink:0; margin-top:2px;"></i>
+            <span><strong>Examiner Advice:</strong> ${escapeHtml(steps.examTip)}</span>
+          </div>
+        ` : ''}
         <div style="display:flex; flex-direction:column; gap:6px; font-size:0.84rem; color:var(--text-secondary); line-height:1.5;">
           ${steps.hints.map(h => `
             <div style="display:flex; align-items:flex-start; gap:8px;">
@@ -7957,35 +8169,72 @@ function openChapterSolutionSheetModal() {
               ${renderLatexString(q.question_latex || q.questionText || '')}
             </div>
 
-            <div style="background:rgba(0,0,0,0.22); border-radius:6px; padding:12px 14px; margin-bottom:10px; border:1px solid var(--border-subtle);">
-              <div style="font-size:0.78rem; font-weight:700; color:var(--accent-cyan); margin-bottom:4px; text-transform:uppercase;">
-                Formula &amp; Method:
-              </div>
-              <div style="font-size:0.84rem; color:var(--text-secondary); margin-bottom:8px;">
-                ${escapeHtml(steps.principle)} &bull; ${renderLatexString(steps.formulaLatex)}
-              </div>
-
-              <div style="font-size:0.78rem; font-weight:700; color:var(--accent-blue); margin-bottom:4px; text-transform:uppercase;">
-                Step-by-Step Derivation:
-              </div>
-              <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:8px;">
-                ${steps.rawSteps.map((s, sIdx) => `
-                  <div style="font-size:0.84rem; color:var(--text-primary); line-height:1.5;">
-                    <strong style="color:var(--accent-blue); font-size:0.78rem;">${sIdx + 1}.</strong> ${renderLatexString(s)}
+            <div class="qb-solution-mastercard" style="margin-top:12px; margin-bottom:12px;">
+              <div style="display:flex; flex-direction:column; gap:14px;">
+                <!-- Concept Intuition & Formula -->
+                <div class="qb-solution-concept-box">
+                  <div style="font-size:0.72rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px;">
+                    Concept &amp; Governing Formula
                   </div>
-                `).join('')}
-              </div>
+                  <div style="font-size:0.86rem; color:var(--text-primary); line-height:1.6; margin-bottom:8px;">
+                    <strong>Intuition:</strong> ${escapeHtml(steps.principleIntuition || steps.principle)}
+                  </div>
+                  <div style="background:rgba(0,0,0,0.25); border:1px dashed rgba(6,182,212,0.4); border-radius:6px; padding:8px 12px; font-size:0.92rem; color:#38bdf8;">
+                    ${renderLatexString(steps.formulaLatex)}
+                  </div>
+                </div>
 
-              <div style="font-size:0.78rem; font-weight:700; color:#10b981; margin-bottom:2px; text-transform:uppercase;">
-                Verified Answer:
-              </div>
-              <div style="font-size:0.92rem; font-weight:700; color:#34d399;">
-                ${renderLatexString(steps.correctAnswer)}
+                <!-- Step-by-Step Derivation Flow -->
+                <div class="qb-solution-steps-flow">
+                  ${steps.parsedSteps.map((s, sIdx) => `
+                    <div class="qb-solution-step-item">
+                      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                        <span class="qb-solution-step-badge">
+                          Step ${sIdx + 1}: ${escapeHtml(s.title)}
+                        </span>
+                        <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">
+                          ${s.stepRubric ? escapeHtml(s.stepRubric) : ''}
+                        </span>
+                      </div>
+                      <div style="font-size:0.88rem; color:var(--text-primary); line-height:1.65;">
+                        ${renderLatexString(s.text)}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <!-- Final Answer Box -->
+                <div class="qb-solution-answer-box">
+                  <span style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; flex-shrink:0;">
+                    <i data-lucide="check-circle" style="width:14px; height:14px;"></i>
+                  </span>
+                  <div>
+                    <div style="font-size:0.7rem; font-weight:800; color:#34d399; text-transform:uppercase;">
+                      Verified Final Answer
+                    </div>
+                    <div style="font-size:0.96rem; font-weight:800; color:#ecfdf5; margin-top:2px;">
+                      ${renderLatexString(steps.correctAnswer)}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Examiner Advice & Marking Rubric -->
+                <div class="qb-solution-exam-tip-box">
+                  <div style="font-size:0.72rem; font-weight:800; color:#fbbf24; text-transform:uppercase; margin-bottom:6px;">
+                    CBSE / HP Board Marking Guide &amp; Examiner Tip
+                  </div>
+                  <div style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:6px;">
+                    ${steps.rubric.map(r => `${escapeHtml(r.step.split(':')[0])} (${r.marks})`).join(' + ')} = ${marks} Marks Total
+                  </div>
+                  <div style="font-size:0.8rem; color:#fde68a; line-height:1.5;">
+                    <strong>Examiner Tip:</strong> ${escapeHtml(steps.examTip || 'Show intermediate simplification steps cleanly to ensure full board marks.')}
+                  </div>
+                </div>
               </div>
             </div>
 
             <div style="font-size:0.74rem; color:var(--text-muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;">
-              <span><strong>Marking Scheme:</strong> ${steps.rubric.map(r => `${r.step.split(':')[0]} (${r.marks})`).join(' + ')} = ${marks}M</span>
+              <span><strong>Total Value:</strong> ${marks} Mark${marks > 1 ? 's' : ''} &bull; NCERT &amp; CBSE Aligned</span>
               <button type="button" class="btn-secondary" onclick="openStepSolutionStudio('${qId}')" style="font-size:0.72rem; padding:3px 8px;">
                 <i data-lucide="maximize-2" style="width:11px; height:11px;"></i> Open in Studio
               </button>
@@ -8126,3 +8375,16 @@ window.copyQbLatexToClipboard = copyQbLatexToClipboard;
 window.assignQbQuestionToClass = assignQbQuestionToClass;
 window.resetQbFilters = resetQbFilters;
 window.handleQbSubjectChange = handleQbSubjectChange;
+
+function toggleCardSolutionView(qId) {
+  const body = document.getElementById(`solBody_${qId}`);
+  const icon = document.getElementById(`iconToggleSol_${qId}`);
+  if (!body) return;
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? 'flex' : 'none';
+  if (icon) {
+    icon.setAttribute('data-lucide', isHidden ? 'chevron-up' : 'chevron-down');
+    initLucideIcons();
+  }
+}
+window.toggleCardSolutionView = toggleCardSolutionView;
