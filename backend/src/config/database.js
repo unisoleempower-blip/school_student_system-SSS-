@@ -17,6 +17,13 @@ try {
   console.warn('[DATABASE] Failed to load class10MathQuestionBank:', e.message);
 }
 
+let class10PyqQuestions = [];
+try {
+  class10PyqQuestions = require('../services/class10PyqBank').class10Questions || [];
+} catch (e) {
+  console.warn('[DATABASE] Failed to load class10PyqBank:', e.message);
+}
+
 let pool = null;
 let isConnected = false;
 
@@ -174,7 +181,32 @@ const inMemoryStore = {
         correct_answer_latex: 'A',
         solution_latex: 'Object is at $u = -30\\,\\text{cm} = 2f$. When an object is at the Center of Curvature $C$, a real and inverted image of the same size is formed at $C$, so $v = -30\\,\\text{cm}$.',
         socratic_hints: ["Calculate $2f$ for $f = 15\\,\\text{cm}$.", "What is the image position when object is at $C$ ($u = 2f$)?"]
-      }
+      },
+      ...class10PyqQuestions
+        .filter(q => q.subject === 'Science')
+        .map(q => ({
+          id: q.id,
+          grade: '10',
+          stream: 'FOUNDATION',
+          subject: 'Science',
+          discipline: (q.chapter || '').toLowerCase().includes('light') || (q.chapter || '').toLowerCase().includes('elec') ? 'PHYSICS' : ((q.chapter || '').toLowerCase().includes('chem') || (q.chapter || '').toLowerCase().includes('metal') ? 'CHEMISTRY' : 'BIOLOGY'),
+          chapter_number: (q.ncert_mapping && q.ncert_mapping.chapter_number) || 10,
+          chapter_name: q.chapter,
+          topic: (q.ncert_mapping && q.ncert_mapping.chapter_name) || q.chapter,
+          subtopic: (q.ncert_mapping && q.ncert_mapping.ncert_section) || 'General',
+          curriculum_board: 'CBSE_CLASS_10',
+          pyq_appearance: (q.ncert_mapping && q.ncert_mapping.pyq_tag) || 'CBSE Board Exam',
+          difficulty: q.difficulty || 'MEDIUM',
+          question_format: q.question_type || 'MCQ_SINGLE',
+          benchmark_time_seconds: q.benchmark_time_seconds || 120,
+          marks_weightage: (q.ncert_mapping && q.ncert_mapping.marks) || 3,
+          question_latex: q.question_latex,
+          options_latex: q.options_latex || [],
+          correct_answer_latex: q.correct_answer_latex,
+          solution_latex: q.solution_latex,
+          socratic_hints: q.socratic_hints || [],
+          step_rubric: q.step_rubric || []
+        }))
     ],
     senior_physics: [
       {

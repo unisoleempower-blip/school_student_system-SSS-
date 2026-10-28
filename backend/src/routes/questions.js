@@ -5,18 +5,75 @@ const { generateAiQuestion } = require('../services/aiPromptEngine');
 const { generateLlmQuestion } = require('../services/llmQuestionEngine');
 const { getAllClass10Questions, getCuratedClass10Question } = require('../services/class10PyqBank');
 
-// GET all questions from bank
+// GET all questions from bank (queries inMemoryStore.questions and all subjectBanks)
 router.get('/', (req, res) => {
-  const { subject, topic, board } = req.query;
-  let results = inMemoryStore.questions;
+  const { subject, topic, board, grade, difficulty, search, limit, offset } = req.query;
+  const banks = inMemoryStore.subjectBanks || {};
+  const bankQuestions = Object.values(banks).flat();
 
-  if (subject) results = results.filter(q => q.topic && q.topic.toLowerCase().includes(subject.toLowerCase()));
-  if (board) results = results.filter(q => q.curriculum_board === board);
+  // Deduplicate by question id
+  const seenIds = new Set();
+  const allPool = [];
+  [...(inMemoryStore.questions || []), ...bankQuestions].forEach(q => {
+    if (q && q.id && !seenIds.has(q.id)) {
+      seenIds.add(q.id);
+      allPool.push(q);
+    }
+  });
+
+  let results = allPool;
+
+  if (subject && subject !== 'ALL') {
+    const sLower = subject.toLowerCase();
+    results = results.filter(q => 
+      (q.subject && q.subject.toLowerCase().includes(sLower)) ||
+      (q.subjectKey && q.subjectKey.toLowerCase().includes(sLower)) ||
+      (q.discipline && q.discipline.toLowerCase().includes(sLower)) ||
+      (q.topic && q.topic.toLowerCase().includes(sLower))
+    );
+  }
+  if (grade && grade !== 'ALL') {
+    results = results.filter(q => String(q.grade) === String(grade));
+  }
+  if (board && board !== 'ALL') {
+    const bLower = board.toLowerCase();
+    results = results.filter(q => 
+      (q.curriculum_board && q.curriculum_board.toLowerCase().includes(bLower)) ||
+      (q.target_exam && q.target_exam.toLowerCase().includes(bLower))
+    );
+  }
+  if (topic && topic !== 'ALL') {
+    const tLower = topic.toLowerCase();
+    results = results.filter(q => 
+      (q.topic && q.topic.toLowerCase().includes(tLower)) ||
+      (q.chapter && q.chapter.toLowerCase().includes(tLower)) ||
+      (q.chapter_name && q.chapter_name.toLowerCase().includes(tLower))
+    );
+  }
+  if (difficulty && difficulty !== 'ALL') {
+    const dUpper = difficulty.toUpperCase();
+    results = results.filter(q => (q.difficulty || '').toUpperCase() === dUpper);
+  }
+  if (search && search.trim()) {
+    const sTerm = search.toLowerCase();
+    results = results.filter(q => 
+      (q.question_latex && q.question_latex.toLowerCase().includes(sTerm)) ||
+      (q.topic && q.topic.toLowerCase().includes(sTerm)) ||
+      (q.chapter_name && q.chapter_name.toLowerCase().includes(sTerm)) ||
+      (q.subtopic && q.subtopic.toLowerCase().includes(sTerm))
+    );
+  }
+
+  const hasPagination = limit !== undefined || offset !== undefined;
+  const parsedLimit = Math.max(1, Math.min(1000, Number(limit) || 50));
+  const parsedOffset = Math.max(0, Number(offset) || 0);
+  const paginated = hasPagination ? results.slice(parsedOffset, parsedOffset + parsedLimit) : results;
 
   res.json({
     success: true,
-    count: results.length,
-    questions: results
+    totalCount: results.length,
+    count: paginated.length,
+    questions: paginated
   });
 });
 

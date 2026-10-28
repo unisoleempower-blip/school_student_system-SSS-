@@ -335,57 +335,60 @@ function ensureQuestionHasRichOptions(q) {
     }
   }
 
-  // 3. Synthesize meaningful options cleanly without slicing across mathematical formulas
+  // 3. Check format: if question is a subjective/short answer/derivation/case-study question,
+  // DO NOT synthesize fake MCQ options. Keep options empty for written answers.
+  const format = (q.question_format || q.question_type || q.format || '').toUpperCase();
+  const isMcq = format.includes('MCQ') || format.includes('CHOICE') || format.includes('ASSERTION');
+
+  if (!isMcq && (!Array.isArray(q.options_latex) || q.options_latex.length === 0)) {
+    q.options_latex = [];
+    q.options = [];
+    return q;
+  }
+
+  // 4. For questions that ARE MCQs but missing options: synthesize authentic mathematical/scientific options
   const rawAns = (q.correct_answer_latex || q.correct_answer || '').trim();
   const topic = q.subtopic || q.topic || q.chapter || 'Core Principle';
   const cleanAns = sanitizeOptionLatex(rawAns);
   const subjectName = (q.subject || q.discipline || '').toLowerCase();
   const isBiology = subjectName.includes('bio') || (q.branch && ['BOTANY', 'ZOOLOGY'].includes(q.branch.toUpperCase()));
 
-  if (cleanAns && cleanAns.length > 0 && !/^Option\s+[A-D]$/i.test(cleanAns)) {
-    if (isBiology) {
-      // Biologically appropriate options (no sign conventions or inverse math)
-      q.options_latex = [
-        { key: 'A', latex: cleanAns, is_correct: true, distractor_trap: null },
-        { key: 'B', latex: `Alternate regulatory feedback mechanism in ${topic}`, is_correct: false, distractor_trap: 'Confused with reciprocal physiological pathway' },
-        { key: 'C', latex: `Non-specific systemic response independent of ${topic}`, is_correct: false, distractor_trap: 'Failed to identify targeted molecular/ecological mechanism' },
-        { key: 'D', latex: `Pre-zygotic developmental block in ${topic}`, is_correct: false, distractor_trap: 'Confused anatomical or cellular barrier with physiological process' }
-      ];
-    } else {
-      // Mathematics & Physics: check for mathematical formulas
-      const hasMath = cleanAns.includes('$') || /\\(?:frac|sqrt|[a-zA-Z]+)/.test(cleanAns);
-      if (hasMath) {
-        q.options_latex = [
-          { key: 'A', latex: cleanAns, is_correct: true, distractor_trap: null },
-          { key: 'B', latex: `Reciprocal relation: $1 / (${cleanAns.replace(/\$/g, '')})$`, is_correct: false, distractor_trap: 'Inverted formula relationship' },
-          { key: 'C', latex: `Zero magnitude at equilibrium in ${topic}`, is_correct: false, distractor_trap: 'Assumed cancellation at equilibrium' },
-          { key: 'D', latex: `Opposite sign convention: $-(${cleanAns.replace(/\$/g, '')})$`, is_correct: false, distractor_trap: 'Cartesian sign convention error' }
-        ];
-      } else {
-        q.options_latex = [
-          { key: 'A', latex: cleanAns, is_correct: true, distractor_trap: null },
-          { key: 'B', latex: `Inversely proportional magnitude relative to ${cleanAns}`, is_correct: false, distractor_trap: 'Inverted formula relationship' },
-          { key: 'C', latex: `Null value or zero magnitude in ${topic}`, is_correct: false, distractor_trap: 'Assumed cancellation at equilibrium' },
-          { key: 'D', latex: `Opposite sign convention: -(${cleanAns})`, is_correct: false, distractor_trap: 'Cartesian sign convention error' }
-        ];
-      }
-    }
+  // Numerical answer distractor synthesis
+  const numVal = parseFloat(cleanAns.replace(/[^\d.-]/g, ''));
+  if (!isNaN(numVal) && !isBiology && cleanAns.length < 15 && !cleanAns.includes('=')) {
+    const delta1 = Math.abs(numVal) > 50 ? 10 : (Math.abs(numVal) > 10 ? 5 : 2);
+    const delta2 = Math.abs(numVal) > 50 ? 25 : 4;
+    q.options_latex = [
+      { key: 'A', latex: cleanAns, is_correct: true, distractor_trap: null },
+      { key: 'B', latex: `${numVal + delta1}`, is_correct: false, distractor_trap: 'Calculation error in addition' },
+      { key: 'C', latex: `${Math.max(1, Math.round(numVal / 2))}`, is_correct: false, distractor_trap: 'Omitted factor of 1/2' },
+      { key: 'D', latex: `${numVal * 2 || numVal + delta2}`, is_correct: false, distractor_trap: 'Double counted final value' }
+    ];
+  } else if (cleanAns.includes('=')) {
+    // e.g. x = 3, -3 or k = 10
+    const parts = cleanAns.split('=');
+    const varName = parts[0].trim();
+    const val = parts.slice(1).join('=').trim();
+    q.options_latex = [
+      { key: 'A', latex: cleanAns, is_correct: true, distractor_trap: null },
+      { key: 'B', latex: `${varName} = -(${val})`, is_correct: false, distractor_trap: 'Sign convention reversal' },
+      { key: 'C', latex: `${varName} = 0`, is_correct: false, distractor_trap: 'Assumed trivial root' },
+      { key: 'D', latex: `${varName} = 1`, is_correct: false, distractor_trap: 'Normalized root error' }
+    ];
+  } else if (isBiology) {
+    q.options_latex = [
+      { key: 'A', latex: cleanAns || 'Primary physiological mechanism', is_correct: true, distractor_trap: null },
+      { key: 'B', latex: `Alternate regulatory feedback pathway in ${topic}`, is_correct: false, distractor_trap: 'Confused with reciprocal physiological pathway' },
+      { key: 'C', latex: `Non-specific cellular response independent of ${topic}`, is_correct: false, distractor_trap: 'Failed to identify targeted molecular mechanism' },
+      { key: 'D', latex: `Incomplete embryonic differentiation in ${topic}`, is_correct: false, distractor_trap: 'Confused anatomical barrier with physiological process' }
+    ];
   } else {
-    if (isBiology) {
-      q.options_latex = [
-        { key: 'A', latex: `Primary physiological mechanism characteristic of ${topic}`, is_correct: true, distractor_trap: null },
-        { key: 'B', latex: `Auxiliary homeostatic pathway active in ${topic}`, is_correct: false, distractor_trap: 'Overlooked primary cellular pathway' },
-        { key: 'C', latex: `Constitutive transcription independent of ${topic}`, is_correct: false, distractor_trap: 'Ignored inducible regulatory mechanism' },
-        { key: 'D', latex: `Sympatric divergence constraint in ${topic}`, is_correct: false, distractor_trap: 'Confused ecological isolation with physiological event' }
-      ];
-    } else {
-      q.options_latex = [
-        { key: 'A', latex: `Consistent with standard principles of ${topic}`, is_correct: true, distractor_trap: null },
-        { key: 'B', latex: `Inversely proportional relation across ${topic}`, is_correct: false, distractor_trap: 'Reciprocal misconception' },
-        { key: 'C', latex: `Independent of external parameters in ${topic}`, is_correct: false, distractor_trap: 'Overlooked boundary dependency' },
-        { key: 'D', latex: `Conservation law violation in ${topic}`, is_correct: false, distractor_trap: 'Ignored thermodynamic / field constraints' }
-      ];
-    }
+    q.options_latex = [
+      { key: 'A', latex: cleanAns || `Standard result in ${topic}`, is_correct: true, distractor_trap: null },
+      { key: 'B', latex: `Opposite sign: $-(${cleanAns.replace(/\$/g, '')})$`, is_correct: false, distractor_trap: 'Sign convention error' },
+      { key: 'C', latex: `Reciprocal: $1/(${cleanAns.replace(/\$/g, '')})$`, is_correct: false, distractor_trap: 'Inverted formula relationship' },
+      { key: 'D', latex: `$0$`, is_correct: false, distractor_trap: 'Assumed cancellation at equilibrium' }
+    ];
   }
 
   q.options = q.options_latex;

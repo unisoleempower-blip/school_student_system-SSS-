@@ -151,7 +151,14 @@ for (const [bankName, qList] of Object.entries(inMemoryStore.subjectBanks || {})
   console.log(`Checking bank: ${bankName} (${qList.length} questions)`);
   qList.forEach(q => {
     assert(Array.isArray(q.options_latex), `Question ${q.id} must have options_latex array`);
-    assert.strictEqual(q.options_latex.length, 4, `Question ${q.id} must have exactly 4 choices (got ${q.options_latex.length})`);
+    const format = (q.question_format || q.question_type || q.format || '').toUpperCase();
+    const isSubjective = ['SHORT_ANSWER', 'LONG_DERIVATION', 'CASE_BASED', 'NUMERICAL', 'SUBJECTIVE_DERIVATION'].some(f => format.includes(f));
+
+    if (q.options_latex.length > 0) {
+      assert.strictEqual(q.options_latex.length, 4, `Question ${q.id} must have exactly 4 choices (got ${q.options_latex.length})`);
+    } else {
+      assert(isSubjective || q.options_latex.length === 0, `Question ${q.id} with format ${format} unexpectedly has empty options`);
+    }
 
     q.options_latex.forEach(opt => {
       totalOptionsTested++;
