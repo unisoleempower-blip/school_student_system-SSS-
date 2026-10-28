@@ -6940,7 +6940,7 @@ function handleDrawerClassChange(classId) {
 window.handleDrawerClassChange = handleDrawerClassChange;
 
 function handleTeacherSignOut() {
-  if (!confirm('Sign out from Him Academy Faculty Portal?')) {
+  if (!confirm('Sign out from Unisole AI School Faculty Portal?')) {
     return;
   }
 

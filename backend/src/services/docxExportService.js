@@ -123,7 +123,7 @@ async function generateAssignmentDocxBuffer(data = {}) {
       spacing: { after: 60 },
       children: [
         new TextRun({
-          text: 'HIM ACADEMY PUBLIC SCHOOL, HAMIRPUR (H.P.)',
+          text: 'UNISOLE AI SCHOOL - ACADEMIC ASSESSMENT SYSTEM',
           bold: true,
           size: 28, // 14pt
           color: '1E3A8A'

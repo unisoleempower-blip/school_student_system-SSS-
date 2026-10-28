@@ -1,9 +1,9 @@
-# HAPS-AI Scholar Assistant: Enterprise Engineering Onboarding Guide
+# Unisole AI School: Enterprise Engineering Onboarding Guide
 **Document Version:** 2.4.0 (Industry & Academic Grade)  
 **Target Audience:** Software Engineering Interns, Full-Stack Developers, AI/ML Engineers  
 **Project Repository:** `/Users/ajaymokta2002/.gemini/antigravity-ide/scratch/haps-ai-scholar-assistant`  
 **Production URL:** [https://haps-ai-scholar-assistant.vercel.app](https://haps-ai-scholar-assistant.vercel.app)  
-**Author:** Google DeepMind / Antigravity Engineering Pair  
+**Author:** Unisole Skill AI Labs Engineering Pair  
 
 ---
 
@@ -22,17 +22,17 @@
 
 ## 1. Project Overview & Domain Context
 
-### 1.1 What is HAPS-AI Scholar Assistant?
-HAPS-AI Scholar Assistant is an enterprise-grade AI diagnostic, assessment generation, and continuous learning analytics platform tailored specifically for **Him Academy Public School (HAPS), Hamirpur (Himachal Pradesh, India)**.
+### 1.1 What is Unisole AI School Scholar Assistant?
+Unisole AI School (Scholar Assistant) is an enterprise-grade AI diagnostic, assessment generation, and continuous learning analytics platform designed for modern academic institutions.
 
-HAPS is a premier residential and day-boarding institution catering to:
-* **Senior Secondary (Class 11 & 12)**: Specializing in high-stakes competitive examinations—**JEE Main & JEE Advanced** (Non-Medical Stream) and **NEET-UG** (Medical Stream), as well as HP State Board and CBSE Board examinations.
-* **Secondary Foundation (Class 10)**: Core focus on CBSE & HP Board syllabus mastery in **Mathematics** and **Science**.
+The platform caters comprehensively to:
+* **Senior Secondary (Class 11 & 12)**: Specializing in high-stakes competitive examinations—**JEE Main & JEE Advanced** (Non-Medical Stream) and **NEET-UG** (Medical Stream), as well as State Board and CBSE Board examinations.
+* **Secondary Foundation (Class 10)**: Core focus on CBSE & State Board syllabus mastery in **Mathematics** and **Science**.
 
 ### 1.2 The Core Problem Solved
 Traditional Learning Management Systems (LMS) only track whether an answer is right or wrong after submission. They fail to capture **cognitive friction** during the test, do not automate the grading of **handwritten physical examination sheets**, and provide generic scores rather than actionable interventions for hostel prep hours vs home study.
 
-HAPS-AI solves this through five pillars:
+Unisole AI School solves this through five pillars:
 1. **Sub-Second Student Telemetry**: Tracks hesitation time before first input, option flips (indecision), hint requests, and solving velocity. It classifies errors into *Careless Slip*, *Conceptual Gap*, *Speed Lag*, or *Untouched*.
 2. **Handwritten Answer Sheet Vision AI**: Evaluates handwritten student derivations and calculation steps using Google Gemini Vision AI against formal marking rubrics, with teacher audit capabilities.
 3. **Cognitive Test Generator**: Generates balanced question papers aligned with Bloom's Taxonomy (*Remember, Understand, Apply, Analyze, Evaluate, Create*), complete with LaTeX math formulas, distractor trap options, and step-by-step scoring keys.

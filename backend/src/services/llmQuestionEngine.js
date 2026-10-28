@@ -33,8 +33,8 @@ async function generateLlmQuestion({
   console.log(`[LLM ENGINE] Request: Class ${grade} ${subject} - ${chapter} (${board}) | Provider: ${provider}`);
 
   // Build the strict pedagogical prompt grounded in NCERT & Board patterns
-  const systemPrompt = `You are the Lead Academic Assessment Specialist for Him Academy Public School (HAPS), Hamirpur.
-Your objective is to generate authentic, curriculum-grounded assessment questions for Class ${grade} (${board} & HP Board).
+  const systemPrompt = `You are the Lead Academic Assessment Specialist for Unisole AI School.
+Your objective is to generate authentic, curriculum-grounded assessment questions for Class ${grade} (${board} & State Boards).
 You MUST adhere strictly to:
 1. Pristine LaTeX mathematical formatting: use $...$ for inline formulas and $$...$$ for display equations.
 2. Direct alignment with the official NCERT textbook for Class ${grade} ${subject}.

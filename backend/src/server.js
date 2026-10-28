@@ -1,6 +1,6 @@
 // ============================================================================
-// HAPS-AI SCHOLAR ASSISTANT: PRIMARY API GATEWAY & WEBSOCKET SERVER
-// Him Academy Public School (HAPS), Hamirpur
+// UNISOLE AI SCHOOL: PRIMARY API GATEWAY & WEBSOCKET SERVER
+// Unisole AI School Scholar Assistant
 // ============================================================================
 
 require('dotenv').config();
@@ -83,8 +83,8 @@ setBroadcastCallback(broadcastToClients);
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'HEALTHY',
-    service: 'HAPS-AI Scholar Assistant API Gateway',
-    school: 'Him Academy Public School, Hamirpur',
+    service: 'Unisole AI School Scholar Assistant API Gateway',
+    school: 'Unisole AI School',
     curriculumSupport: ['HP_BOARD', 'CBSE', 'JEE_MAIN', 'JEE_ADVANCED', 'NEET', 'OLYMPIAD'],
     timestamp: new Date().toISOString(),
     uptimeSeconds: Math.round(process.uptime()),

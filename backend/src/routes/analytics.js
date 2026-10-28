@@ -570,7 +570,7 @@ router.get('/student/:id', (req, res) => {
 router.get('/pilot-overview', (req, res) => {
   res.json({
     success: true,
-    pilotSchool: 'Him Academy Public School (HAPS), Vikas Nagar, Hamirpur',
+    pilotSchool: 'Unisole AI School - Smart Academic Campus',
     pilotClass: 'Class X & XI Science',
     studentsEnrolled: 32,
     activeParticipationRate: '94.2%',

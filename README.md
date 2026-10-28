@@ -1,8 +1,8 @@
-# HAPS-AI SCHOLAR ASSISTANT 🎓
+# UNISOLE AI SCHOOL - SCHOLAR ASSISTANT
 ### Next-Generation AI Academic Diagnosis, Telemetry & Assessment Platform
-**Prepared for:** Him Academy Public School (HAPS), Vikas Nagar, Hamirpur, Himachal Pradesh  
-**Prepared by:** UNISOLE Skill AI Labs  
-**Curriculum Scope:** Classes VI – XII | HP Board, CBSE Board, JEE, NEET, Olympiads  
+**Platform:** Unisole AI School System  
+**Developed by:** UNISOLE Skill AI Labs  
+**Curriculum Scope:** Classes VI – XII | CBSE Board, State Boards, JEE, NEET, Olympiads  
 
 [![Vercel Production Deployment](https://img.shields.io/badge/Vercel-Live%20Website-success?logo=vercel&style=for-the-badge)](https://haps-ai-scholar-assistant.vercel.app)
 [![CI/CD Pipeline](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?logo=github-actions&style=for-the-badge)](https://github.com/unisoleempower-blip/school_student_system-SSS-/actions)
@@ -12,14 +12,14 @@
 
 ---
 
-## 🌟 Executive Summary & Vision
+## Executive Summary & Vision
 
-**HAPS-AI Scholar Assistant** is an enterprise-grade AI academic copilot and learning diagnostics engine designed specifically for the rigorous residential and day-boarding environment of **Him Academy Public School (HAPS), Hamirpur**.
+**Unisole AI School Scholar Assistant** is an enterprise-grade AI academic copilot and learning diagnostics engine designed for modern institutional, residential, and day-boarding schools.
 
-Traditional schooling faces a fundamental bottleneck: *one teacher, one pace, many learning speeds*, especially when students are preparing simultaneously for **CBSE/HP Board exams** (which demand rigorous derivations and step-by-step writing) and **JEE/NEET** (which demand rapid multi-concept elimination, precision, and speed). 
+Traditional schooling faces a fundamental bottleneck: *one teacher, one pace, many learning speeds*, especially when students are preparing simultaneously for **CBSE & State Board exams** (which demand rigorous derivations and step-by-step writing) and **JEE/NEET** (which demand rapid multi-concept elimination, precision, and speed). 
 
-HAPS-AI Scholar Assistant solves this with an end-to-end closed loop:
-1. **Teacher Co-Pilot & LaTeX Question Generator**: Generates clean, rigorously vetted LaTeX math and science questions aligned with NCERT, HPBOSE, JEE Main/Advanced, and NEET blueprints.
+Unisole AI School Scholar Assistant solves this with an end-to-end closed loop:
+1. **Teacher Co-Pilot & LaTeX Question Generator**: Generates clean, rigorously vetted LaTeX math and science questions aligned with NCERT, State Board, JEE Main/Advanced, and NEET blueprints.
 2. **Sub-Second Student Telemetry Engine**: Tracks micro-level student telemetry (time spent per question, hesitation index, attempt count, distractor traps).
 3. **Concept Diagnostic Matrix**: Maps performance directly to specific micro-competencies, classifying topics into **Mastered**, **Needs Recap**, and **Critical Weakness**.
 4. **AI Handwritten Sheet Evaluation Pipeline**: Scans physical student answer scripts, performs step-by-step OCR and Vision AI rubric evaluation, awards partial marks, and pinpoints conceptual gaps.

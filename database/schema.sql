@@ -1,6 +1,6 @@
 -- ============================================================================
--- HAPS-AI SCHOLAR ASSISTANT: PRODUCTION DATABASE SCHEMA (PostgreSQL 16)
--- Target: Him Academy Public School (HAPS), Hamirpur (HP Board, CBSE, JEE, NEET)
+-- UNISOLE AI SCHOOL: PRODUCTION DATABASE SCHEMA (PostgreSQL 16)
+-- Target: Unisole AI School (CBSE, State Boards, JEE, NEET, Olympiads)
 -- ============================================================================
 
 -- Enable required extensions

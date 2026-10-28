@@ -52,12 +52,12 @@ function generatePrintableReportHtml(reportData) {
 <body>
   <div class="header">
     <div class="title">
-      <h1>Him Academy Public School, Hamirpur</h1>
-      <p>HAPS-AI Scholar Assistant &bull; Weekly Academic Diagnostic Dossier</p>
+      <h1>Unisole AI School</h1>
+      <p>Unisole AI Scholar Assistant &bull; Weekly Academic Diagnostic Dossier</p>
     </div>
     <div style="text-align: right; font-size: 11px; color: #64748b;">
       Date: ${new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' })}<br>
-      Report ID: HAPS-REP-${Date.now().toString().slice(-6)}
+      Report ID: UNI-REP-${Date.now().toString().slice(-6)}
     </div>
   </div>
 
@@ -104,9 +104,9 @@ function generatePrintableReportHtml(reportData) {
   `).join('')}
 
   <div class="signature-row">
-    <div><strong>Class Coordinator</strong><br>Him Academy Public School</div>
-    <div><strong>Subject Faculty</strong><br>Dept. of Physics & Chemistry</div>
-    <div><strong>Academic Director</strong><br>HAPS Vikas Nagar, Hamirpur</div>
+    <div><strong>Class Coordinator</strong><br>Unisole AI School</div>
+    <div><strong>Subject Faculty</strong><br>Academic Department</div>
+    <div><strong>Academic Director</strong><br>Unisole AI School System</div>
   </div>
 </body>
 </html>

@@ -1,4 +1,4 @@
-# HAPS-AI Scholar Assistant - Complete Architecture Diagrams for Excalidraw
+# Unisole AI School - Complete Architecture Diagrams for Excalidraw
 
 This document contains production-grade Mermaid diagram code tailored for direct import into **Excalidraw** (`Insert` -> `Mermaid` or paste).
 
