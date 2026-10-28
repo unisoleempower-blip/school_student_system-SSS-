@@ -3726,19 +3726,147 @@ function setupClassAnalytics() {
   }
 }
 
-function generateFallbackClassAnalytics(assessmentId) {
+function generateFallbackClassAnalytics(assessmentId, targetSubjKey) {
+  const sKey = (targetSubjKey || teacherBuilderState.teacherSubjectKey || teacherBuilderState.selectedSubjectKey || 'CLASS10_MATHEMATICS').toUpperCase();
+  const isClass10Math = sKey.includes('MATH') || sKey === 'CLASS10_MATHEMATICS';
+  const isClass10Sci = sKey.includes('SCIENCE') || sKey === 'CLASS10_SCIENCE';
+
+  if (isClass10Math) {
+    const assessment = {
+      id: assessmentId || 'asgn_10_math_01',
+      title: 'Class 10th Mathematics: Real Numbers & Polynomials Diagnostic Assessment',
+      grade: '10',
+      section: '10-Science-A',
+      subject: 'Mathematics',
+      subjectKey: 'CLASS10_MATHEMATICS',
+      totalQuestions: 4,
+      totalMarks: 16
+    };
+    const classSummary = {
+      totalSubmissions: 4,
+      classEnrolledCount: 4,
+      participationRate: '100%',
+      averageScore: 12.0,
+      averagePercentage: '75%',
+      averageTimeSpentSeconds: 228,
+      highestScore: { score: 16, percentage: 100, students: [{ studentId: 'b0000000-0000-0000-0000-000000000022', studentName: 'Aditya Chauhan', rollNumber: '10-A-02' }] },
+      lowestScore: { score: 8, percentage: 50, students: [{ studentId: 'b0000000-0000-0000-0000-000000000024', studentName: 'Nikhil Rana', rollNumber: '10-A-04' }] }
+    };
+    const highlights = {
+      mostAttempted: { questionIndex: 1, subtopic: "Euclid's Division Algorithm", attemptCount: 4, attemptRate: '100%' },
+      mostWrong: { questionIndex: 4, subtopic: 'Quadratic Polynomial Formation', wrongCount: 2, errorRate: '50%', dominantMistake: 'Calculation / Constant Multiplier Slip' }
+    };
+    const questionAnalytics = [
+      { questionIndex: 1, subtopic: "Euclid's Division Algorithm", topic: 'Real Numbers', accuracyRate: 100.0, errorRate: 0.0, avgTimeSpentSeconds: 46, benchmarkSeconds: 90, dominantMistake: 'None', mistakeBreakdown: { CONCEPTUAL: 0, FORMULA_BASED: 0, CALCULATION: 0, SIGN_CONVENTION: 0, TIME_PRESSURE: 0 } },
+      { questionIndex: 2, subtopic: 'Fundamental Theorem of Arithmetic (HCF × LCM)', topic: 'Real Numbers', accuracyRate: 100.0, errorRate: 0.0, avgTimeSpentSeconds: 51, benchmarkSeconds: 90, dominantMistake: 'None', mistakeBreakdown: { CONCEPTUAL: 0, FORMULA_BASED: 0, CALCULATION: 0, SIGN_CONVENTION: 0, TIME_PRESSURE: 0 } },
+      { questionIndex: 3, subtopic: 'Zeroes & Coefficients Relationship', topic: 'Polynomials', accuracyRate: 75.0, errorRate: 25.0, avgTimeSpentSeconds: 61, benchmarkSeconds: 90, dominantMistake: 'Sign Slip', mistakeBreakdown: { CONCEPTUAL: 0, FORMULA_BASED: 0, CALCULATION: 0, SIGN_CONVENTION: 1, TIME_PRESSURE: 0 } },
+      { questionIndex: 4, subtopic: 'Quadratic Polynomial Formation', topic: 'Polynomials', accuracyRate: 50.0, errorRate: 50.0, avgTimeSpentSeconds: 71, benchmarkSeconds: 120, dominantMistake: 'Calculation Slip', mistakeBreakdown: { CONCEPTUAL: 0, FORMULA_BASED: 1, CALCULATION: 1, SIGN_CONVENTION: 0, TIME_PRESSURE: 0 } }
+    ];
+    const pedagogicalActionPlan = {
+      quickRecapNeeded: [
+        { questionIndex: 3, concept: 'Zeroes and Coefficients Relationship', topic: 'Polynomials', accuracyRate: '75.0%', dominantMistake: 'Factor root inversion', recommendation: '10-minute recap on equating (x + a)(x + b) = 0 roots.' }
+      ],
+      teachOnceAgainNeeded: [
+        { questionIndex: 4, concept: 'Quadratic Polynomial Formation k[x^2 - Sx + P]', topic: 'Polynomials', accuracyRate: '50.0%', studentsStruggledCount: 2, dominantMistake: 'Fraction clearing error', recommendation: 'Review standard quadratic formation with fractional sum & product coefficients.' }
+      ],
+      timeManagementAlerts: []
+    };
+    const studentRoster = [
+      { studentId: 'b0000000-0000-0000-0000-000000000022', studentName: 'Aditya Chauhan', rollNumber: '10-A-02', score: 16, totalMarks: 16, percentage: 100, totalTimeSpentSeconds: 195, wrongQuestionsCount: 0, primaryMistake: 'None', smartCardSummary: 'Mastered all concepts with sub-benchmark speeds. Flawless algebraic factorization and polynomial operations.' },
+      { studentId: 'b0000000-0000-0000-0000-000000000023', studentName: 'Tanvi Sood', rollNumber: '10-A-03', score: 12, totalMarks: 16, percentage: 75, totalTimeSpentSeconds: 220, wrongQuestionsCount: 1, primaryMistake: 'Calculation', smartCardSummary: 'High proficiency on Real Numbers. Minor algebraic slip while clearing denominators in quadratic formation.' },
+      { studentId: 'b0000000-0000-0000-0000-000000000021', studentName: 'Rohit Verma', rollNumber: '10-A-01', score: 12, totalMarks: 16, percentage: 75, totalTimeSpentSeconds: 235, wrongQuestionsCount: 1, primaryMistake: 'Sign Slip', smartCardSummary: 'Consistent pace across test. Inverted signs when equating factors (x + 2)(x + 5) = 0.' },
+      { studentId: 'b0000000-0000-0000-0000-000000000024', studentName: 'Nikhil Rana', rollNumber: '10-A-04', score: 8, totalMarks: 16, percentage: 50, totalTimeSpentSeconds: 265, wrongQuestionsCount: 2, primaryMistake: 'Conceptual & Formula', smartCardSummary: 'Good performance on Real Numbers. Remedial coaching needed on quadratic polynomial formation and zeroes relationship.' }
+    ];
+    return {
+      success: true,
+      assessment,
+      classSummary,
+      highlights,
+      questionAnalytics,
+      pedagogicalActionPlan,
+      studentRoster,
+      availableAssessments: [
+        { id: 'asgn_10_math_01', title: 'Class 10th Mathematics: Real Numbers & Polynomials Diagnostic Assessment', grade: '10', section: '10-Science-A', subjectKey: 'CLASS10_MATHEMATICS' }
+      ]
+    };
+  }
+
+  if (isClass10Sci) {
+    const assessment = {
+      id: assessmentId || 'asgn_10_sci_01',
+      title: 'Class 10 Science: Light – Spherical Mirrors & Derivations',
+      grade: '10',
+      section: '10-Science-A',
+      subject: 'Science',
+      subjectKey: 'CLASS10_SCIENCE',
+      totalQuestions: 3,
+      totalMarks: 12
+    };
+    const classSummary = {
+      totalSubmissions: 4,
+      classEnrolledCount: 4,
+      participationRate: '100%',
+      averageScore: 9.0,
+      averagePercentage: '75%',
+      averageTimeSpentSeconds: 215,
+      highestScore: { score: 12, percentage: 100, students: [{ studentId: 'b0000000-0000-0000-0000-000000000021', studentName: 'Rohit Verma', rollNumber: '10-A-01' }] },
+      lowestScore: { score: 4, percentage: 33, students: [{ studentId: 'b0000000-0000-0000-0000-000000000024', studentName: 'Nikhil Rana', rollNumber: '10-A-04' }] }
+    };
+    const highlights = {
+      mostAttempted: { questionIndex: 1, subtopic: 'Spherical Mirrors', attemptCount: 4, attemptRate: '100%' },
+      mostWrong: { questionIndex: 2, subtopic: 'Refraction & Snell Law', wrongCount: 2, errorRate: '50%', dominantMistake: 'Refractive Index Ratio Inversion' }
+    };
+    const questionAnalytics = [
+      { questionIndex: 1, subtopic: 'Spherical Mirrors', topic: 'Light – Reflection and Refraction', accuracyRate: 100.0, errorRate: 0.0, avgTimeSpentSeconds: 68, benchmarkSeconds: 90, dominantMistake: 'None', mistakeBreakdown: { CONCEPTUAL: 0, FORMULA_BASED: 0, CALCULATION: 0, SIGN_CONVENTION: 0, TIME_PRESSURE: 0 } },
+      { questionIndex: 2, subtopic: 'Refraction & Snell Law', topic: 'Light – Reflection and Refraction', accuracyRate: 50.0, errorRate: 50.0, avgTimeSpentSeconds: 72, benchmarkSeconds: 75, dominantMistake: 'Calculation Slip', mistakeBreakdown: { CONCEPTUAL: 0, FORMULA_BASED: 1, CALCULATION: 1, SIGN_CONVENTION: 0, TIME_PRESSURE: 0 } },
+      { questionIndex: 3, subtopic: "Ohm's Law & Resistance", topic: 'Electricity', accuracyRate: 75.0, errorRate: 25.0, avgTimeSpentSeconds: 75, benchmarkSeconds: 90, dominantMistake: 'Sign Slip', mistakeBreakdown: { CONCEPTUAL: 0, FORMULA_BASED: 0, CALCULATION: 0, SIGN_CONVENTION: 1, TIME_PRESSURE: 0 } }
+    ];
+    const pedagogicalActionPlan = {
+      quickRecapNeeded: [
+        { questionIndex: 3, concept: "Ohm's Law & Resistance", topic: 'Electricity', accuracyRate: '75.0%', dominantMistake: 'Area inversion in resistivity', recommendation: '10-minute recap on wire stretching and resistance scaling.' }
+      ],
+      teachOnceAgainNeeded: [
+        { questionIndex: 2, concept: 'Refraction & Snell Law', topic: 'Light', accuracyRate: '50.0%', studentsStruggledCount: 2, dominantMistake: 'Velocity ratio inversion', recommendation: 'Re-derive Snell Law and absolute refractive index step-by-step.' }
+      ],
+      timeManagementAlerts: []
+    };
+    const studentRoster = [
+      { studentId: 'b0000000-0000-0000-0000-000000000021', studentName: 'Rohit Verma', rollNumber: '10-A-01', score: 12, totalMarks: 12, percentage: 100, totalTimeSpentSeconds: 219, wrongQuestionsCount: 0, primaryMistake: 'None', smartCardSummary: 'Mastered all concepts with sub-benchmark speeds. Flawless application of sign conventions.' },
+      { studentId: 'b0000000-0000-0000-0000-000000000022', studentName: 'Aditya Chauhan', rollNumber: '10-A-02', score: 8, totalMarks: 12, percentage: 67, totalTimeSpentSeconds: 210, wrongQuestionsCount: 1, primaryMistake: 'Calculation', smartCardSummary: 'Good performance. Slipped on unit conversions in question 2.' },
+      { studentId: 'b0000000-0000-0000-0000-000000000023', studentName: 'Tanvi Sood', rollNumber: '10-A-03', score: 8, totalMarks: 12, percentage: 67, totalTimeSpentSeconds: 215, wrongQuestionsCount: 1, primaryMistake: 'Calculation', smartCardSummary: 'Consistent pace across test.' },
+      { studentId: 'b0000000-0000-0000-0000-000000000024', studentName: 'Nikhil Rana', rollNumber: '10-A-04', score: 4, totalMarks: 12, percentage: 33, totalTimeSpentSeconds: 216, wrongQuestionsCount: 2, primaryMistake: 'Conceptual', smartCardSummary: 'Needs review on Snell Law and mirror formula sign conventions.' }
+    ];
+    return {
+      success: true,
+      assessment,
+      classSummary,
+      highlights,
+      questionAnalytics,
+      pedagogicalActionPlan,
+      studentRoster,
+      availableAssessments: [
+        { id: 'asgn_10_sci_01', title: 'Class 10 Science: Light – Spherical Mirrors & Derivations', grade: '10', section: '10-Science-A', subjectKey: 'CLASS10_SCIENCE' }
+      ]
+    };
+  }
+
+  // Senior Secondary Default (Physics / General)
   const assessment = {
-    id: assessmentId || '12-NM-TEST-01',
-    title: 'Quick Check: Properties of Charge',
+    id: assessmentId || 'asgn_12_phy_01',
+    title: 'Class 12 Physics: Electrostatics & Fields - JEE Main Diagnostic Test',
     grade: '12',
     section: '12-NonMed',
+    subject: 'Physics',
+    subjectKey: 'PHYSICS',
     totalQuestions: 3,
     totalMarks: 12
   };
   const classSummary = {
     totalSubmissions: 8,
+    classEnrolledCount: 8,
+    participationRate: '100%',
     averageScore: 7.8,
-    averagePercentage: 65,
+    averagePercentage: '65%',
     averageTimeSpentSeconds: 165,
     highestScore: { score: 12, percentage: 100, students: [{ studentId: '12-NM-03', studentName: 'Kavya Verma', rollNumber: '12-NM-03' }] },
     lowestScore: { score: 0, percentage: 0, students: [{ studentId: '12-NM-01', studentName: 'Aryan Sharma', rollNumber: '12-NM-01' }] }
@@ -3748,9 +3876,9 @@ function generateFallbackClassAnalytics(assessmentId) {
     mostWrong: { questionIndex: 3, subtopic: 'Quantization of Electric Charge (q = ±ne)', wrongCount: 6, errorRate: '75%', dominantMistake: 'Sign / Magnitude Slip' }
   };
   const questionAnalytics = [
-    { questionIndex: 1, subtopic: 'Properties of Charge: Additivity', accuracyRate: 62.5, errorRate: 37.5, avgTimeSpentSeconds: 45, benchmarkSeconds: 90 },
-    { questionIndex: 2, subtopic: 'Conservation of Charge', accuracyRate: 50.0, errorRate: 50.0, avgTimeSpentSeconds: 52, benchmarkSeconds: 90 },
-    { questionIndex: 3, subtopic: 'Quantization of Charge (q = ±ne)', accuracyRate: 25.0, errorRate: 75.0, avgTimeSpentSeconds: 68, benchmarkSeconds: 90 }
+    { questionIndex: 1, subtopic: 'Properties of Charge: Additivity', topic: 'Electrostatics', accuracyRate: 62.5, errorRate: 37.5, avgTimeSpentSeconds: 45, benchmarkSeconds: 90, dominantMistake: 'Vector vs Scalar sum', mistakeBreakdown: { CONCEPTUAL: 1, FORMULA_BASED: 1, CALCULATION: 1, SIGN_CONVENTION: 0, TIME_PRESSURE: 0 } },
+    { questionIndex: 2, subtopic: 'Conservation of Charge', topic: 'Electrostatics', accuracyRate: 50.0, errorRate: 50.0, avgTimeSpentSeconds: 52, benchmarkSeconds: 90, dominantMistake: 'Boundary confusion', mistakeBreakdown: { CONCEPTUAL: 2, FORMULA_BASED: 1, CALCULATION: 1, SIGN_CONVENTION: 0, TIME_PRESSURE: 0 } },
+    { questionIndex: 3, subtopic: 'Quantization of Charge (q = ±ne)', topic: 'Electrostatics', accuracyRate: 25.0, errorRate: 75.0, avgTimeSpentSeconds: 68, benchmarkSeconds: 90, dominantMistake: 'Formula / Integer condition', mistakeBreakdown: { CONCEPTUAL: 3, FORMULA_BASED: 2, CALCULATION: 1, SIGN_CONVENTION: 0, TIME_PRESSURE: 0 } }
   ];
   const pedagogicalActionPlan = {
     quickRecapNeeded: [
@@ -3782,37 +3910,61 @@ function generateFallbackClassAnalytics(assessmentId) {
     pedagogicalActionPlan,
     studentRoster,
     availableAssessments: [
-      { id: '12-NM-TEST-01', title: 'Quick Check: Properties of Charge', grade: '12' },
-      { id: 'asgn_10_sci_01', title: 'Class 10 Science: Light – Spherical Mirrors & Derivations', grade: '10' }
+      { id: 'asgn_12_phy_01', title: 'Class 12 Physics: Electrostatics & Fields - JEE Main Diagnostic Test', grade: '12', section: '12-NonMed', subjectKey: 'PHYSICS' }
     ]
   };
 }
 
 async function loadClassAnalytics(assessmentId) {
   try {
-    const sKey = teacherBuilderState.teacherSubjectKey || teacherBuilderState.selectedSubjectKey || 'PHYSICS';
-    const url = assessmentId 
+    const sKey = (teacherBuilderState.teacherSubjectKey || teacherBuilderState.selectedSubjectKey || 'CLASS10_MATHEMATICS').toUpperCase();
+    
+    // Quick indicator if empty
+    const kpiAvg = document.getElementById('kpiAvgScore');
+    if (kpiAvg && kpiAvg.innerText.trim() === '--') {
+      kpiAvg.innerHTML = '<span style="font-size:1.1rem; color:var(--text-muted);"><i data-lucide="loader-2" class="spin" style="width:14px; height:14px; vertical-align:middle;"></i> Loading...</span>';
+    }
+
+    let url = assessmentId 
       ? `${getApiBaseUrl()}/api/analytics/class-dashboard?assessmentId=${encodeURIComponent(assessmentId)}&subjectKey=${encodeURIComponent(sKey)}`
       : `${getApiBaseUrl()}/api/analytics/class-dashboard?subjectKey=${encodeURIComponent(sKey)}`;
 
     let data = null;
     try {
       const res = await fetch(url);
-      if (res.ok) data = await res.json();
+      if (res.ok) {
+        data = await res.json();
+      }
     } catch (netErr) {
-      console.warn('[CLASS ANALYTICS] Fetch failed, using client-side fallback data:', netErr);
+      console.warn('[CLASS ANALYTICS] Local fetch failed, trying cloud production fallback:', netErr);
     }
 
+    // Remote fallback if local endpoint failed
     if (!data || !data.success) {
-      data = generateFallbackClassAnalytics(assessmentId);
+      try {
+        const prodUrl = assessmentId
+          ? `https://haps-ai-scholar-assistant.vercel.app/api/analytics/class-dashboard?assessmentId=${encodeURIComponent(assessmentId)}&subjectKey=${encodeURIComponent(sKey)}`
+          : `https://haps-ai-scholar-assistant.vercel.app/api/analytics/class-dashboard?subjectKey=${encodeURIComponent(sKey)}`;
+        const prodRes = await fetch(prodUrl);
+        if (prodRes.ok) {
+          data = await prodRes.json();
+        }
+      } catch (prodErr) {
+        console.warn('[CLASS ANALYTICS] Production fallback fetch error:', prodErr);
+      }
+    }
+
+    // Dynamic, subject-accurate client-side fallback
+    if (!data || !data.success) {
+      data = generateFallbackClassAnalytics(assessmentId, sKey);
     }
 
     currentAnalyticsData = data;
 
-    // Populate dropdown if needed
+    // Populate dropdown safely
     const selectAssessment = document.getElementById('selectAnalyticsAssessment');
-    if (selectAssessment && data.availableAssessments) {
-      const currentVal = assessmentId || data.assessment.id;
+    if (selectAssessment && Array.isArray(data.availableAssessments) && data.availableAssessments.length > 0) {
+      const currentVal = assessmentId || data.assessment?.id || data.availableAssessments[0]?.id;
       selectAssessment.innerHTML = data.availableAssessments.map(a => `
         <option value="${a.id}" ${a.id === currentVal ? 'selected' : ''}>
           ${a.title} (${a.grade ? 'Class ' + a.grade : 'General'})
@@ -3822,7 +3974,9 @@ async function loadClassAnalytics(assessmentId) {
 
     renderClassAnalytics(data);
   } catch (err) {
-    console.error('[CLASS ANALYTICS] Error:', err.message);
+    console.error('[CLASS ANALYTICS] Error:', err);
+    const fallback = generateFallbackClassAnalytics(assessmentId, teacherBuilderState.teacherSubjectKey || teacherBuilderState.selectedSubjectKey);
+    renderClassAnalytics(fallback);
   }
 }
 
@@ -3831,6 +3985,23 @@ async function loadClassAnalytics(assessmentId) {
 // -----------------------------------------------------------------------------
 function renderClassAnalyticsCharts(data) {
   if (!window.Chart || !data) return;
+
+  if (data.hasSubmissions === false || !data.classSummary || (data.classSummary.totalSubmissions === 0 && (!data.studentRoster || !data.studentRoster.some(s => s.percentage > 0)))) {
+    destroyChart('questionPerf');
+    destroyChart('scoreDist');
+    destroyChart('questionTime');
+    destroyChart('mistakeDist');
+
+    const perfSummaryEl = document.getElementById('chartQuestionPerfSummary');
+    if (perfSummaryEl) perfSummaryEl.innerHTML = 'Pending class test attempts';
+    const scoreSummaryEl = document.getElementById('chartScoreDistSummary');
+    if (scoreSummaryEl) scoreSummaryEl.innerHTML = 'Pending class test attempts';
+    const timeSummaryEl = document.getElementById('chartTimeLagSummary');
+    if (timeSummaryEl) timeSummaryEl.innerHTML = 'Pending class test attempts';
+    const mistakeSummaryEl = document.getElementById('chartMistakesSummary');
+    if (mistakeSummaryEl) mistakeSummaryEl.innerHTML = 'Pending class test attempts';
+    return;
+  }
 
   const { questionAnalytics = [], studentRoster = [], highlights = {}, classSummary = {} } = data;
 
@@ -4100,13 +4271,23 @@ function renderClassAnalyticsCharts(data) {
 }
 
 function renderClassAnalytics(data) {
-  const noticeContainer = document.getElementById('containerClassAnalyticsNotice');
-
   if (!data) return;
 
-  // Handle case where assessment is created but has 0 submissions yet
-  if (data.hasSubmissions === false || !data.classSummary) {
-    const asgn = data.assessment || {};
+  const noticeContainer = document.getElementById('containerClassAnalyticsNotice');
+  const asgn = data.assessment || {};
+
+  // Update dynamic class badge in header
+  const classBadge = document.getElementById('analyticsClassBadge');
+  if (classBadge) {
+    const gradeStr = asgn.grade ? `Class ${asgn.grade}` : 'Class 10';
+    const secStr = asgn.section ? `Section ${asgn.section}` : 'Section A';
+    classBadge.innerHTML = `${gradeStr} &bull; ${secStr}`;
+  }
+
+  // Handle case where assessment has 0 submissions or pending attempt
+  const isPending = data.hasSubmissions === false || !data.classSummary || (data.classSummary.totalSubmissions === 0 && (!data.studentRoster || !data.studentRoster.some(s => s.percentage > 0)));
+
+  if (isPending) {
     if (noticeContainer) {
       noticeContainer.innerHTML = `
         <div class="pending-attempt-banner">
@@ -4116,7 +4297,7 @@ function renderClassAnalytics(data) {
                 <i data-lucide="clock" style="width:12px;height:12px;display:inline-block;vertical-align:middle;"></i> Ready for Class Attempts
               </span>
               <span class="pilot-tag" style="background:rgba(16, 185, 129, 0.15); color:#34d399;">
-                ${asgn.section || 'Class 12th Non-Med'} &bull; ${asgn.totalQuestions || 5} Questions
+                ${asgn.section || 'Class 10-Science-A'} &bull; ${asgn.totalQuestions || 4} Questions
               </span>
             </div>
             <h3 style="font-size:1.15rem; font-weight:800; color:var(--text-primary); margin:0 0 4px;">
@@ -4127,10 +4308,10 @@ function renderClassAnalytics(data) {
             </p>
           </div>
           <div class="pending-attempt-actions">
-            <button type="button" class="btn-attempt-live" onclick="attemptActiveTestInStudentPortal('${asgn.id}')">
+            <button type="button" class="btn-attempt-live" onclick="attemptActiveTestInStudentPortal('${asgn.id || ''}')">
               <i data-lucide="play" style="width:15px;height:15px;"></i> Attempt Test as Student
             </button>
-            <button type="button" class="btn-simulate-eval" onclick="simulateClassAttemptsAndGenerateDashboard('${asgn.id}')">
+            <button type="button" class="btn-simulate-eval" onclick="simulateClassAttemptsAndGenerateDashboard('${asgn.id || ''}')">
               <i data-lucide="zap" style="width:15px;height:15px;"></i> Submit Class Attempts & Generate Dashboard
             </button>
           </div>
@@ -4149,8 +4330,9 @@ function renderClassAnalytics(data) {
     const kpiAvgVelocity = document.getElementById('kpiAvgVelocity');
     const kpiAvgVelocitySub = document.getElementById('kpiAvgVelocitySub');
 
-    if (kpiAvgScore) kpiAvgScore.innerHTML = `-- <span style="font-size:0.9rem; color:var(--text-muted); font-weight:500;">/ ${asgn.totalMarks || 20}</span>`;
-    if (kpiAvgSub) kpiAvgSub.innerText = `0 / 8 Students Attempted (Pending)`;
+    const totalStudents = (data.studentRoster && data.studentRoster.length) || 8;
+    if (kpiAvgScore) kpiAvgScore.innerHTML = `-- <span style="font-size:0.9rem; color:var(--text-muted); font-weight:500;">/ ${asgn.totalMarks || 16}</span>`;
+    if (kpiAvgSub) kpiAvgSub.innerText = `0 / ${totalStudents} Students Attempted (Pending)`;
     if (kpiHighestScore) kpiHighestScore.innerHTML = `--`;
     if (kpiHighestStudent) kpiHighestStudent.innerText = `Awaiting test attempts`;
     if (kpiLowestScore) kpiLowestScore.innerHTML = `--`;
@@ -4158,24 +4340,136 @@ function renderClassAnalytics(data) {
     if (kpiAvgVelocity) kpiAvgVelocity.innerText = `--`;
     if (kpiAvgVelocitySub) kpiAvgVelocitySub.innerText = `Pacing benchmark: 90s/Q`;
 
-    // Clear charts
-    destroyChart('questionPerf');
-    destroyChart('scoreDist');
-    destroyChart('questionTime');
-    destroyChart('mistakeDist');
+    // Clear charts safely
+    renderClassAnalyticsCharts(data);
 
+    // Highlights placeholders
+    const txtMostAttemptedTitle = document.getElementById('txtMostAttemptedTitle');
+    const txtMostAttemptedDetail = document.getElementById('txtMostAttemptedDetail');
+    const badgeMostAttemptedRate = document.getElementById('badgeMostAttemptedRate');
+    if (txtMostAttemptedTitle) txtMostAttemptedTitle.innerText = `Awaiting Class Submissions`;
+    if (txtMostAttemptedDetail) txtMostAttemptedDetail.innerText = `Question attempt rates will show once students complete the test.`;
+    if (badgeMostAttemptedRate) badgeMostAttemptedRate.innerText = `0%`;
+
+    const txtMostWrongTitle = document.getElementById('txtMostWrongTitle');
+    const txtMostWrongDetail = document.getElementById('txtMostWrongDetail');
+    const badgeMostWrongRate = document.getElementById('badgeMostWrongRate');
+    if (txtMostWrongTitle) txtMostWrongTitle.innerText = `Awaiting Class Submissions`;
+    if (txtMostWrongDetail) txtMostWrongDetail.innerText = `Dominant stumbling blocks will be calculated automatically.`;
+    if (badgeMostWrongRate) badgeMostWrongRate.innerText = `0% Error`;
+
+    const txtTimeHotspotTitle = document.getElementById('txtTimeHotspotTitle');
+    const txtTimeHotspotDetail = document.getElementById('txtTimeHotspotDetail');
+    const badgeTimeLag = document.getElementById('badgeTimeLag');
+    if (txtTimeHotspotTitle) txtTimeHotspotTitle.innerText = `Target: 90s / Question`;
+    if (txtTimeHotspotDetail) txtTimeHotspotDetail.innerText = `Pacing bottlenecks will be flagged against standard pacing.`;
+    if (badgeTimeLag) badgeTimeLag.innerText = `90s`;
+
+    // Pedagogical Action Plan pending notice
+    const recapContainer = document.getElementById('recapConceptsContainer');
+    if (recapContainer) {
+      recapContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">Test attempts pending. Quick recap topics (50%–75% accuracy) will populate after student submission.</p>';
+    }
+    const reteachContainer = document.getElementById('reteachConceptsContainer');
+    if (reteachContainer) {
+      reteachContainer.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem;">Test attempts pending. Critical concept reteach directives (<50% accuracy) will populate after student submission.</p>';
+    }
+
+    // Question Matrix Table for pending assessment
+    const qTableBody = document.getElementById('classQuestionBreakdownTableBody');
+    if (qTableBody && Array.isArray(data.questionAnalytics) && data.questionAnalytics.length > 0) {
+      qTableBody.innerHTML = data.questionAnalytics.map(q => `
+        <tr style="border-bottom: 1px solid var(--border-subtle);">
+          <td style="padding: 10px 8px; font-weight:700; color:var(--accent-blue);">Q${q.questionIndex}</td>
+          <td style="padding: 10px 8px;">
+            <div style="font-weight:600; color:var(--text-primary);">${q.subtopic || 'Diagnostic Concept'}</div>
+            <div style="font-size:0.72rem; color:var(--text-muted);">${q.topic || 'Core Curriculum'}</div>
+          </td>
+          <td style="padding: 10px 8px;">
+            <strong>0%</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(0/${totalStudents})</span>
+          </td>
+          <td style="padding: 10px 8px;">
+            <span style="font-weight:700; color:var(--text-muted);">--</span>
+          </td>
+          <td style="padding: 10px 8px;">
+            <span>--</span> <span style="font-size:0.72rem; color:var(--text-muted);">(${q.benchmarkSeconds || 90}s)</span>
+          </td>
+          <td style="padding: 10px 8px;"><span class="badge-mistake badge-mistake-none">None</span></td>
+          <td style="padding: 10px 8px;"><span class="speed-badge fast" style="background:rgba(59,130,246,0.15); color:var(--accent-blue);">Pending Attempt</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // Student Performance Roster Table for enrolled students
+    const sTableBody1 = document.getElementById('classStudentRosterTableBody');
+    const sTableBody2 = document.getElementById('tabStudentsRosterTableBody');
+    const rosterList = Array.isArray(data.studentRoster) && data.studentRoster.length > 0
+      ? data.studentRoster
+      : [
+          { rollNumber: '10-A-01', studentName: 'Rohit Verma', studentId: 'stu_10_01' },
+          { rollNumber: '10-A-02', studentName: 'Aditya Chauhan', studentId: 'stu_10_02' },
+          { rollNumber: '10-A-03', studentName: 'Tanvi Sood', studentId: 'stu_10_03' },
+          { rollNumber: '10-A-04', studentName: 'Nikhil Rana', studentId: 'stu_10_04' },
+          { rollNumber: '10-A-05', studentName: 'Priya Sharma', studentId: 'stu_10_05' },
+          { rollNumber: '10-A-06', studentName: 'Aarav Gupta', studentId: 'stu_10_06' },
+          { rollNumber: '10-A-07', studentName: 'Sneha Patel', studentId: 'stu_10_07' },
+          { rollNumber: '10-A-08', studentName: 'Kabir Mehta', studentId: 'stu_10_08' }
+        ];
+
+    function buildPendingRosterRows(roster) {
+      return roster.map(s => `
+        <tr style="border-bottom: 1px solid var(--border-subtle);">
+          <td style="padding: 10px 8px; font-weight:600; color:var(--text-muted);">${s.rollNumber || '--'}</td>
+          <td style="padding: 10px 8px;">
+            <div style="font-weight:700; color:var(--text-primary);">${s.studentName}</div>
+            <div style="font-size:0.72rem; color:var(--text-secondary); max-width:280px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">Enrolled &bull; Ready for test</div>
+          </td>
+          <td style="padding: 10px 8px;">
+            <span class="pilot-tag" style="background:rgba(148, 163, 184, 0.15); color:var(--text-muted); font-weight:600; font-size:0.78rem;">
+              Pending Attempt
+            </span>
+          </td>
+          <td style="padding: 10px 8px; font-size:0.8rem; color:var(--text-muted);">--</td>
+          <td style="padding: 10px 8px; font-size:0.8rem; font-weight:600; color:var(--text-muted);">--</td>
+          <td style="padding: 10px 8px;"><span class="badge-mistake badge-mistake-none">None</span></td>
+          <td style="padding: 10px 8px; text-align: right;">
+            <button class="btn-secondary" onclick="attemptActiveTestInStudentPortal('${asgn.id || ''}')" style="font-size:0.75rem; padding:5px 10px; border-radius:6px; cursor:pointer;">
+              <i data-lucide="play" style="width:13px; height:13px;"></i> Start Attempt
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    if (sTableBody1) sTableBody1.innerHTML = buildPendingRosterRows(rosterList);
+    if (sTableBody2) sTableBody2.innerHTML = buildPendingRosterRows(rosterList);
+
+    const searchInput = document.getElementById('searchStudentInput');
+    if (searchInput) {
+      searchInput.oninput = (e) => {
+        const q = e.target.value.toLowerCase().trim();
+        const filtered = rosterList.filter(s =>
+          s.studentName.toLowerCase().includes(q) ||
+          (s.rollNumber || '').toLowerCase().includes(q)
+        );
+        if (sTableBody2) sTableBody2.innerHTML = buildPendingRosterRows(filtered);
+        initLucideIcons();
+      };
+    }
+
+    initLucideIcons();
     return;
   }
 
-  // When submissions exist: show success badge if previously pending
+  // When submissions exist: show success badge
   if (noticeContainer) {
     noticeContainer.innerHTML = `
       <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); padding: 8px 14px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; flex-wrap: wrap; gap: 8px;">
         <span style="color: #34d399; font-weight: 600;">
           <i data-lucide="check-circle" style="width:14px; height:14px; vertical-align:middle; display:inline-block;"></i>
-          Test Attempted &bull; Live Progress Dashboard Generated for <strong>${data.assessment?.title}</strong>
+          Test Attempted &bull; Live Progress Dashboard Generated for <strong>${data.assessment?.title || 'Active Assessment'}</strong>
         </span>
-        <button type="button" class="btn-micro-quiz" onclick="attemptActiveTestInStudentPortal('${data.assessment?.id}')" style="background:rgba(255,255,255,0.06); color:var(--text-primary); border-color:var(--border-subtle);">
+        <button type="button" class="btn-micro-quiz" onclick="attemptActiveTestInStudentPortal('${data.assessment?.id || asgn?.id || ''}')" style="background:rgba(255,255,255,0.06); color:var(--text-primary); border-color:var(--border-subtle);">
           <i data-lucide="rotate-ccw" style="width:11px;height:11px;"></i> Re-take in Student Portal
         </button>
       </div>
@@ -4183,10 +4477,7 @@ function renderClassAnalytics(data) {
     initLucideIcons();
   }
 
-  const { classSummary, assessment, questionAnalytics, highlights, pedagogicalActionPlan, studentRoster } = data;
-
-  // Render Visual Charts
-  renderClassAnalyticsCharts(data);
+  const { classSummary = {}, assessment = {}, questionAnalytics = [], highlights = {}, pedagogicalActionPlan = {}, studentRoster = [] } = data;
 
   // 1. KPI Cards
   const kpiAvgScore = document.getElementById('kpiAvgScore');
@@ -4199,35 +4490,40 @@ function renderClassAnalytics(data) {
   const kpiAvgVelocitySub = document.getElementById('kpiAvgVelocitySub');
 
   if (kpiAvgScore) {
-    kpiAvgScore.innerHTML = `${classSummary.averageScore} <span style="font-size:1rem; color:var(--text-muted); font-weight:500;">/ ${assessment.totalMarks}</span> <span style="font-size:0.95rem; color:var(--accent-cyan);">(${classSummary.averagePercentage})</span>`;
+    kpiAvgScore.innerHTML = `${classSummary.averageScore ?? '--'} <span style="font-size:1rem; color:var(--text-muted); font-weight:500;">/ ${assessment.totalMarks || 16}</span> <span style="font-size:0.95rem; color:var(--accent-cyan);">(${classSummary.averagePercentage || '0%'})</span>`;
   }
   if (kpiAvgSub) {
-    kpiAvgSub.innerText = `${classSummary.totalSubmissions} / ${classSummary.classEnrolledCount} Students Tested (${classSummary.participationRate})`;
+    kpiAvgSub.innerText = `${classSummary.totalSubmissions || 0} / ${classSummary.classEnrolledCount || 8} Students Tested (${classSummary.participationRate || '0%'})`;
   }
 
   if (kpiHighestScore) {
-    kpiHighestScore.innerHTML = `${classSummary.highestScore.score} <span style="font-size:1rem; color:var(--text-muted); font-weight:500;">/ ${assessment.totalMarks}</span> <span style="font-size:0.95rem;">(${classSummary.highestScore.percentage}%)</span>`;
+    const hScore = classSummary.highestScore?.score ?? '--';
+    const hPct = classSummary.highestScore?.percentage ?? 0;
+    kpiHighestScore.innerHTML = `${hScore} <span style="font-size:1rem; color:var(--text-muted); font-weight:500;">/ ${assessment.totalMarks || 16}</span> <span style="font-size:0.95rem;">(${hPct}%)</span>`;
   }
   if (kpiHighestStudent) {
-    const names = (classSummary.highestScore.students || []).map(s => s.studentName).join(', ');
+    const names = (classSummary.highestScore?.students || []).map(s => s.studentName).join(', ');
     kpiHighestStudent.innerText = names || 'Topper';
   }
 
   if (kpiLowestScore) {
-    kpiLowestScore.innerHTML = `${classSummary.lowestScore.score} <span style="font-size:1rem; color:var(--text-muted); font-weight:500;">/ ${assessment.totalMarks}</span> <span style="font-size:0.95rem;">(${classSummary.lowestScore.percentage}%)</span>`;
+    const lScore = classSummary.lowestScore?.score ?? '--';
+    const lPct = classSummary.lowestScore?.percentage ?? 0;
+    kpiLowestScore.innerHTML = `${lScore} <span style="font-size:1rem; color:var(--text-muted); font-weight:500;">/ ${assessment.totalMarks || 16}</span> <span style="font-size:0.95rem;">(${lPct}%)</span>`;
   }
   if (kpiLowestStudent) {
-    const names = (classSummary.lowestScore.students || []).map(s => s.studentName).join(', ');
+    const names = (classSummary.lowestScore?.students || []).map(s => s.studentName).join(', ');
     kpiLowestStudent.innerText = names || 'Remedial Focus';
   }
 
   if (kpiAvgVelocity) {
-    const mins = Math.floor(classSummary.averageTimeSpentSeconds / 60);
-    const secs = classSummary.averageTimeSpentSeconds % 60;
+    const totalSecs = classSummary.averageTimeSpentSeconds || 0;
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
     kpiAvgVelocity.innerText = `${mins}m ${secs}s`;
   }
   if (kpiAvgVelocitySub) {
-    const avgPerQ = Math.round(classSummary.averageTimeSpentSeconds / (assessment.totalQuestions || 1));
+    const avgPerQ = Math.round((classSummary.averageTimeSpentSeconds || 0) / (assessment.totalQuestions || 1));
     kpiAvgVelocitySub.innerText = `Pacing: ~${avgPerQ}s / Question (Benchmark: 90s)`;
   }
 
@@ -4238,7 +4534,7 @@ function renderClassAnalytics(data) {
 
   if (highlights.mostAttempted) {
     if (txtMostAttemptedTitle) txtMostAttemptedTitle.innerText = `Q${highlights.mostAttempted.questionIndex}: ${highlights.mostAttempted.subtopic}`;
-    if (txtMostAttemptedDetail) txtMostAttemptedDetail.innerText = `${highlights.mostAttempted.attemptCount} / ${classSummary.totalSubmissions} students attempted this question.`;
+    if (txtMostAttemptedDetail) txtMostAttemptedDetail.innerText = `${highlights.mostAttempted.attemptCount} / ${classSummary.totalSubmissions || 1} students attempted this question.`;
     if (badgeMostAttemptedRate) badgeMostAttemptedRate.innerText = highlights.mostAttempted.attemptRate;
   }
 
@@ -4268,7 +4564,7 @@ function renderClassAnalytics(data) {
     if (badgeTimeLag) badgeTimeLag.innerText = `${slowQ.avgTimeSpentSeconds}s`;
   }
 
-  // 3. Render the 4 Visual Progress Charts
+  // 3. Render the 4 Visual Progress Charts (SINGLE invocation)
   renderClassAnalyticsCharts(data);
 
   // 4. Pedagogical Action Plan (Quick Recap vs Teach Once Again)
@@ -4336,7 +4632,7 @@ function renderClassAnalytics(data) {
             <div style="font-size:0.72rem; color:var(--text-muted);">${q.topic}</div>
           </td>
           <td style="padding: 10px 8px;">
-            <strong>${q.attemptRate}%</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${q.attemptCount}/${classSummary.totalSubmissions})</span>
+            <strong>${q.attemptRate}%</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${q.attemptCount}/${classSummary.totalSubmissions || 1})</span>
           </td>
           <td style="padding: 10px 8px;">
             <span style="font-weight:700; color:${q.accuracyRate >= 70 ? '#34d399' : (q.accuracyRate >= 50 ? '#fbbf24' : '#fb7185')};">${q.accuracyRate}%</span>
@@ -4358,8 +4654,8 @@ function renderClassAnalytics(data) {
   function buildRosterRows(roster) {
     if (!roster) return '';
     return roster.map(s => {
-      const mins = Math.floor(s.totalTimeSpentSeconds / 60);
-      const secs = s.totalTimeSpentSeconds % 60;
+      const mins = Math.floor((s.totalTimeSpentSeconds || 0) / 60);
+      const secs = (s.totalTimeSpentSeconds || 0) % 60;
       const scoreColor = s.percentage >= 70 ? '#34d399' : (s.percentage >= 50 ? '#fbbf24' : '#fb7185');
       const scoreBg = s.percentage >= 70 ? 'rgba(16,185,129,0.15)' : (s.percentage >= 50 ? 'rgba(245,158,11,0.15)' : 'rgba(244,63,94,0.15)');
 
@@ -4376,7 +4672,7 @@ function renderClassAnalytics(data) {
           </td>
           <td style="padding: 10px 8px;">
             <span class="pilot-tag" style="background:${scoreBg}; color:${scoreColor}; font-weight:700; font-size:0.78rem;">
-              ${s.score}/${s.totalMarks} (${s.percentage}%)
+              ${s.score}/${s.totalMarks || assessment.totalMarks || 16} (${s.percentage}%)
             </span>
           </td>
           <td style="padding: 10px 8px; font-size:0.8rem;">${mins}m ${secs}s</td>
@@ -4385,7 +4681,7 @@ function renderClassAnalytics(data) {
           </td>
           <td style="padding: 10px 8px;">${mistakeBadge}</td>
           <td style="padding: 10px 8px; text-align: right;">
-            <button class="btn-secondary" onclick="openStudentDrilldown('${s.studentId}', '${assessment.id}')" style="font-size:0.75rem; padding:5px 10px; border-radius:6px; cursor:pointer;">
+            <button class="btn-secondary" onclick="openStudentDrilldown('${s.studentId}', '${assessment?.id || asgn?.id || ''}')" style="font-size:0.75rem; padding:5px 10px; border-radius:6px; cursor:pointer;">
               <i data-lucide="eye" style="width:13px; height:13px;"></i> View Smart Card
             </button>
           </td>
@@ -7809,6 +8105,10 @@ window.handleTabActivated = function(tabId) {
   state.activeTeacherTab = tabId;
   if (tabId === 'tabQuestionBank') {
     loadQuestionBankView();
+  } else if (tabId === 'tabClassAnalytics') {
+    const selectAssessment = document.getElementById('selectAnalyticsAssessment');
+    const targetId = (selectAssessment && selectAssessment.value) || state.lastSubmittedAssessmentId || state.activeAssessment?.id;
+    loadClassAnalytics(targetId);
   }
 };
 

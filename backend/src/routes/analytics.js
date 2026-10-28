@@ -35,7 +35,11 @@ router.get('/class-dashboard', (req, res) => {
       relevantAssessments = assessmentsList.filter(a => {
         const aKey = (a.subjectKey || '').toUpperCase();
         const aSub = (a.subject || '').toUpperCase();
-        return aKey === reqSubjKey || aSub === reqSubjKey || aSub.includes(reqSubjKey);
+        return aKey === reqSubjKey 
+          || aSub === reqSubjKey 
+          || aSub.includes(reqSubjKey)
+          || (reqSubjKey.includes('MATH') && (aKey.includes('MATH') || aSub.includes('MATH')))
+          || (reqSubjKey.includes('SCIENCE') && (aKey.includes('SCIENCE') || aSub.includes('SCIENCE')));
       });
       if (relevantAssessments.length === 0) relevantAssessments = assessmentsList;
     }
@@ -47,18 +51,60 @@ router.get('/class-dashboard', (req, res) => {
     let assessment = null;
     if (assessmentId) {
       assessment = assessmentsList.find(a => a.id === assessmentId);
-    } else {
-      assessment = relevantAssessments.find(a => allSubmissions.some(s => s.assessmentId === a.id)) || relevantAssessments[0];
+    }
+    if (!assessment) {
+      assessment = relevantAssessments.find(a => allSubmissions.some(s => s.assessmentId === a.id)) 
+        || relevantAssessments[0] 
+        || assessmentsList[0];
     }
 
     if (!assessment) {
-      return res.status(404).json({ success: false, error: `Assessment "${assessmentId}" not found.` });
+      return res.status(404).json({ success: false, error: 'No assessment available for this class.' });
     }
 
     const submissions = allSubmissions.filter(s => s.assessmentId === assessment.id);
 
     if (submissions.length === 0) {
       const classStudents = (inMemoryStore.users || []).filter(u => u.role === 'STUDENT' && (u.section === assessment.section || (!assessment.section && u.grade === assessment.grade)));
+      const questionsMeta = assessment.questions || [];
+      const totalMarks = assessment.totalMarks || (questionsMeta.length * 4) || 16;
+      const durationMins = assessment.durationMinutes || 25;
+
+      const studentRoster = classStudents.map(s => ({
+        studentId: s.id,
+        studentName: s.full_name,
+        rollNumber: s.roll_number,
+        score: 0,
+        totalMarks: totalMarks,
+        percentage: 0,
+        totalTimeSpentSeconds: 0,
+        wrongQuestionsCount: 0,
+        primaryMistake: 'Pending Attempt',
+        smartCardSummary: `Awaiting student completion for ${assessment.title}`
+      }));
+
+      const questionAnalytics = questionsMeta.map((q, idx) => ({
+        questionIndex: idx + 1,
+        questionId: q.id || `q_${idx + 1}`,
+        topic: q.topic || 'Curriculum Concept',
+        subtopic: q.subtopic || 'Core Formulation',
+        questionLatex: q.question_latex || '',
+        benchmarkSeconds: q.benchmark_time_seconds || 90,
+        attemptCount: 0,
+        attemptRate: 0,
+        correctCount: 0,
+        wrongCount: 0,
+        accuracyRate: 0,
+        errorRate: 0,
+        avgTimeSpentSeconds: 0,
+        timeDeltaSeconds: 0,
+        needsMoreTime: false,
+        mistakeBreakdown: { CONCEPTUAL: 0, FORMULA_BASED: 0, CALCULATION: 0, SIGN_CONVENTION: 0, TIME_PRESSURE: 0 },
+        dominantMistake: 'None',
+        isMostAttempted: false,
+        isMostWrong: false
+      }));
+
       return res.json({
         success: true,
         message: 'No student submissions recorded for this test yet.',
@@ -69,23 +115,41 @@ router.get('/class-dashboard', (req, res) => {
           section: assessment.section,
           subject: assessment.subject,
           subjectKey: assessment.subjectKey,
-          totalQuestions: assessment.questions ? assessment.questions.length : 0,
-          totalMarks: assessment.totalMarks
+          totalQuestions: questionsMeta.length,
+          totalMarks: totalMarks,
+          durationMinutes: durationMins
         },
         hasSubmissions: false,
-        studentRoster: classStudents.map(s => ({
-          studentId: s.id,
-          studentName: s.full_name,
-          rollNumber: s.roll_number,
-          score: 0,
-          totalMarks: assessment.totalMarks,
-          percentage: 0,
-          totalTimeSpentSeconds: 0,
-          wrongQuestionsCount: 0,
-          primaryMistake: 'Pending Attempt',
-          smartCardSummary: 'Awaiting student completion'
-        })),
-        availableAssessments: relevantAssessments.map(a => ({ id: a.id, title: a.title, grade: a.grade, section: a.section, subject: a.subject, subjectKey: a.subjectKey }))
+        classSummary: {
+          totalSubmissions: 0,
+          classEnrolledCount: classStudents.length || 4,
+          participationRate: '0%',
+          averageScore: 0,
+          averagePercentage: '0%',
+          highestScore: { score: 0, percentage: 0, students: [] },
+          lowestScore: { score: 0, percentage: 0, students: [] },
+          averageTimeSpentSeconds: 0,
+          expectedDurationSeconds: durationMins * 60
+        },
+        highlights: {
+          mostAttempted: null,
+          mostWrong: null
+        },
+        questionAnalytics,
+        pedagogicalActionPlan: {
+          quickRecapNeeded: [],
+          teachOnceAgainNeeded: [],
+          timeManagementAlerts: []
+        },
+        studentRoster,
+        availableAssessments: relevantAssessments.map(a => ({
+          id: a.id,
+          title: a.title,
+          grade: a.grade,
+          section: a.section,
+          subject: a.subject,
+          subjectKey: a.subjectKey
+        }))
       });
     }
 
@@ -291,6 +355,7 @@ router.get('/class-dashboard', (req, res) => {
         grade: assessment.grade,
         section: assessment.section,
         subject: assessment.subject,
+        subjectKey: assessment.subjectKey,
         totalQuestions: assessment.questions.length,
         totalMarks: assessment.totalMarks,
         durationMinutes: assessment.durationMinutes

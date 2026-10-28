@@ -1070,16 +1070,29 @@ router.post('/simulate-attempts', (req, res) => {
     let classStudents = (inMemoryStore.users || []).filter(u => u.role === 'STUDENT' && u.grade === grade && u.section === section);
 
     if (classStudents.length === 0) {
-      classStudents = [
-        { id: 'b0000000-0000-0000-0000-000000000001', full_name: 'Aryan Sharma', roll_number: '12-NM-01' },
-        { id: 'b0000000-0000-0000-0000-000000000002', full_name: 'Rohit Negi', roll_number: '12-NM-02' },
-        { id: 'b0000000-0000-0000-0000-000000000003', full_name: 'Kavya Verma', roll_number: '12-NM-03' },
-        { id: 'b0000000-0000-0000-0000-000000000004', full_name: 'Kunal Sharma', roll_number: '12-NM-04' },
-        { id: 'b0000000-0000-0000-0000-000000000005', full_name: 'Divyansh Thakur', roll_number: '12-NM-05' },
-        { id: 'b0000000-0000-0000-0000-000000000006', full_name: 'Akshat Jaswal', roll_number: '12-NM-06' },
-        { id: 'b0000000-0000-0000-0000-000000000007', full_name: 'Rahul Sen', roll_number: '12-NM-07' },
-        { id: 'b0000000-0000-0000-0000-000000000008', full_name: 'Sahil Dhiman', roll_number: '12-NM-08' }
-      ];
+      if (grade === '10') {
+        classStudents = [
+          { id: 'stu_10_01', full_name: 'Rohit Verma', roll_number: '10-A-01' },
+          { id: 'stu_10_02', full_name: 'Aditya Chauhan', roll_number: '10-A-02' },
+          { id: 'stu_10_03', full_name: 'Tanvi Sood', roll_number: '10-A-03' },
+          { id: 'stu_10_04', full_name: 'Nikhil Rana', roll_number: '10-A-04' },
+          { id: 'stu_10_05', full_name: 'Priya Sharma', roll_number: '10-A-05' },
+          { id: 'stu_10_06', full_name: 'Aarav Gupta', roll_number: '10-A-06' },
+          { id: 'stu_10_07', full_name: 'Sneha Patel', roll_number: '10-A-07' },
+          { id: 'stu_10_08', full_name: 'Kabir Mehta', roll_number: '10-A-08' }
+        ];
+      } else {
+        classStudents = [
+          { id: 'b0000000-0000-0000-0000-000000000001', full_name: 'Aryan Sharma', roll_number: '12-NM-01' },
+          { id: 'b0000000-0000-0000-0000-000000000002', full_name: 'Rohit Negi', roll_number: '12-NM-02' },
+          { id: 'b0000000-0000-0000-0000-000000000003', full_name: 'Kavya Verma', roll_number: '12-NM-03' },
+          { id: 'b0000000-0000-0000-0000-000000000004', full_name: 'Kunal Sharma', roll_number: '12-NM-04' },
+          { id: 'b0000000-0000-0000-0000-000000000005', full_name: 'Divyansh Thakur', roll_number: '12-NM-05' },
+          { id: 'b0000000-0000-0000-0000-000000000006', full_name: 'Akshat Jaswal', roll_number: '12-NM-06' },
+          { id: 'b0000000-0000-0000-0000-000000000007', full_name: 'Rahul Sen', roll_number: '12-NM-07' },
+          { id: 'b0000000-0000-0000-0000-000000000008', full_name: 'Sahil Dhiman', roll_number: '12-NM-08' }
+        ];
+      }
     }
 
     if (!inMemoryStore.submissions) inMemoryStore.submissions = [];

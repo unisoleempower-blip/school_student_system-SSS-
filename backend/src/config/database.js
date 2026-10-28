@@ -1778,9 +1778,206 @@ const inMemoryStore = {
         }
       ],
       createdAt: new Date().toISOString()
+    },
+    {
+      id: 'asgn_10_math_01',
+      title: 'Class 10th Mathematics: Real Numbers & Polynomials Diagnostic Assessment',
+      description: 'CBSE & HP Board standard diagnostic covering Fundamental Theorem of Arithmetic, Euclid division algorithm, and zeroes of quadratic polynomials.',
+      teacherName: 'Mrs. Meenakshi Sharma',
+      grade: '10',
+      section: '10-Science-A',
+      board: 'CBSE',
+      subject: 'Mathematics',
+      subjectKey: 'CLASS10_MATHEMATICS',
+      durationMinutes: 25,
+      totalMarks: 16,
+      questions: [
+        {
+          id: 'c10_m_pyq_001',
+          topic: 'Real Numbers',
+          subtopic: "Euclid's Division Algorithm",
+          grade: '10',
+          board: 'CBSE',
+          question_type: 'SHORT_ANSWER',
+          difficulty: 'EASY',
+          benchmark_time_seconds: 90,
+          question_latex: 'Find the HCF of 135 and 225 using Euclid’s Division Algorithm.',
+          options_latex: [
+            { key: 'A', latex: '45', is_correct: true },
+            { key: 'B', latex: '15', is_correct: false },
+            { key: 'C', latex: '90', is_correct: false },
+            { key: 'D', latex: '5', is_correct: false }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'By Euclid division lemma: $225 = 135 \\times 1 + 90$; $135 = 90 \\times 1 + 45$; $90 = 45 \\times 2 + 0$. Remainder is 0, divisor is 45. Hence $\\text{HCF}(135, 225) = 45$.',
+          socratic_hints: [
+            "Write the dividend in terms of divisor and remainder: $a = bq + r$.",
+            "Repeat the division until remainder is 0.",
+            "The divisor at the final step is the required HCF."
+          ]
+        },
+        {
+          id: 'c10_m_pyq_002',
+          topic: 'Real Numbers',
+          subtopic: 'Fundamental Theorem of Arithmetic',
+          grade: '10',
+          board: 'CBSE',
+          question_type: 'SHORT_ANSWER',
+          difficulty: 'MEDIUM',
+          benchmark_time_seconds: 90,
+          question_latex: 'Given that $\\text{HCF}(306, 657) = 9$, find $\\text{LCM}(306, 657)$.',
+          options_latex: [
+            { key: 'A', latex: '22338', is_correct: true },
+            { key: 'B', latex: '22383', is_correct: false },
+            { key: 'C', latex: '23238', is_correct: false },
+            { key: 'D', latex: '21338', is_correct: false }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'Use relation $\\text{LCM}(a, b) = \\frac{a \\times b}{\\text{HCF}(a, b)} = \\frac{306 \\times 657}{9} = 34 \\times 657 = 22338$.',
+          socratic_hints: [
+            "Recall: $\\text{HCF}(a, b) \\times \\text{LCM}(a, b) = a \\times b$.",
+            "Substitute $a = 306, b = 657$ and $\\text{HCF} = 9$."
+          ]
+        },
+        {
+          id: 'c10_m_pyq_050',
+          topic: 'Polynomials',
+          subtopic: 'Zeroes and Coefficients Relationship',
+          grade: '10',
+          board: 'CBSE',
+          question_type: 'SHORT_ANSWER',
+          difficulty: 'MEDIUM',
+          benchmark_time_seconds: 90,
+          question_latex: 'Find the zeroes of the quadratic polynomial $x^2 + 7x + 10$ and verify the relationship between zeroes and coefficients.',
+          options_latex: [
+            { key: 'A', latex: '$-2$ and $-5$', is_correct: true },
+            { key: 'B', latex: '$2$ and $5$', is_correct: false },
+            { key: 'C', latex: '$-2$ and $5$', is_correct: false },
+            { key: 'D', latex: '$2$ and $-5$', is_correct: false }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'Factorize: $x^2 + 7x + 10 = (x + 2)(x + 5) = 0 \\implies x = -2, -5$. Sum $= -7 = -b/a$; Product $= 10 = c/a$.',
+          socratic_hints: [
+            "Find two numbers whose product is 10 and sum is 7.",
+            "Compare zeroes with $-b/a$ and $c/a$."
+          ]
+        },
+        {
+          id: 'c10_m_pyq_051',
+          topic: 'Polynomials',
+          subtopic: 'Quadratic Polynomial Formation',
+          grade: '10',
+          board: 'CBSE',
+          question_type: 'SHORT_ANSWER',
+          difficulty: 'HARD',
+          benchmark_time_seconds: 120,
+          question_latex: 'Find a quadratic polynomial whose sum and product of zeroes are $\\frac{1}{4}$ and $-1$ respectively.',
+          options_latex: [
+            { key: 'A', latex: '$4x^2 - x - 4$', is_correct: true },
+            { key: 'B', latex: '$4x^2 + x - 4$', is_correct: false },
+            { key: 'C', latex: '$x^2 - 4x - 1$', is_correct: false },
+            { key: 'D', latex: '$4x^2 - x + 4$', is_correct: false }
+          ],
+          correct_answer: 'A',
+          solution_latex: 'General formula: $P(x) = k[x^2 - (\\alpha + \\beta)x + \\alpha\\beta] = k[x^2 - \\frac{1}{4}x - 1]$. For $k = 4$, $P(x) = 4x^2 - x - 4$.',
+          socratic_hints: [
+            "Use the standard equation $k[x^2 - S x + P]$.",
+            "Substitute $S = \\frac{1}{4}$ and $P = -1$, clear denominators."
+          ]
+        }
+      ],
+      createdAt: new Date().toISOString()
     }
   ],
   submissions: [
+    {
+      submissionId: 'sub_10_math_01_aditya',
+      assessmentId: 'asgn_10_math_01',
+      assessmentTitle: 'Class 10th Mathematics: Real Numbers & Polynomials Diagnostic Assessment',
+      studentId: 'b0000000-0000-0000-0000-000000000022',
+      studentName: 'Aditya Chauhan',
+      rollNumber: '10-A-02',
+      grade: '10',
+      section: '10-Science-A',
+      totalScore: 16,
+      totalMarks: 16,
+      percentage: 100,
+      totalTimeSpentSeconds: 195,
+      smartCardSummary: 'Mastered all concepts with sub-benchmark speeds. Flawless algebraic factorization and polynomial operations.',
+      questionBreakdown: [
+        { questionIndex: 1, questionId: 'c10_m_pyq_001', topic: 'Real Numbers', subtopic: "Euclid's Division Algorithm", timeSpentSeconds: 40, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Accurate Euclidean division steps.' } },
+        { questionIndex: 2, questionId: 'c10_m_pyq_002', topic: 'Real Numbers', subtopic: 'Fundamental Theorem of Arithmetic', timeSpentSeconds: 45, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Correct LCM product substitution.' } },
+        { questionIndex: 3, questionId: 'c10_m_pyq_050', topic: 'Polynomials', subtopic: 'Zeroes and Coefficients Relationship', timeSpentSeconds: 50, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Accurate quadratic zeroes factorization.' } },
+        { questionIndex: 4, questionId: 'c10_m_pyq_051', topic: 'Polynomials', subtopic: 'Quadratic Polynomial Formation', timeSpentSeconds: 60, benchmarkSeconds: 120, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Correctly formed quadratic equation.' } }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 2).toISOString()
+    },
+    {
+      submissionId: 'sub_10_math_01_tanvi',
+      assessmentId: 'asgn_10_math_01',
+      assessmentTitle: 'Class 10th Mathematics: Real Numbers & Polynomials Diagnostic Assessment',
+      studentId: 'b0000000-0000-0000-0000-000000000023',
+      studentName: 'Tanvi Sood',
+      rollNumber: '10-A-03',
+      grade: '10',
+      section: '10-Science-A',
+      totalScore: 12,
+      totalMarks: 16,
+      percentage: 75,
+      totalTimeSpentSeconds: 220,
+      smartCardSummary: 'High proficiency on Real Numbers. Minor algebraic slip while clearing denominators in quadratic formation.',
+      questionBreakdown: [
+        { questionIndex: 1, questionId: 'c10_m_pyq_001', topic: 'Real Numbers', subtopic: "Euclid's Division Algorithm", timeSpentSeconds: 45, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Accurate lemma.' } },
+        { questionIndex: 2, questionId: 'c10_m_pyq_002', topic: 'Real Numbers', subtopic: 'Fundamental Theorem of Arithmetic', timeSpentSeconds: 50, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Accurate LCM calculation.' } },
+        { questionIndex: 3, questionId: 'c10_m_pyq_050', topic: 'Polynomials', subtopic: 'Zeroes and Coefficients Relationship', timeSpentSeconds: 55, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Correct zeroes.' } },
+        { questionIndex: 4, questionId: 'c10_m_pyq_051', topic: 'Polynomials', subtopic: 'Quadratic Polynomial Formation', timeSpentSeconds: 70, benchmarkSeconds: 120, isCorrect: false, selectedOption: 'B', correctAnswer: 'A', mistakeClassification: { type: 'CALCULATION', label: 'Calculation Slip', explanation: 'Sign error when multiplying through by common denominator 4.' } }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 2.5).toISOString()
+    },
+    {
+      submissionId: 'sub_10_math_01_rohit',
+      assessmentId: 'asgn_10_math_01',
+      assessmentTitle: 'Class 10th Mathematics: Real Numbers & Polynomials Diagnostic Assessment',
+      studentId: 'b0000000-0000-0000-0000-000000000021',
+      studentName: 'Rohit Verma',
+      rollNumber: '10-A-01',
+      grade: '10',
+      section: '10-Science-A',
+      totalScore: 12,
+      totalMarks: 16,
+      percentage: 75,
+      totalTimeSpentSeconds: 235,
+      smartCardSummary: 'Consistent pace across test. Inverted signs when equating factors $(x + 2)(x + 5) = 0$.',
+      questionBreakdown: [
+        { questionIndex: 1, questionId: 'c10_m_pyq_001', topic: 'Real Numbers', subtopic: "Euclid's Division Algorithm", timeSpentSeconds: 48, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Accurate HCF.' } },
+        { questionIndex: 2, questionId: 'c10_m_pyq_002', topic: 'Real Numbers', subtopic: 'Fundamental Theorem of Arithmetic', timeSpentSeconds: 52, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Accurate LCM.' } },
+        { questionIndex: 3, questionId: 'c10_m_pyq_050', topic: 'Polynomials', subtopic: 'Zeroes and Coefficients Relationship', timeSpentSeconds: 65, benchmarkSeconds: 90, isCorrect: false, selectedOption: 'B', correctAnswer: 'A', mistakeClassification: { type: 'SIGN_CONVENTION', label: 'Sign Slip', explanation: 'Selected positive roots 2 and 5 instead of -2 and -5.' } },
+        { questionIndex: 4, questionId: 'c10_m_pyq_051', topic: 'Polynomials', subtopic: 'Quadratic Polynomial Formation', timeSpentSeconds: 70, benchmarkSeconds: 120, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Correct polynomial.' } }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 3).toISOString()
+    },
+    {
+      submissionId: 'sub_10_math_01_nikhil',
+      assessmentId: 'asgn_10_math_01',
+      assessmentTitle: 'Class 10th Mathematics: Real Numbers & Polynomials Diagnostic Assessment',
+      studentId: 'b0000000-0000-0000-0000-000000000024',
+      studentName: 'Nikhil Rana',
+      rollNumber: '10-A-04',
+      grade: '10',
+      section: '10-Science-A',
+      totalScore: 8,
+      totalMarks: 16,
+      percentage: 50,
+      totalTimeSpentSeconds: 265,
+      smartCardSummary: 'Good performance on Real Numbers. Remedial coaching needed on quadratic polynomial formation and zeroes relationship.',
+      questionBreakdown: [
+        { questionIndex: 1, questionId: 'c10_m_pyq_001', topic: 'Real Numbers', subtopic: "Euclid's Division Algorithm", timeSpentSeconds: 50, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Accurate HCF.' } },
+        { questionIndex: 2, questionId: 'c10_m_pyq_002', topic: 'Real Numbers', subtopic: 'Fundamental Theorem of Arithmetic', timeSpentSeconds: 55, benchmarkSeconds: 90, isCorrect: true, selectedOption: 'A', correctAnswer: 'A', mistakeClassification: { type: 'NONE', label: 'Flawless Execution', explanation: 'Accurate LCM.' } },
+        { questionIndex: 3, questionId: 'c10_m_pyq_050', topic: 'Polynomials', subtopic: 'Zeroes and Coefficients Relationship', timeSpentSeconds: 75, benchmarkSeconds: 90, isCorrect: false, selectedOption: 'C', correctAnswer: 'A', mistakeClassification: { type: 'CONCEPTUAL', label: 'Conceptual Gap', explanation: 'Inconsistent factors in quadratic zeroes.' } },
+        { questionIndex: 4, questionId: 'c10_m_pyq_051', topic: 'Polynomials', subtopic: 'Quadratic Polynomial Formation', timeSpentSeconds: 85, benchmarkSeconds: 120, isCorrect: false, selectedOption: 'C', correctAnswer: 'A', mistakeClassification: { type: 'FORMULA_BASED', label: 'Formula Confusion', explanation: 'Omitted constant multiplier k and reversed sum coefficient.' } }
+      ],
+      submittedAt: new Date(Date.now() - 3600000 * 3.5).toISOString()
+    },
     {
       submissionId: 'sub_10_sci_01_aryan',
       assessmentId: 'asgn_10_sci_01',
