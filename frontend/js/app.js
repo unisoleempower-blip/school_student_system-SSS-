@@ -6740,6 +6740,209 @@ window.handlePhoneInputLookup = handlePhoneInputLookup;
 state.questionBankData = [];
 state.currentQbSubjectKey = null;
 
+const CLASS10_MATH_CHAPTERS = [
+  { num: 1, name: 'Real Numbers', short: 'Real Numbers', count: 49 },
+  { num: 2, name: 'Polynomials', short: 'Polynomials', count: 32 },
+  { num: 3, name: 'Pair of Linear Equations in Two Variables', short: 'Linear Eqns', count: 30 },
+  { num: 4, name: 'Quadratic Equations', short: 'Quadratics', count: 33 },
+  { num: 5, name: 'Arithmetic Progressions', short: 'AP', count: 27 },
+  { num: 6, name: 'Triangles', short: 'Triangles', count: 29 },
+  { num: 7, name: 'Coordinate Geometry', short: 'Coord Geo', count: 30 },
+  { num: 8, name: 'Introduction to Trigonometry', short: 'Trigonometry', count: 31 },
+  { num: 9, name: 'Some Applications of Trigonometry', short: 'Heights & Dist', count: 20 },
+  { num: 10, name: 'Circles', short: 'Circles', count: 22 },
+  { num: 11, name: 'Areas Related to Circles', short: 'Areas of Circles', count: 21 },
+  { num: 12, name: 'Surface Areas and Volumes', short: 'Mensuration', count: 23 },
+  { num: 13, name: 'Statistics', short: 'Statistics', count: 44 },
+  { num: 14, name: 'Probability', short: 'Probability', count: 47 }
+];
+
+function populateQbChapterPills(activeVal = 'ALL') {
+  const strip = document.getElementById('qbChapterPillsStrip');
+  if (!strip) return;
+
+  let html = `
+    <button type="button" class="qb-chapter-pill ${activeVal === 'ALL' ? 'active' : ''}" data-chapter="ALL" onclick="quickFilterQbChapter('ALL')">
+      <span class="ch-badge">ALL</span>
+      <span>All 14 Chapters (438 Qs)</span>
+    </button>
+  `;
+
+  CLASS10_MATH_CHAPTERS.forEach(ch => {
+    const isActive = String(ch.num) === String(activeVal);
+    html += `
+      <button type="button" class="qb-chapter-pill ${isActive ? 'active' : ''}" data-chapter="${ch.num}" onclick="quickFilterQbChapter('${ch.num}')" title="Chapter ${ch.num}: ${ch.name}">
+        <span class="ch-badge">Ch ${ch.num}</span>
+        <span>${ch.short}</span>
+        <span style="opacity:0.75; font-size:0.68rem;">(${ch.count})</span>
+      </button>
+    `;
+  });
+
+  strip.innerHTML = html;
+}
+
+function quickFilterQbChapter(chNum) {
+  const chSelect = document.getElementById('selectQbChapter');
+  if (chSelect) {
+    chSelect.value = String(chNum);
+  }
+  const strip = document.getElementById('qbChapterPillsStrip');
+  if (strip) {
+    const pills = strip.querySelectorAll('.qb-chapter-pill');
+    pills.forEach(pill => {
+      if (pill.getAttribute('data-chapter') === String(chNum)) {
+        pill.classList.add('active');
+        pill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      } else {
+        pill.classList.remove('active');
+      }
+    });
+  }
+  filterQuestionBankCards();
+}
+
+function quickFilterQbSource(srcKey) {
+  const srcSelect = document.getElementById('selectQbSource');
+  if (srcSelect) {
+    srcSelect.value = srcKey;
+  }
+  const strip = document.getElementById('qbSourcePillsStrip');
+  if (strip) {
+    const pills = strip.querySelectorAll('.qb-source-pill');
+    pills.forEach(pill => {
+      if (pill.getAttribute('data-source') === srcKey) {
+        pill.classList.add('active');
+      } else {
+        pill.classList.remove('active');
+      }
+    });
+  }
+  filterQuestionBankCards();
+}
+
+function formatIntuitiveSteps(q) {
+  const chNum = Number(q.chapter_number) || 1;
+  const marks = Number(q.marks || q.marks_weightage || (q.difficulty === 'HARD' ? 5 : (q.difficulty === 'EASY' ? 1 : 3)));
+  const solutionText = q.solution_latex || 'Detailed step-by-step solution attached.';
+  const correctAnswer = q.correct_answer_latex || q.correct_answer || 'Verified';
+
+  let principle = '';
+  let formulaLatex = '';
+  switch (chNum) {
+    case 1:
+      principle = 'Fundamental Theorem of Arithmetic & Prime Factorization';
+      formulaLatex = '\\text{HCF}(a, b) \\times \\text{LCM}(a, b) = a \\times b \\quad \\text{or} \\quad a = bq + r \\quad (0 \\le r < b)';
+      break;
+    case 2:
+      principle = 'Relationship Between Zeroes and Coefficients of Polynomials';
+      formulaLatex = '\\text{Sum: } \\alpha + \\beta = -\\frac{b}{a}, \\quad \\text{Product: } \\alpha\\beta = \\frac{c}{a}';
+      break;
+    case 3:
+      principle = 'Pair of Linear Equations in Two Variables (Consistency & Algebraic Elimination)';
+      formulaLatex = '\\frac{a_1}{a_2} \\neq \\frac{b_1}{b_2} \\implies \\text{Unique Solution}, \\quad \\frac{a_1}{a_2} = \\frac{b_1}{b_2} = \\frac{c_1}{c_2} \\implies \\text{Coincident Lines}';
+      break;
+    case 4:
+      principle = 'Quadratic Equation Standard Form & Quadratic Formula';
+      formulaLatex = 'ax^2 + bx + c = 0 \\implies x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}, \\quad D = b^2 - 4ac';
+      break;
+    case 5:
+      principle = 'General Term and Sum of Arithmetic Progression (AP)';
+      formulaLatex = 'a_n = a + (n - 1)d, \\quad S_n = \\frac{n}{2}[2a + (n - 1)d] = \\frac{n}{2}[a + l]';
+      break;
+    case 6:
+      principle = 'Basic Proportionality Theorem (Thales Theorem) & Similarity Criteria';
+      formulaLatex = '\\frac{AD}{DB} = \\frac{AE}{EC} \\quad (\\text{if } DE \\parallel BC), \\quad \\triangle ABC \\sim \\triangle DEF';
+      break;
+    case 7:
+      principle = 'Coordinate Geometry: Distance & Section Formulae';
+      formulaLatex = 'd = \\sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}, \\quad P(x, y) = \\left(\\frac{m_1x_2 + m_2x_1}{m_1 + m_2}, \\frac{m_1y_2 + m_2y_1}{m_1 + m_2}\\right)';
+      break;
+    case 8:
+      principle = 'Trigonometric Ratios & Pythagorean Identities';
+      formulaLatex = '\\sin^2\\theta + \\cos^2\\theta = 1, \\quad 1 + \\tan^2\\theta = \\sec^2\\theta, \\quad 1 + \\cot^2\\theta = \\csc^2\\theta';
+      break;
+    case 9:
+      principle = 'Some Applications of Trigonometry: Line of Sight & Heights';
+      formulaLatex = '\\tan\\theta = \\frac{\\text{Height of Object (Perpendicular)}}{\\text{Horizontal Distance (Base)}}';
+      break;
+    case 10:
+      principle = 'Circle Tangents: Tangent Perpendicularity & External Tangent Equality';
+      formulaLatex = 'OP \\perp PT \\quad (\\text{Radius } \\perp \\text{ Tangent at point of contact}), \\quad PA = PB';
+      break;
+    case 11:
+      principle = 'Areas Related to Circles: Sectors and Segments';
+      formulaLatex = '\\text{Area of Sector} = \\frac{\\theta}{360^\\circ} \\times \\pi r^2, \\quad \\text{Arc Length} = \\frac{\\theta}{360^\\circ} \\times 2\\pi r';
+      break;
+    case 12:
+      principle = 'Surface Areas and Volumes of Solids and Combinations';
+      formulaLatex = 'V_{\\text{cyl}} = \\pi r^2 h, \\quad V_{\\text{cone}} = \\frac{1}{3}\\pi r^2 h, \\quad V_{\\text{sphere}} = \\frac{4}{3}\\pi r^3, \\quad \\text{CSA}_{\\text{cone}} = \\pi r l';
+      break;
+    case 13:
+      principle = 'Measures of Central Tendency: Mean, Median, Mode of Grouped Data';
+      formulaLatex = '\\bar{x} = \\frac{\\sum f_i x_i}{\\sum f_i}, \\quad \\text{Median} = l + \\left(\\frac{\\frac{N}{2} - cf}{f}\\right)h, \\quad \\text{Mode} = l + \\left(\\frac{f_1 - f_0}{2f_1 - f_0 - f_2}\\right)h';
+      break;
+    case 14:
+      principle = 'Classical Probability of an Event';
+      formulaLatex = 'P(E) = \\frac{\\text{Number of favorable outcomes}}{\\text{Total number of possible outcomes}}, \\quad 0 \\le P(E) \\le 1';
+      break;
+    default:
+      principle = 'Standard NCERT Class 10th Mathematical Formula';
+      formulaLatex = '\\text{Refer to standard Board syllabus formulations}';
+  }
+
+  let rawSteps = solutionText.split(/\n+/).map(s => s.trim()).filter(Boolean);
+  if (rawSteps.length === 1 && rawSteps[0].includes('; ')) {
+    rawSteps = rawSteps[0].split('; ').map(s => s.trim()).filter(Boolean);
+  } else if (rawSteps.length === 1 && rawSteps[0].includes('. ')) {
+    rawSteps = rawSteps[0].split(/(?<=\.)\s+/).map(s => s.trim()).filter(Boolean);
+  }
+
+  let rubric = [];
+  if (marks === 1) {
+    rubric = [
+      { step: 'Step 1: Formula / Concept Identification', marks: '½ Mark' },
+      { step: 'Step 2: Correct Final Answer with Valid Units', marks: '½ Mark' }
+    ];
+  } else if (marks === 2) {
+    rubric = [
+      { step: 'Step 1: Stating Relevant Theorem / Given Formula', marks: '½ Mark' },
+      { step: 'Step 2: Numerical / Algebraic Substitution & Working', marks: '1 Mark' },
+      { step: 'Step 3: Final Answer Statement with Proper Units', marks: '½ Mark' }
+    ];
+  } else if (marks === 3) {
+    rubric = [
+      { step: 'Step 1: Schematic Figure / Principle Identification', marks: '1 Mark' },
+      { step: 'Step 2: Complete Mathematical Derivation & Step-by-Step Calculation', marks: '1½ Marks' },
+      { step: 'Step 3: Accurate Final Result with Concluding Sentence', marks: '½ Mark' }
+    ];
+  } else {
+    rubric = [
+      { step: 'Step 1: Clear Geometric / Algebraic Setup & Stating Formulae', marks: '1 Mark' },
+      { step: 'Step 2: Primary Algebraic Operations & Intermediate Reductions', marks: '2 Marks' },
+      { step: 'Step 3: Secondary Factorization / Linear Elimination Step', marks: '1 Mark' },
+      { step: 'Step 4: Final Verified Answer with Specified Units & Verification', marks: '1 Mark' }
+    ];
+  }
+
+  const hints = Array.isArray(q.socratic_hints) && q.socratic_hints.length > 0 
+    ? q.socratic_hints 
+    : [
+        'Write the standard formula explicitly before numerical substitutions to secure the step mark.',
+        'Always check for unit consistency (e.g., meters vs centimeters) before finalizing multiplication or division.',
+        'In geometry and algebra, write a one-line concluding sentence explicitly answering what the problem asked.'
+      ];
+
+  return {
+    principle,
+    formulaLatex,
+    rawSteps,
+    correctAnswer,
+    rubric,
+    hints
+  };
+}
+
 async function loadQuestionBankView(forceReload = false) {
   const curClassId = teacherBuilderState.selectedClassId || '';
   const currentClass = (teacherBuilderState.classes || []).find(c => c.id === curClassId);
@@ -6764,18 +6967,15 @@ async function loadQuestionBankView(forceReload = false) {
     }
   }
 
-  // Elements
   const headerTitle = document.getElementById('qbHeaderTitle');
   const headerSubtitle = document.getElementById('qbHeaderSubtitle');
   const badgeText = document.getElementById('qbBadgeText');
   const subjectSelect = document.getElementById('selectQbSubject');
   const chapterSelect = document.getElementById('selectQbChapter');
   const container = document.getElementById('containerQbQuestions');
-  const statsLabel = document.getElementById('qbCountLabel');
 
   if (!container) return;
 
-  // Set titles based on teacher subject
   if (isClass10) {
     if (activeSubj === 'CLASS10_SCIENCE') {
       if (headerTitle) headerTitle.innerText = 'Class 10th Science Question Bank';
@@ -6793,7 +6993,6 @@ async function loadQuestionBankView(forceReload = false) {
     if (badgeText) badgeText.innerText = `Senior Secondary Track • Department of ${sName}`;
   }
 
-  // Populate Subject Discipline dropdown
   if (subjectSelect) {
     if (isClass10) {
       subjectSelect.innerHTML = `
@@ -6810,29 +7009,12 @@ async function loadQuestionBankView(forceReload = false) {
     }
   }
 
-  // Populate chapter dropdown if empty or subject changed
   if (chapterSelect) {
     if (isClass10 && activeSubj === 'CLASS10_MATHEMATICS') {
-      const mathChapters = [
-        { num: 1, name: 'Real Numbers' },
-        { num: 2, name: 'Polynomials' },
-        { num: 3, name: 'Pair of Linear Equations in Two Variables' },
-        { num: 4, name: 'Quadratic Equations' },
-        { num: 5, name: 'Arithmetic Progressions' },
-        { num: 6, name: 'Triangles' },
-        { num: 7, name: 'Coordinate Geometry' },
-        { num: 8, name: 'Introduction to Trigonometry' },
-        { num: 9, name: 'Some Applications of Trigonometry' },
-        { num: 10, name: 'Circles' },
-        { num: 11, name: 'Areas Related to Circles' },
-        { num: 12, name: 'Surface Areas and Volumes' },
-        { num: 13, name: 'Statistics' },
-        { num: 14, name: 'Probability' }
-      ];
       const curVal = chapterSelect.value || 'ALL';
       chapterSelect.innerHTML = `<option value="ALL">All 14 Chapters</option>` +
-        mathChapters.map(c => `<option value="${c.num}">Ch ${c.num}: ${c.name}</option>`).join('');
-      if (curVal !== 'ALL' && mathChapters.some(c => String(c.num) === curVal)) {
+        CLASS10_MATH_CHAPTERS.map(c => `<option value="${c.num}">Ch ${c.num}: ${c.name}</option>`).join('');
+      if (curVal !== 'ALL' && CLASS10_MATH_CHAPTERS.some(c => String(c.num) === curVal)) {
         chapterSelect.value = curVal;
       }
     } else if (teacherBuilderState.currentTaxonomy?.chapters) {
@@ -6843,13 +7025,13 @@ async function loadQuestionBankView(forceReload = false) {
     }
   }
 
-  // If already loaded for this subject and not forcing reload, just re-filter
+  populateQbChapterPills(chapterSelect?.value || 'ALL');
+
   if (state.questionBankData.length > 0 && state.currentQbSubjectKey === activeSubj && !forceReload) {
     filterQuestionBankCards();
     return;
   }
 
-  // Show loading indicator
   container.innerHTML = `
     <div style="text-align:center; padding: 3rem 1rem; color: var(--text-muted); background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-subtle);">
       <i data-lucide="loader-2" class="spin" style="width:28px; height:28px; margin: 0 auto 12px; display:block; color:var(--accent-blue);"></i>
@@ -6874,16 +7056,34 @@ async function loadQuestionBankView(forceReload = false) {
       url = `${getApiBaseUrl()}/api/questions/subject-banks/${bankKey}`;
     }
 
-    const res = await fetch(url);
-    if (res.ok) {
+    let res = null;
+    try {
+      res = await fetch(url);
+    } catch (localErr) {
+      console.warn('Local question fetch failed, attempting cloud production fallback:', localErr);
+      if (isClass10 && activeSubj === 'CLASS10_MATHEMATICS') {
+        res = await fetch('https://haps-ai-scholar-assistant.vercel.app/api/questions/class10-math-bank?limit=450');
+      }
+    }
+
+    if (res && res.ok) {
       const data = await res.json();
       state.questionBankData = data.questions || [];
       state.currentQbSubjectKey = activeSubj;
+    } else if (isClass10 && activeSubj === 'CLASS10_MATHEMATICS') {
+      const fallbackRes = await fetch('https://haps-ai-scholar-assistant.vercel.app/api/questions/class10-math-bank?limit=450');
+      if (fallbackRes.ok) {
+        const fbData = await fallbackRes.json();
+        state.questionBankData = fbData.questions || [];
+        state.currentQbSubjectKey = activeSubj;
+      } else {
+        throw new Error(`API returned ${res?.status || fallbackRes.status}`);
+      }
     } else {
-      throw new Error(`API returned ${res.status}`);
+      throw new Error(`API returned ${res?.status}`);
     }
   } catch (err) {
-    console.warn('Failed to fetch from specialized endpoint, falling back to all questions:', err);
+    console.warn('Failed to fetch from specialized endpoint:', err);
     state.questionBankData = [];
   }
 
@@ -6897,7 +7097,6 @@ function handleQbSubjectChange(subjKey) {
   }
   loadQuestionBankView(true);
 }
-window.handleQbSubjectChange = handleQbSubjectChange;
 
 function resetQbFilters() {
   const chSelect = document.getElementById('selectQbChapter');
@@ -6910,9 +7109,10 @@ function resetQbFilters() {
   if (diffSelect) diffSelect.value = 'ALL';
   if (fmtSelect) fmtSelect.value = 'ALL';
   if (searchInput) searchInput.value = '';
-  filterQuestionBankCards();
+
+  quickFilterQbChapter('ALL');
+  quickFilterQbSource('ALL');
 }
-window.resetQbFilters = resetQbFilters;
 
 function openQbForChapter(chNum, event) {
   if (event) event.stopPropagation();
@@ -6921,10 +7121,11 @@ function openQbForChapter(chNum, event) {
   if (chSelect) {
     chSelect.value = String(chNum);
   }
+  quickFilterQbChapter(chNum);
   loadQuestionBankView().then(() => {
     if (chSelect) {
       chSelect.value = String(chNum);
-      filterQuestionBankCards();
+      quickFilterQbChapter(chNum);
     }
   });
 }
@@ -6940,6 +7141,32 @@ function filterQuestionBankCards() {
   const fmtVal = document.getElementById('selectQbFormat')?.value || 'ALL';
   const query = (document.getElementById('inputQbSearch')?.value || '').toLowerCase().trim();
 
+  // Sync chapter strip pills active state
+  const strip = document.getElementById('qbChapterPillsStrip');
+  if (strip) {
+    const pills = strip.querySelectorAll('.qb-chapter-pill');
+    pills.forEach(pill => {
+      if (pill.getAttribute('data-chapter') === String(chVal)) {
+        pill.classList.add('active');
+      } else {
+        pill.classList.remove('active');
+      }
+    });
+  }
+
+  // Sync source pills active state
+  const srcStrip = document.getElementById('qbSourcePillsStrip');
+  if (srcStrip) {
+    const srcPills = srcStrip.querySelectorAll('.qb-source-pill');
+    srcPills.forEach(pill => {
+      if (pill.getAttribute('data-source') === srcVal) {
+        pill.classList.add('active');
+      } else {
+        pill.classList.remove('active');
+      }
+    });
+  }
+
   let filtered = [...(state.questionBankData || [])];
 
   if (chVal !== 'ALL') {
@@ -6953,10 +7180,15 @@ function filterQuestionBankCards() {
   if (srcVal !== 'ALL') {
     filtered = filtered.filter(q => {
       const qSrc = (q.question_source || q.pyq_appearance || q.ncert_mapping?.pyq_tag || '').toUpperCase();
-      if (srcVal === 'PYQ') return qSrc.includes('PYQ') || qSrc.includes('BOARD') || qSrc.includes('CBSE') || qSrc.includes('HPBOSE') || qSrc.includes('COMMON');
-      if (srcVal === 'NCERT_EXAMPLE') return qSrc.includes('EXAMPLE');
-      if (srcVal === 'NCERT_EXERCISE') return qSrc.includes('EXERCISE') || qSrc.includes('EX ') || qSrc.includes('TEXTBOOK');
-      if (srcVal === 'CBSE_PATTERN') return qSrc.includes('PATTERN') || qSrc.includes('SAMPLE') || qSrc.includes('STANDARD') || qSrc.includes('BASIC');
+      if (srcVal === 'PYQ') {
+        return q.question_source === 'CBSE_PYQ' || qSrc.includes('PYQ') || qSrc.includes('BOARD') || qSrc.includes('CBSE') || qSrc.includes('HPBOSE') || qSrc.includes('COMMON');
+      }
+      if (srcVal === 'NCERT_EXERCISE' || srcVal === 'NCERT_TEXTBOOK' || srcVal === 'NCERT_EXAMPLE') {
+        return q.question_source === 'NCERT_TEXTBOOK' || qSrc.includes('NCERT') || qSrc.includes('EXAMPLE') || qSrc.includes('EXERCISE') || qSrc.includes('TEXTBOOK');
+      }
+      if (srcVal === 'CBSE_PATTERN') {
+        return q.question_source === 'CBSE_SAMPLE_PATTERN' || qSrc.includes('PATTERN') || qSrc.includes('SAMPLE') || qSrc.includes('STANDARD') || qSrc.includes('BASIC');
+      }
       return true;
     });
   }
@@ -6997,7 +7229,7 @@ function filterQuestionBankCards() {
       <div style="text-align:center; padding: 3rem 1.5rem; background:var(--bg-card); border-radius:var(--radius-md); border:1px dashed var(--border-subtle); color:var(--text-muted);">
         <i data-lucide="search-x" style="width:32px; height:32px; margin:0 auto 10px; display:block; color:var(--text-muted);"></i>
         <div style="font-weight:700; color:var(--text-primary); margin-bottom:6px;">No questions match the selected filters</div>
-        <p style="font-size:0.82rem; margin-bottom:12px;">Try selecting another chapter, changing origin, or click below to reset.</p>
+        <p style="font-size:0.82rem; margin-bottom:12px;">Try selecting another chapter, switching to Board PYQs or NCERT, or click below to reset.</p>
         <button type="button" class="btn-secondary" onclick="resetQbFilters()" style="font-size:0.8rem; padding:6px 14px;">
           <i data-lucide="rotate-ccw" style="width:13px; height:13px;"></i> Reset All Filters
         </button>
@@ -7007,7 +7239,6 @@ function filterQuestionBankCards() {
     return;
   }
 
-  // Render first 40 questions for snappy performance with notice
   const displayQuestions = filtered.slice(0, 40);
 
   container.innerHTML = displayQuestions.map((q, idx) => {
@@ -7018,10 +7249,10 @@ function filterQuestionBankCards() {
     const diff = (q.difficulty || 'MEDIUM').toUpperCase();
     const marks = q.marks || (diff === 'EASY' ? 1 : (diff === 'HARD' ? 5 : 3));
     const timeSec = q.benchmark_time_seconds || 90;
+    const steps = formatIntuitiveSteps(q);
 
-    // Badge styling for source
-    const isPyq = source.toUpperCase().includes('BOARD') || source.toUpperCase().includes('PYQ');
-    const isExample = source.toUpperCase().includes('EXAMPLE');
+    const isPyq = q.question_source === 'CBSE_PYQ' || source.toUpperCase().includes('BOARD') || source.toUpperCase().includes('PYQ');
+    const isExample = q.question_source === 'NCERT_TEXTBOOK' || source.toUpperCase().includes('EXAMPLE') || source.toUpperCase().includes('NCERT');
     const sourceBadgeStyle = isPyq
       ? 'background:rgba(245, 158, 11, 0.12); color:#f59e0b; border:1px solid rgba(245, 158, 11, 0.35);'
       : isExample
@@ -7037,7 +7268,7 @@ function filterQuestionBankCards() {
     const options = q.options_latex || [];
 
     return `
-      <div class="glass-card" style="padding:16px 18px; margin-bottom:4px; border:1px solid var(--border-subtle); transition:all 0.2s ease;" id="qbCard_${qId}">
+      <div class="glass-card" style="padding:16px 18px; margin-bottom:12px; border:1px solid var(--border-subtle); transition:all 0.2s ease;" id="qbCard_${qId}">
         <!-- CARD TOP META BAR -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
           <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
@@ -7062,11 +7293,11 @@ function filterQuestionBankCards() {
         </div>
 
         <!-- QUESTION STATEMENT -->
-        <div class="qb-question-statement" style="font-size:0.92rem; color:var(--text-primary); line-height:1.6; margin-bottom:12px;">
+        <div class="qb-question-statement" style="font-size:0.94rem; color:var(--text-primary); line-height:1.6; margin-bottom:12px; font-weight:500;">
           ${renderLatexString(q.question_latex || q.questionText || '')}
         </div>
 
-        <!-- OPTIONS GRID (IF AVAILABLE) -->
+        <!-- OPTIONS GRID (IF MCQ) -->
         ${options.length > 0 ? `
           <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:8px; margin-bottom:12px;">
             ${options.map((opt, oIdx) => {
@@ -7084,28 +7315,54 @@ function filterQuestionBankCards() {
           </div>
         ` : ''}
 
-        <!-- COLLAPSIBLE STEP-BY-STEP SOLUTION -->
-        ${q.solution_latex ? `
-          <details style="margin-top:8px; background:rgba(0,0,0,0.18); border:1px solid var(--border-subtle); border-radius:6px; padding:8px 12px;">
-            <summary style="font-size:0.78rem; font-weight:700; color:var(--accent-blue); cursor:pointer; user-select:none; display:flex; align-items:center; gap:6px;">
-              <i data-lucide="check-circle" style="width:13px; height:13px; color:#10b981;"></i>
-              <span>View Step-by-Step Solution &amp; Answer (${q.correct_answer_latex || q.correct_answer || 'Correct'})</span>
-            </summary>
-            <div style="margin-top:8px; padding-top:8px; border-top:1px solid var(--border-subtle); font-size:0.86rem; color:var(--text-secondary); line-height:1.6;">
-              <div style="margin-bottom:6px;">
-                <strong style="color:var(--text-primary); font-size:0.8rem;">Correct Answer:</strong>
-                <span style="color:#10b981; font-weight:700; margin-left:4px;">${q.correct_answer_latex || q.correct_answer || 'Solution Attached'}</span>
-              </div>
-              <div class="qb-solution-body">
-                ${renderLatexString(q.solution_latex)}
+        <!-- INTUITIVE STEP-BY-STEP SOLUTION ACCORDION -->
+        <details class="qb-solution-accordion" style="margin-top:10px; background:rgba(0,0,0,0.22); border:1px solid var(--border-subtle); border-radius:8px; overflow:hidden;">
+          <summary style="font-size:0.8rem; font-weight:700; color:var(--accent-blue); padding:10px 14px; cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.02);">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i data-lucide="check-circle" style="width:14px; height:14px; color:#10b981;"></i>
+              <span>View Step-by-Step Solution &amp; Answer (${escapeHtml(steps.correctAnswer)})</span>
+            </div>
+            <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">Formula &bull; Working &bull; Rubric</span>
+          </summary>
+          <div style="padding:12px 14px; border-top:1px solid var(--border-subtle); font-size:0.86rem; line-height:1.6;">
+            <!-- Step 1: Formula -->
+            <div style="margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed var(--border-subtle);">
+              <span style="font-size:0.72rem; font-weight:800; color:var(--accent-cyan); text-transform:uppercase;">Step 1: Formula / Principle</span>
+              <div style="color:var(--text-primary); font-size:0.84rem; margin-top:2px;">
+                ${escapeHtml(steps.principle)} &bull; ${renderLatexString(steps.formulaLatex)}
               </div>
             </div>
-          </details>
-        ` : ''}
+            <!-- Step 2: Derivation -->
+            <div style="margin-bottom:8px; padding-bottom:8px; border-bottom:1px dashed var(--border-subtle);">
+              <span style="font-size:0.72rem; font-weight:800; color:var(--accent-blue); text-transform:uppercase;">Step 2: Step-by-Step Calculation</span>
+              <div style="margin-top:4px; display:flex; flex-direction:column; gap:4px;">
+                ${steps.rawSteps.map((line, sIdx) => `
+                  <div style="font-size:0.84rem; color:var(--text-primary);">
+                    <strong style="color:var(--accent-blue); font-size:0.76rem;">2.${sIdx + 1}</strong> ${renderLatexString(line)}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <!-- Step 3: Verified Answer -->
+            <div style="margin-bottom:8px;">
+              <span style="font-size:0.72rem; font-weight:800; color:#10b981; text-transform:uppercase;">Step 3: Verified Answer</span>
+              <div style="color:#34d399; font-weight:700; margin-top:2px;">
+                ${renderLatexString(steps.correctAnswer)}
+              </div>
+            </div>
+            <!-- Step 4: Step Rubric summary -->
+            <div style="background:rgba(245,158,11,0.06); padding:6px 10px; border-radius:4px; border-left:3px solid #f59e0b; font-size:0.76rem; color:var(--text-muted);">
+              <strong style="color:#fbbf24;">CBSE Step Rubric:</strong> ${steps.rubric.map(r => `${r.step.split(':')[0]} (${r.marks})`).join(' + ')}
+            </div>
+          </div>
+        </details>
 
-        <!-- ACTIONS ROW -->
+        <!-- ACTIONS ROW WITH STEP-BY-STEP SOLUTION STUDIO TRIGGER -->
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-subtle);">
-          <div style="display:flex; gap:6px; align-items:center;">
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button type="button" class="btn-primary" onclick="openStepSolutionStudio('${qId}')" style="font-size:0.78rem; padding:6px 14px; background:linear-gradient(135deg, #1e40af, #2563eb); font-weight:700; display:inline-flex; align-items:center; gap:6px;" title="Prepare comprehensive step-by-step solution, marking rubric, and classroom notes">
+              <i data-lucide="sparkles" style="width:13px; height:13px;"></i> Prepare Step-by-Step Solution
+            </button>
             <button type="button" class="btn-secondary" onclick="copyQbLatexToClipboard('${qId}')" style="font-size:0.75rem; padding:5px 10px;" title="Copy clean LaTeX text to clipboard">
               <i data-lucide="copy" style="width:12px; height:12px;"></i> Copy LaTeX
             </button>
@@ -7115,8 +7372,8 @@ function filterQuestionBankCards() {
               </button>
             ` : ''}
           </div>
-          <button type="button" class="btn-primary" onclick="assignQbQuestionToClass('${qId}')" style="font-size:0.76rem; padding:5px 14px; background:linear-gradient(135deg, #2563eb, #1d4ed8); font-weight:700;">
-            <i data-lucide="zap" style="width:13px; height:13px;"></i> Create Flash Quiz with this Question
+          <button type="button" class="btn-primary" onclick="assignQbQuestionToClass('${qId}')" style="font-size:0.76rem; padding:6px 14px; background:linear-gradient(135deg, #10b981, #059669); font-weight:700;">
+            <i data-lucide="zap" style="width:13px; height:13px;"></i> Create Flash Quiz
           </button>
         </div>
       </div>
@@ -7131,6 +7388,338 @@ function filterQuestionBankCards() {
     `;
   }
 
+  initLucideIcons();
+}
+
+function openStepSolutionStudio(qId) {
+  const q = state.questionBankData?.find(item => item.id === qId);
+  if (!q) {
+    alert('Question not found in repository.');
+    return;
+  }
+
+  const modal = document.getElementById('modalStepSolutionStudio');
+  const body = document.getElementById('studioModalBody');
+  const title = document.getElementById('studioModalTitle');
+  const subtitle = document.getElementById('studioModalSubtitle');
+  if (!modal || !body) return;
+
+  const chNum = q.chapter_number || '';
+  const chName = q.chapter_name || q.chapter || 'Chapter';
+  const source = q.question_source || q.pyq_appearance || (q.ncert_mapping ? q.ncert_mapping.pyq_tag : 'CBSE Board Question');
+  const diff = (q.difficulty || 'MEDIUM').toUpperCase();
+  const marks = q.marks || (diff === 'HARD' ? 5 : (diff === 'EASY' ? 1 : 3));
+  const steps = formatIntuitiveSteps(q);
+
+  if (title) title.innerText = `Step-by-Step Solution Studio: #${qId} (Ch ${chNum})`;
+  if (subtitle) subtitle.innerText = `${escapeHtml(chName)} • ${escapeHtml(source)} • ${marks} Mark${marks > 1 ? 's' : ''} (${diff})`;
+
+  body.innerHTML = `
+    <!-- TOP QUESTION SUMMARY -->
+    <div style="background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px; margin-bottom:16px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
+        <span style="font-size:0.75rem; font-weight:800; color:var(--accent-blue); background:rgba(37,99,235,0.12); padding:3px 10px; border-radius:4px;">
+          Ch ${chNum}: ${escapeHtml(chName)}
+        </span>
+        <span style="font-size:0.75rem; font-weight:700; color:#f59e0b; background:rgba(245,158,11,0.12); padding:3px 10px; border-radius:4px; border:1px solid rgba(245,158,11,0.3);">
+          ${escapeHtml(source)}
+        </span>
+        <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted);">
+          Marking Weightage: <strong>${marks} Mark${marks > 1 ? 's' : ''}</strong>
+        </span>
+      </div>
+      <div style="font-size:0.95rem; line-height:1.65; color:var(--text-primary); font-weight:500;">
+        ${renderLatexString(q.question_latex || q.questionText || '')}
+      </div>
+    </div>
+
+    <!-- INTUITIVE 5-STEP SOLUTION ARCHITECTURE -->
+    <div class="studio-step-container">
+      
+      <!-- STEP 1: FUNDAMENTAL PRINCIPLE / FORMULA -->
+      <div class="studio-step-card step-principle">
+        <div class="studio-step-header">
+          <span class="studio-step-tag" style="color:var(--accent-cyan);">
+            <i data-lucide="compass" style="width:14px; height:14px;"></i> Step 1: Fundamental Principle &amp; Key Formula Applied
+          </span>
+          <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">Foundation Step</span>
+        </div>
+        <div style="font-size:0.86rem; color:var(--text-primary); margin-bottom:8px;">
+          <strong>Core Concept:</strong> ${escapeHtml(steps.principle)}
+        </div>
+        <div style="background:rgba(6,182,212,0.08); border:1px dashed rgba(6,182,212,0.35); border-radius:6px; padding:10px 14px; font-size:0.92rem; color:#38bdf8;">
+          ${renderLatexString(steps.formulaLatex)}
+        </div>
+      </div>
+
+      <!-- STEP 2: LINE-BY-LINE MATHEMATICAL DERIVATION -->
+      <div class="studio-step-card step-derivation">
+        <div class="studio-step-header">
+          <span class="studio-step-tag" style="color:var(--accent-blue);">
+            <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Derivation &amp; Intermediate Work
+          </span>
+          <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">Execution Step</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          ${steps.rawSteps.map((line, sIdx) => `
+            <div style="display:flex; align-items:flex-start; gap:10px; background:rgba(0,0,0,0.18); padding:8px 12px; border-radius:6px; border:1px solid var(--border-subtle);">
+              <span style="font-size:0.75rem; font-weight:800; color:var(--accent-blue); background:rgba(37,99,235,0.15); padding:2px 7px; border-radius:4px; flex-shrink:0;">
+                2.${sIdx + 1}
+              </span>
+              <div style="font-size:0.88rem; line-height:1.6; color:var(--text-primary); flex:1;">
+                ${renderLatexString(line)}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- STEP 3: FINAL VERIFIED ANSWER & UNITS -->
+      <div class="studio-step-card step-answer">
+        <div class="studio-step-header">
+          <span class="studio-step-tag" style="color:#10b981;">
+            <i data-lucide="check-circle-2" style="width:14px; height:14px;"></i> Step 3: Final Verified Answer &amp; Units
+          </span>
+          <span style="font-size:0.72rem; color:#10b981; font-weight:700;">Verified Key</span>
+        </div>
+        <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); border-radius:6px; padding:12px 16px; font-size:1.05rem; font-weight:700; color:#34d399; display:flex; align-items:center; gap:10px;">
+          <i data-lucide="check" style="width:18px; height:18px;"></i>
+          <span>${renderLatexString(steps.correctAnswer)}</span>
+        </div>
+      </div>
+
+      <!-- STEP 4: OFFICIAL CBSE / HP BOARD STEP RUBRIC -->
+      <div class="studio-step-card step-rubric">
+        <div class="studio-step-header">
+          <span class="studio-step-tag" style="color:#f59e0b;">
+            <i data-lucide="award" style="width:14px; height:14px;"></i> Step 4: Official CBSE / HP Board Marking Scheme Rubric (${marks} Mark${marks > 1 ? 's' : ''})
+          </span>
+          <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">Board Criteria</span>
+        </div>
+        <table class="studio-rubric-table">
+          <thead>
+            <tr>
+              <th style="width:75%;">Evaluation Step / Work Checked by Examiner</th>
+              <th style="width:25%; text-align:right;">Marks Awarded</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${steps.rubric.map(r => `
+              <tr>
+                <td style="color:var(--text-primary);">${escapeHtml(r.step)}</td>
+                <td style="color:#fbbf24; font-weight:700; text-align:right;">${r.marks}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- STEP 5: PEDAGOGICAL ALERT & COMMON PITFALLS -->
+      <div class="studio-step-card step-hints">
+        <div class="studio-step-header">
+          <span class="studio-step-tag" style="color:#c084fc;">
+            <i data-lucide="lightbulb" style="width:14px; height:14px;"></i> Step 5: Teacher Pedagogical Alert &amp; Common Student Pitfalls
+          </span>
+          <span style="font-size:0.72rem; color:#c084fc; font-weight:700;">Classroom Coaching</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:6px; font-size:0.84rem; color:var(--text-secondary); line-height:1.5;">
+          ${steps.hints.map(h => `
+            <div style="display:flex; align-items:flex-start; gap:8px;">
+              <i data-lucide="alert-circle" style="width:14px; height:14px; color:#c084fc; flex-shrink:0; margin-top:2px;"></i>
+              <span>${renderLatexString(h)}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- TEACHER BLACKBOARD CUSTOM NOTES (SAVED LOCALLY) -->
+      <div style="background:var(--bg-secondary); border:1px dashed var(--border-subtle); border-radius:var(--radius-md); padding:12px 14px;">
+        <label for="studioTeacherNotes" style="font-size:0.74rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">
+          <i data-lucide="edit-3" style="width:12px; height:12px; vertical-align:middle;"></i> Teacher Blackboard / Classroom Coaching Notes (Optional):
+        </label>
+        <textarea id="studioTeacherNotes" rows="2" style="width:100%; background:var(--bg-card); border:1px solid var(--border-subtle); border-radius:6px; color:var(--text-primary); font-size:0.82rem; padding:8px 10px; resize:vertical;" placeholder="Add custom teacher remarks, e.g., 'Emphasize checking negative roots in quadratic equations before announcing final dimensions'">${escapeHtml(localStorage.getItem(`teacher_note_${qId}`) || '')}</textarea>
+      </div>
+
+    </div>
+  `;
+
+  const btnCopy = document.getElementById('btnStudioCopyLatex');
+  if (btnCopy) {
+    btnCopy.onclick = () => {
+      const fullLatex = `% Question #${qId} (Ch ${chNum}: ${chName})
+% Source: ${source} | Marks: ${marks}
+\\textbf{Question:} ${q.question_latex || q.questionText || ''}
+
+\\textbf{Step 1 (Formula/Principle):} ${steps.principle}
+$$${steps.formulaLatex}$$
+
+\\textbf{Step 2 (Step-by-Step Derivation):}
+${steps.rawSteps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
+
+\\textbf{Step 3 (Final Answer):} ${steps.correctAnswer}
+`;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(fullLatex).then(() => {
+          alert(`Complete step-by-step LaTeX solution for #${qId} copied to clipboard.`);
+        });
+      } else {
+        alert(fullLatex);
+      }
+    };
+  }
+
+  const btnPrint = document.getElementById('btnStudioPrintHandout');
+  if (btnPrint) {
+    btnPrint.onclick = () => {
+      const notesEl = document.getElementById('studioTeacherNotes');
+      if (notesEl) {
+        localStorage.setItem(`teacher_note_${qId}`, notesEl.value.trim());
+      }
+      window.print();
+    };
+  }
+
+  const btnAssign = document.getElementById('btnStudioAssignQuiz');
+  if (btnAssign) {
+    btnAssign.onclick = () => {
+      closeStepSolutionStudio();
+      assignQbQuestionToClass(qId);
+    };
+  }
+
+  modal.style.display = 'flex';
+  initLucideIcons();
+}
+
+function closeStepSolutionStudio() {
+  const modal = document.getElementById('modalStepSolutionStudio');
+  if (modal) modal.style.display = 'none';
+}
+
+function openChapterSolutionSheetModal() {
+  const chVal = document.getElementById('selectQbChapter')?.value || '1';
+  const targetCh = chVal === 'ALL' ? 1 : chVal;
+  
+  let chapterQuestions = (state.questionBankData || []).filter(q => {
+    if (q.chapter_number !== undefined) return String(q.chapter_number) === String(targetCh);
+    const chName = (q.chapter_name || q.chapter || '').toLowerCase();
+    return chName.includes(`ch ${targetCh}`) || chName.includes(`chapter ${targetCh}`);
+  });
+
+  if (chapterQuestions.length === 0) {
+    chapterQuestions = (state.questionBankData || []).slice(0, 15);
+  }
+
+  const modal = document.getElementById('modalStepSolutionStudio');
+  const body = document.getElementById('studioModalBody');
+  const title = document.getElementById('studioModalTitle');
+  const subtitle = document.getElementById('studioModalSubtitle');
+  if (!modal || !body) return;
+
+  const firstQ = chapterQuestions[0] || {};
+  const chNum = firstQ.chapter_number || targetCh;
+  const chName = firstQ.chapter_name || `Chapter ${chNum}`;
+
+  if (title) title.innerText = `Master Solution Sheet: Ch ${chNum} - ${chName}`;
+  if (subtitle) subtitle.innerText = `Complete Step-by-Step Solutions & CBSE Step Rubrics (${chapterQuestions.length} Questions)`;
+
+  body.innerHTML = `
+    <div style="background:linear-gradient(135deg, rgba(37,99,235,0.15), rgba(16,185,129,0.1)); border:1px solid rgba(59,130,246,0.3); border-radius:var(--radius-md); padding:16px; margin-bottom:18px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <h3 style="margin:0; font-size:1.1rem; color:var(--text-primary); font-weight:800;">
+          Department of Mathematics &bull; Class 10th Solution Handout
+        </h3>
+        <span style="font-size:0.76rem; background:rgba(37,99,235,0.2); color:#60a5fa; padding:3px 10px; border-radius:12px; font-weight:700;">
+          ${chapterQuestions.length} Problems with Detailed Derivations
+        </span>
+      </div>
+      <p style="margin:6px 0 0 0; font-size:0.82rem; color:var(--text-secondary);">
+        This handout contains CBSE Board PYQs and NCERT exercises with step-by-step mathematical working and step rubric allocation for classroom instruction.
+      </p>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      ${chapterQuestions.map((q, idx) => {
+        const qId = q.id || `q_${idx}`;
+        const source = q.question_source || q.pyq_appearance || 'Board Question';
+        const diff = (q.difficulty || 'MEDIUM').toUpperCase();
+        const marks = q.marks || (diff === 'HARD' ? 5 : (diff === 'EASY' ? 1 : 3));
+        const steps = formatIntuitiveSteps(q);
+
+        return `
+          <div style="background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:var(--radius-md); padding:16px 18px; border-left:4px solid var(--accent-blue);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+              <span style="font-size:0.82rem; font-weight:800; color:var(--accent-blue);">
+                Q${idx + 1}. #${qId} &bull; ${escapeHtml(source)}
+              </span>
+              <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">
+                ${marks} Mark${marks > 1 ? 's' : ''} &bull; ${diff}
+              </span>
+            </div>
+            
+            <div style="font-size:0.92rem; color:var(--text-primary); line-height:1.6; margin-bottom:12px; font-weight:500;">
+              ${renderLatexString(q.question_latex || q.questionText || '')}
+            </div>
+
+            <div style="background:rgba(0,0,0,0.22); border-radius:6px; padding:12px 14px; margin-bottom:10px; border:1px solid var(--border-subtle);">
+              <div style="font-size:0.78rem; font-weight:700; color:var(--accent-cyan); margin-bottom:4px; text-transform:uppercase;">
+                Formula &amp; Method:
+              </div>
+              <div style="font-size:0.84rem; color:var(--text-secondary); margin-bottom:8px;">
+                ${escapeHtml(steps.principle)} &bull; ${renderLatexString(steps.formulaLatex)}
+              </div>
+
+              <div style="font-size:0.78rem; font-weight:700; color:var(--accent-blue); margin-bottom:4px; text-transform:uppercase;">
+                Step-by-Step Derivation:
+              </div>
+              <div style="display:flex; flex-direction:column; gap:4px; margin-bottom:8px;">
+                ${steps.rawSteps.map((s, sIdx) => `
+                  <div style="font-size:0.84rem; color:var(--text-primary); line-height:1.5;">
+                    <strong style="color:var(--accent-blue); font-size:0.78rem;">${sIdx + 1}.</strong> ${renderLatexString(s)}
+                  </div>
+                `).join('')}
+              </div>
+
+              <div style="font-size:0.78rem; font-weight:700; color:#10b981; margin-bottom:2px; text-transform:uppercase;">
+                Verified Answer:
+              </div>
+              <div style="font-size:0.92rem; font-weight:700; color:#34d399;">
+                ${renderLatexString(steps.correctAnswer)}
+              </div>
+            </div>
+
+            <div style="font-size:0.74rem; color:var(--text-muted); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+              <span><strong>Marking Scheme:</strong> ${steps.rubric.map(r => `${r.step.split(':')[0]} (${r.marks})`).join(' + ')} = ${marks}M</span>
+              <button type="button" class="btn-secondary" onclick="openStepSolutionStudio('${qId}')" style="font-size:0.72rem; padding:3px 8px;">
+                <i data-lucide="maximize-2" style="width:11px; height:11px;"></i> Open in Studio
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+
+  const btnPrint = document.getElementById('btnStudioPrintHandout');
+  if (btnPrint) {
+    btnPrint.onclick = () => window.print();
+  }
+
+  const btnCopy = document.getElementById('btnStudioCopyLatex');
+  if (btnCopy) {
+    btnCopy.onclick = () => {
+      let doc = `% Master Solution Sheet - Ch ${chNum}: ${chName}\n\n`;
+      chapterQuestions.forEach((q, i) => {
+        const steps = formatIntuitiveSteps(q);
+        doc += `% Question ${i + 1} (${q.id})\n\\textbf{Q${i + 1}:} ${q.question_latex || q.questionText || ''}\n\\textbf{Solution:}\n${steps.rawSteps.join('\n')}\n\\textbf{Answer:} ${steps.correctAnswer}\n\n`;
+      });
+      navigator.clipboard.writeText(doc).then(() => {
+        alert(`Master Solution Sheet for Ch ${chNum} copied to clipboard.`);
+      });
+    };
+  }
+
+  modal.style.display = 'flex';
   initLucideIcons();
 }
 
@@ -7225,7 +7814,15 @@ window.handleTabActivated = function(tabId) {
 
 window.loadQuestionBankView = loadQuestionBankView;
 window.filterQuestionBankCards = filterQuestionBankCards;
+window.quickFilterQbChapter = quickFilterQbChapter;
+window.quickFilterQbSource = quickFilterQbSource;
 window.openQbForChapter = openQbForChapter;
+window.openStepSolutionStudio = openStepSolutionStudio;
+window.closeStepSolutionStudio = closeStepSolutionStudio;
+window.openChapterSolutionSheetModal = openChapterSolutionSheetModal;
+window.formatIntuitiveSteps = formatIntuitiveSteps;
 window.toggleQbCardAnswer = toggleQbCardAnswer;
 window.copyQbLatexToClipboard = copyQbLatexToClipboard;
 window.assignQbQuestionToClass = assignQbQuestionToClass;
+window.resetQbFilters = resetQbFilters;
+window.handleQbSubjectChange = handleQbSubjectChange;

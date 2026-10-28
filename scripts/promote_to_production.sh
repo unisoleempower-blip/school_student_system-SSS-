@@ -27,6 +27,7 @@ node scripts/test_evaluator.js
 node scripts/test_subject_remedial_pipeline.js
 node scripts/test_teacher_auth_and_class_management.js
 node scripts/test_class10_sync_and_banks.js
+node scripts/test_question_bank_solution_studio.js
 echo "✅ Local diagnostic tests passed."
 echo ""
 
