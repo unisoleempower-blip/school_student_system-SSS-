@@ -435,7 +435,19 @@ The frontend is organized as a Single Page Application (SPA) with seamless tab s
 * **Purpose**: Full-screen timed quiz interface for students.
 * **Key Features**: KaTeX formula display, timer countdown, progressive Socratic hints, and sub-second telemetry collection on option clicks and keystrokes.
 
+### Section 8: Full-Page Diagnostic Performance Audit Studio (`#modalDiagnosticResults`)
+* **Purpose**: Post-assessment diagnostic breakdown, eliminating cramped popups and raw developer jargon in favor of an expansive full-page performance studio.
+* **Key Features**:
+  * **Wide-Screen Modal Canvas**: `95vw` (max-width `1280px`, height `92vh`) with smooth vertical scroll canvas and high-contrast institutional print mode.
+  * **Executive Performance Ribbon**: 4 real-time KPI tiles for Diagnostic Score, Accuracy & Mistake Breakdown, Solving Velocity (vs CBSE 90s benchmark), and Cognitive Hesitation Delay.
+  * **Dual Action Directives Grid**:
+    * **Student Roadmap ("What You Need to Learn & Master")**: Translates raw mistake telemetry into student-friendly guidance, highlighting *why* the student slipped, displaying core governing theorems in KaTeX formulas, and providing 1-click targeted remedial practice.
+    * **Teacher Directives ("Where Teacher Needs to Focus")**: Equips educators with immediate blackboard lecture priorities, careless slips vs conceptual traps error ratio, evening hostel prep directives, and classroom seatmap inspection flags.
+  * **Curriculum Concept Mastery Breakdown**: Cleans raw uppercase codes and renders mathematical symbols into formatted KaTeX pills across Mastered, Recap, and Critical Weakness tiers.
+  * **Question-by-Question Review with Step Walkthroughs**: Displays question statements, student response verification, distractor traps, and toggleable 4-tier step-by-step intuitive solution mastercards.
+
 ---
+
 
 ## 6. Deployment Architecture, Release Gate & Commands
 
