@@ -3452,26 +3452,34 @@ function displayDiagnosticResults(results) {
         <div id="diagSolBody_${qIdx}" style="display:none; flex-direction:column; gap:14px; margin-top:8px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:14px;">
           <!-- Step 1: Fundamental Concept & Formula -->
           <div class="qb-solution-concept-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-size:0.72rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+              <span style="font-size:0.76rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
                 <i data-lucide="compass" style="width:14px; height:14px;"></i> Step 1: Fundamental Concept &amp; Governing Law
               </span>
-              <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); background:rgba(255,255,255,0.04); padding:2px 7px; border-radius:4px;">
-                Foundation Step
-              </span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" class="qb-btn-toggle-explain" onclick="toggleSolutionConceptExplanation('diag_${qIdx}')" id="btnExplain_diag_${qIdx}">
+                  <i data-lucide="help-circle" style="width:13px; height:13px;"></i> View Concept &amp; Reasoning
+                </button>
+                <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); background:rgba(255,255,255,0.04); padding:2px 7px; border-radius:4px;">
+                  Foundation Step
+                </span>
+              </div>
             </div>
-            <div style="font-size:0.88rem; color:var(--text-primary); line-height:1.65; margin-bottom:10px;">
-              <strong>Principle Intuition:</strong> ${escapeHtml(stepsData.principleIntuition || stepsData.principle || prof.studentGuidance)}
-            </div>
-            <div style="background:rgba(0,0,0,0.25); border:1px dashed rgba(6,182,212,0.4); border-radius:6px; padding:10px 14px; font-size:0.94rem; color:#38bdf8;">
+            <div style="background:rgba(0,0,0,0.3); border:1px dashed rgba(6,182,212,0.45); border-radius:6px; padding:12px 16px; font-size:1.02rem; color:#38bdf8; overflow-x:auto;">
               ${renderLatexString(stepsData.formulaLatex || prof.formula)}
+            </div>
+            <div id="boxExplain_diag_${qIdx}" class="qb-concept-explanation-box" style="display:none; margin-top:10px;">
+              <div style="font-size:0.84rem; color:#bae6fd; font-weight:700; margin-bottom:4px;">Physical Concept &amp; Intuition:</div>
+              <div style="font-size:0.96rem; color:var(--text-primary); line-height:1.7;">
+                ${escapeHtml(stepsData.principleIntuition || stepsData.principle || prof.studentGuidance)}
+              </div>
             </div>
           </div>
 
           <!-- Step 2: Line-by-Line Mathematical Derivation -->
           <div>
-            <div style="font-size:0.72rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:inline-flex; align-items:center; gap:6px;">
-              <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Working
+            <div style="font-size:0.76rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:inline-flex; align-items:center; gap:6px;">
+              <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Working (${(stepsData.parsedSteps || []).length} Key Steps)
             </div>
             <div class="qb-solution-steps-flow">
               ${(stepsData.parsedSteps || []).map((s, sIdx) => `
@@ -3480,12 +3488,12 @@ function displayDiagnosticResults(results) {
                     <span class="qb-solution-step-badge">
                       Step 2.${sIdx + 1}: ${escapeHtml(s.title)}
                     </span>
-                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">
+                    <span style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">
                       ${s.stepRubric ? escapeHtml(s.stepRubric) : `Step ${sIdx + 1}`}
                     </span>
                   </div>
-                  <div style="font-size:0.9rem; color:var(--text-primary); line-height:1.7;">
-                    ${renderLatexString(s.text)}
+                  <div class="sol-step-content" style="font-size:1.02rem; color:var(--text-primary); line-height:1.75;">
+                    ${formatStepEquations(s.text)}
                   </div>
                 </div>
               `).join('')}
@@ -3494,17 +3502,17 @@ function displayDiagnosticResults(results) {
 
           <!-- Step 3: Verified Answer & Result -->
           <div class="qb-solution-answer-box">
-            <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; flex-shrink:0; margin-top:2px;">
-              <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
+            <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; flex-shrink:0; margin-top:2px;">
+              <i data-lucide="check-circle" style="width:18px; height:18px;"></i>
             </span>
             <div style="flex:1;">
-              <div style="font-size:0.72rem; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">
+              <div style="font-size:0.76rem; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">
                 Step 3: Final Verified Result &amp; Concluding Statement
               </div>
-              <div style="font-size:1.02rem; font-weight:800; color:#ecfdf5; margin:4px 0 2px 0;">
+              <div style="font-size:1.12rem; font-weight:800; color:#ecfdf5; margin:6px 0 4px 0; overflow-x:auto;">
                 Correct Answer: Option ${escapeHtml(expectedOpt)}
               </div>
-              <div style="font-size:0.84rem; color:rgba(236,253,245,0.85); line-height:1.6;">
+              <div style="font-size:0.92rem; color:rgba(236,253,245,0.9); line-height:1.6;">
                 ${renderLatexString(stepsData.correctAnswer || `Option ${expectedOpt} matches the verified analytical derivation.`)}
               </div>
             </div>
@@ -3512,10 +3520,10 @@ function displayDiagnosticResults(results) {
 
           <!-- Step 4: Examiner Tip & Common Pitfalls -->
           <div class="qb-solution-tip-box">
-            <div style="font-size:0.72rem; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:inline-flex; align-items:center; gap:6px;">
-              <i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> Step 4: Examiner Tip &amp; Common Pitfalls
+            <div style="font-size:0.76rem; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:inline-flex; align-items:center; gap:6px;">
+              <i data-lucide="alert-triangle" style="width:15px; height:15px; color:#fbbf24; flex-shrink:0; margin-top:2px;"></i> Step 4: Examiner Tip &amp; Common Pitfalls
             </div>
-            <div style="font-size:0.85rem; color:#fef3c7; line-height:1.65;">
+            <div style="font-size:0.9rem; color:#fef3c7; line-height:1.65;">
               ${renderLatexString(stepsData.examTip || prof.studentGuidance)}
             </div>
           </div>
@@ -7750,6 +7758,50 @@ function quickFilterQbSource(srcKey) {
   filterQuestionBankCards();
 }
 
+function formatStepEquations(rawText) {
+  if (!rawText) return '';
+  const rawLines = rawText.split(/\n+/).map(l => l.trim()).filter(Boolean);
+  if (rawLines.length > 1) {
+    return rawLines.map(line => `<div class="sol-math-line">${renderLatexString(line)}</div>`).join('');
+  }
+
+  // Math-aware sentence & equation splitter outside $...$ or $$...$$
+  const parts = [];
+  let cur = '';
+  let inMath = false;
+  for (let i = 0; i < rawText.length; i++) {
+    const ch = rawText[i];
+    if (ch === '$') inMath = !inMath;
+    cur += ch;
+    if (!inMath && (ch === '.' || ch === ';' || ch === ':') && (i === rawText.length - 1 || rawText[i + 1] === ' ' || rawText[i + 1] === '\n')) {
+      if (cur.trim()) parts.push(cur.trim());
+      cur = '';
+    }
+  }
+  if (cur.trim()) parts.push(cur.trim());
+
+  if (parts.length > 1) {
+    return parts.map(part => `<div class="sol-math-line">${renderLatexString(part)}</div>`).join('');
+  }
+  return `<div class="sol-math-line">${renderLatexString(rawText)}</div>`;
+}
+window.formatStepEquations = formatStepEquations;
+
+function toggleSolutionConceptExplanation(qId) {
+  const box = document.getElementById(`boxExplain_${qId}`);
+  const btn = document.getElementById(`btnExplain_${qId}`);
+  if (!box) return;
+  const isHidden = box.style.display === 'none' || !box.style.display;
+  box.style.display = isHidden ? 'block' : 'none';
+  if (btn) {
+    btn.innerHTML = isHidden 
+      ? '<i data-lucide="chevron-up" style="width:13px; height:13px;"></i> Hide Concept &amp; Reasoning'
+      : '<i data-lucide="help-circle" style="width:13px; height:13px;"></i> View Concept &amp; Reasoning';
+    if (window.lucide && window.lucide.createIcons) lucide.createIcons();
+  }
+}
+window.toggleSolutionConceptExplanation = toggleSolutionConceptExplanation;
+
 function formatIntuitiveSteps(q) {
   const chNum = Number(q.chapter_number) || 1;
   const marks = Number(q.marks || q.marks_weightage || (q.difficulty === 'HARD' ? 5 : (q.difficulty === 'EASY' ? 1 : 3)));
@@ -7765,7 +7817,37 @@ function formatIntuitiveSteps(q) {
 
   if (isScience) {
     const chLower = (q.chapter_name || q.chapter || '').toLowerCase();
-    if (chLower.includes('light') || chLower.includes('mirror') || chLower.includes('lens')) {
+    const qTextLower = (q.question_latex || q.question_text || '').toLowerCase();
+    const solLower = solutionText.toLowerCase();
+    const combined = `${chLower} ${qTextLower} ${solLower}`;
+
+    // Senior Physics & Specific Physics derivation rules
+    if (combined.includes('drift') || combined.includes('resistivity') || combined.includes('relaxation time') || combined.includes('ne^2') || combined.includes('rho =')) {
+      principle = "Microscopic Ohm's Law, Drift Velocity & Resistivity Deduction";
+      principleIntuition = "Free electrons accelerate under an applied electric field and undergo lattice collisions at mean free time tau. The resulting steady drift velocity produces current I = neAv_d, yielding resistivity independent of conductor dimensions.";
+      formulaLatex = "v_d = \\frac{eE\\tau}{m}, \\quad I = n e A v_d, \\quad \\rho = \\frac{m}{n e^2 \\tau}, \\quad \\vec{J} = \\sigma \\vec{E}";
+      examTip = "Examiner Tip: State the definition of relaxation time tau explicitly and show intermediate substitution of E = V/L into the current formula.";
+    } else if (combined.includes('lcr') || combined.includes('impedance') || combined.includes('resonance') || combined.includes('alternating current')) {
+      principle = "Series LCR Resonant Circuit, Phasor Relations & Impedance";
+      principleIntuition = "In a series LCR circuit, voltages across inductor and capacitor are out of phase by 180 degrees. Total impedance reaches its minimum resistive value at the natural resonant frequency.";
+      formulaLatex = "Z = \\sqrt{R^2 + (X_L - X_C)^2}, \\quad \\tan\\phi = \\frac{X_L - X_C}{R}, \\quad f_r = \\frac{1}{2\\pi\\sqrt{LC}}";
+      examTip = "Examiner Tip: Always state the individual reactance formulas X_L = omega L and X_C = 1/(omega C) before calculating impedance Z.";
+    } else if (combined.includes('gauss') || combined.includes('infinite plane') || combined.includes('sheet of charge') || combined.includes('flux')) {
+      principle = "Gauss's Law & Electric Field of an Infinite Plane Sheet";
+      principleIntuition = "By planar symmetry, electric field vectors are normal to both flat faces of the sheet. A cylindrical Gaussian pillbox captures electric flux exclusively through its two end-caps.";
+      formulaLatex = "\\oint \\vec{E} \\cdot d\\vec{A} = \\frac{q_{\\text{enc}}}{\\varepsilon_0} \\implies 2EA = \\frac{\\sigma A}{\\varepsilon_0} \\implies E = \\frac{\\sigma}{2\\varepsilon_0}";
+      examTip = "Crucial Note: Explicitly state that the resulting field E is uniform and independent of the distance r from the sheet.";
+    } else if (combined.includes('rolling') || combined.includes('moment of inertia') || combined.includes('rotational')) {
+      principle = "Pure Rolling Motion & Conservation of Mechanical Energy";
+      principleIntuition = "In pure rolling without slipping, total kinetic energy is the sum of translational kinetic energy of the center of mass and rotational kinetic energy about the center of mass.";
+      formulaLatex = "v_{\\text{cm}} = \\omega R, \\quad K_{\\text{total}} = \\frac{1}{2}Mv_{\\text{cm}}^2 + \\frac{1}{2}I_{\\text{cm}}\\omega^2 = \\frac{1}{2}Mv^2\\left(1 + \\frac{k^2}{R^2}\\right)";
+      examTip = "Examiner Tip: State the moment of inertia I for the specific rolling geometry explicitly before equating with potential energy.";
+    } else if (combined.includes('lens maker') || (combined.includes('refraction') && combined.includes('spherical surface'))) {
+      principle = "Refraction at Spherical Surfaces & Lens Maker's Formula";
+      principleIntuition = "Apply refraction at two successive curved spherical boundaries of a thin lens to relate focal length directly to radii of curvature and refractive index.";
+      formulaLatex = "\\frac{1}{f} = (\\mu - 1)\\left(\\frac{1}{R_1} - \\frac{1}{R_2}\\right)";
+      examTip = "Examiner Warning: Apply the Cartesian sign convention strictly to radii R1 and R2.";
+    } else if (chLower.includes('light') || chLower.includes('mirror') || chLower.includes('lens')) {
       principle = 'Ray Optics: Spherical Mirrors & Lens Formula with Sign Convention';
       principleIntuition = 'In spherical mirrors and lenses, apply the Cartesian sign convention strictly. Distances measured against the incident light are negative (object distance u is always negative). Focal length of a concave mirror is negative.';
       formulaLatex = '\\frac{1}{v} + \\frac{1}{u} = \\frac{1}{f}, \\quad m = -\\frac{v}{u} = \\frac{h\'}{h} \\quad (\\text{Mirror})';
@@ -7881,16 +7963,25 @@ function formatIntuitiveSteps(q) {
     }
   }
 
-  // Math-safe sentence and step parser
+  // Math-safe step parser (handles newlines and inline step numbers like '1. ... 2. ...')
   let rawBlocks = [];
-  if (/^\s*1\.\s+/m.test(solutionText)) {
-    rawBlocks = solutionText.split(/(?:^|\n)(?=\d+\.\s+)/).map(s => s.trim()).filter(Boolean);
-  } else if (solutionText.includes('\n\n')) {
+  const inlineStepRegex = /(?:^|\n|(?<=[.;!?:]|\$\$|\$)\s+)(?=(?:Step\s*\d+[:.]?\s*|\d+\.\s+))/i;
+
+  if (solutionText.includes('\n\n')) {
     rawBlocks = solutionText.split(/\n\n+/).map(s => s.trim()).filter(Boolean);
+  } else if (/^\s*(?:Step\s*\d+|\d+\.)/im.test(solutionText) || inlineStepRegex.test(solutionText)) {
+    const splitArr = solutionText.split(inlineStepRegex).map(s => s.trim()).filter(Boolean);
+    if (splitArr.length > 1) {
+      rawBlocks = splitArr;
+    } else if (solutionText.includes('\n')) {
+      rawBlocks = solutionText.split(/\n+/).map(s => s.trim()).filter(Boolean);
+    }
   } else if (solutionText.includes('\n')) {
     rawBlocks = solutionText.split(/\n+/).map(s => s.trim()).filter(Boolean);
-  } else {
-    // Split sentences safely without breaking math $...$ delimiters
+  }
+
+  // If still single block, try splitting sentences without breaking math $...$
+  if (rawBlocks.length <= 1) {
     const sentences = [];
     let cur = '';
     let inMath = false;
@@ -7904,12 +7995,12 @@ function formatIntuitiveSteps(q) {
       }
     }
     if (cur.trim()) sentences.push(cur.trim());
-    rawBlocks = sentences.length > 1 ? sentences : [solutionText];
+    rawBlocks = sentences.length > 1 ? sentences : (rawBlocks.length === 1 ? rawBlocks : [solutionText]);
   }
 
   const total = rawBlocks.length;
   const parsedSteps = rawBlocks.map((blk, idx) => {
-    let clean = blk.replace(/^\d+\.\s*/, '').trim();
+    let clean = blk.replace(/^(?:Step\s*\d+[:.]?\s*|\d+\.\s*)/i, '').trim();
     let title = '';
     const titleMatch = clean.match(/^\*\*([^*]+)\*\*:\s*([\s\S]*)$/);
     if (titleMatch) {
@@ -7917,9 +8008,9 @@ function formatIntuitiveSteps(q) {
       clean = titleMatch[2].trim();
     } else {
       if (idx === 0) {
-        title = total === 1 ? 'Complete Working & Derivation' : 'Setup & Given Relationship';
+        title = total === 1 ? 'Complete Working & Derivation' : 'Setup & Governing Equations';
       } else if (idx === total - 1) {
-        title = 'Final Calculation & Deduction';
+        title = 'Final Analytical Deduction';
       } else {
         title = `Step-by-Step Derivation (Part ${idx + 1})`;
       }
@@ -7981,7 +8072,7 @@ function formatIntuitiveSteps(q) {
         'In geometry and algebra, write a one-line concluding sentence explicitly answering what the problem asked.'
       ];
 
-  const answerInterpretation = `Final verified answer: ${correctAnswer}. Following this sequence guarantees full marks according to CBSE & HPBOSE evaluation guidelines.`;
+  const answerInterpretation = 'This concludes the analytical deduction. Following this sequential derivation guarantees full marks in CBSE & HP Board evaluations.';
 
   return {
     principle,
@@ -8451,25 +8542,33 @@ function renderQbCurrentPage() {
         <div id="solBody_${qId}" style="display:flex; flex-direction:column; gap:16px;">
           <!-- STEP 1: FUNDAMENTAL PRINCIPLE & FORMULA -->
           <div class="qb-solution-concept-box">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-size:0.72rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+              <span style="font-size:0.76rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
                 <i data-lucide="compass" style="width:14px; height:14px;"></i> Step 1: Fundamental Concept &amp; Governing Formula
               </span>
-              <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); background:rgba(255,255,255,0.04); padding:2px 7px; border-radius:4px;">
-                Foundation Step
-              </span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" class="qb-btn-toggle-explain" onclick="toggleSolutionConceptExplanation('${qId}')" id="btnExplain_${qId}">
+                  <i data-lucide="help-circle" style="width:13px; height:13px;"></i> View Concept &amp; Reasoning
+                </button>
+                <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); background:rgba(255,255,255,0.04); padding:2px 7px; border-radius:4px;">
+                  Foundation Step
+                </span>
+              </div>
             </div>
-            <div style="font-size:0.88rem; color:var(--text-primary); line-height:1.65; margin-bottom:10px;">
-              <strong>Intuition:</strong> ${escapeHtml(steps.principleIntuition || steps.principle)}
-            </div>
-            <div style="background:rgba(0,0,0,0.25); border:1px dashed rgba(6,182,212,0.4); border-radius:6px; padding:10px 14px; font-size:0.94rem; color:#38bdf8;">
+            <div style="background:rgba(0,0,0,0.3); border:1px dashed rgba(6,182,212,0.45); border-radius:6px; padding:12px 16px; font-size:1.02rem; color:#38bdf8; overflow-x:auto;">
               ${renderLatexString(steps.formulaLatex)}
+            </div>
+            <div id="boxExplain_${qId}" class="qb-concept-explanation-box" style="display:none; margin-top:10px;">
+              <div style="font-size:0.84rem; color:#bae6fd; font-weight:700; margin-bottom:4px;">Physical Concept &amp; Intuition:</div>
+              <div style="font-size:0.96rem; color:var(--text-primary); line-height:1.7;">
+                ${escapeHtml(steps.principleIntuition || steps.principle)}
+              </div>
             </div>
           </div>
 
           <!-- STEP 2: LINE-BY-LINE MATHEMATICAL DERIVATION (WITH CLEAR GAPS) -->
           <div>
-            <div style="font-size:0.72rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:inline-flex; align-items:center; gap:6px;">
+            <div style="font-size:0.76rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:inline-flex; align-items:center; gap:6px;">
               <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Working (${steps.parsedSteps.length} Key Steps)
             </div>
             <div class="qb-solution-steps-flow">
@@ -8479,12 +8578,12 @@ function renderQbCurrentPage() {
                     <span class="qb-solution-step-badge">
                       Step 2.${sIdx + 1}: ${escapeHtml(s.title)}
                     </span>
-                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">
+                    <span style="font-size:0.74rem; color:var(--text-muted); font-weight:600;">
                       ${s.stepRubric ? escapeHtml(s.stepRubric) : `Step ${sIdx + 1}`}
                     </span>
                   </div>
-                  <div style="font-size:0.9rem; color:var(--text-primary); line-height:1.7;">
-                    ${renderLatexString(s.text)}
+                  <div class="sol-step-content" style="font-size:1.02rem; color:var(--text-primary); line-height:1.75;">
+                    ${formatStepEquations(s.text)}
                   </div>
                 </div>
               `).join('')}
@@ -8493,18 +8592,18 @@ function renderQbCurrentPage() {
 
           <!-- STEP 3: FINAL VERIFIED RESULT -->
           <div class="qb-solution-answer-box">
-            <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; flex-shrink:0; margin-top:2px;">
-              <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
+            <span style="display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; flex-shrink:0; margin-top:2px;">
+              <i data-lucide="check-circle" style="width:18px; height:18px;"></i>
             </span>
             <div style="flex:1;">
-              <div style="font-size:0.72rem; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">
+              <div style="font-size:0.76rem; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">
                 Step 3: Final Verified Result &amp; Concluding Statement
               </div>
-              <div style="font-size:1.02rem; font-weight:800; color:#ecfdf5; margin:4px 0 2px 0;">
+              <div style="font-size:1.12rem; font-weight:800; color:#ecfdf5; margin:6px 0 4px 0; overflow-x:auto;">
                 ${renderLatexString(steps.correctAnswer)}
               </div>
-              <div style="font-size:0.82rem; color:#a7f3d0; line-height:1.5;">
-                ${escapeHtml(steps.answerInterpretation || 'This result completes the derivation according to the prescribed NCERT and Board criteria.')}
+              <div style="font-size:0.88rem; color:#a7f3d0; line-height:1.6;">
+                ${escapeHtml(steps.answerInterpretation || 'This result completes the derivation according to CBSE and State Board evaluation criteria.')}
               </div>
             </div>
           </div>
@@ -8512,21 +8611,21 @@ function renderQbCurrentPage() {
           <!-- STEP 4: BOARD MARKING SCHEME & EXAMINER ADVICE -->
           <div class="qb-solution-exam-tip-box">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-              <span style="font-size:0.72rem; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
+              <span style="font-size:0.76rem; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
                 <i data-lucide="award" style="width:14px; height:14px;"></i> Step 4: Official CBSE / HP Board Step Rubric (${marks} Mark${marks > 1 ? 's' : ''})
               </span>
-              <span style="font-size:0.72rem; color:#f59e0b; font-weight:700;">Examiner Marking Guide</span>
+              <span style="font-size:0.74rem; color:#f59e0b; font-weight:700;">Examiner Marking Guide</span>
             </div>
-            <div style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem; color:var(--text-secondary); margin-bottom:10px;">
+            <div style="display:flex; flex-direction:column; gap:6px; font-size:0.86rem; color:var(--text-secondary); margin-bottom:10px;">
               ${steps.rubric.map(r => `
-                <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0; border-bottom:1px dashed rgba(255,255,255,0.06);">
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:4px 0; border-bottom:1px dashed rgba(255,255,255,0.06);">
                   <span>${escapeHtml(r.step)}</span>
                   <strong style="color:#fbbf24; margin-left:8px;">${r.marks}</strong>
                 </div>
               `).join('')}
             </div>
-            <div style="display:flex; align-items:flex-start; gap:8px; font-size:0.82rem; color:#fde68a; line-height:1.55; padding-top:4px;">
-              <i data-lucide="alert-triangle" style="width:14px; height:14px; color:#fbbf24; flex-shrink:0; margin-top:2px;"></i>
+            <div style="display:flex; align-items:flex-start; gap:8px; font-size:0.86rem; color:#fde68a; line-height:1.6; padding-top:4px;">
+              <i data-lucide="alert-triangle" style="width:15px; height:15px; color:#fbbf24; flex-shrink:0; margin-top:2px;"></i>
               <span><strong>Examiner Advice:</strong> ${escapeHtml(steps.examTip || 'Follow step-by-step arithmetic without skipping formula statements to secure maximum board credit.')}</span>
             </div>
           </div>
@@ -8717,22 +8816,25 @@ function openStepSolutionStudio(qId) {
       
       <!-- STEP 1: FUNDAMENTAL PRINCIPLE / FORMULA -->
       <div class="studio-step-card step-principle">
-        <div class="studio-step-header">
+        <div class="studio-step-header" style="flex-wrap:wrap; gap:8px;">
           <span class="studio-step-tag" style="color:var(--accent-cyan);">
             <i data-lucide="compass" style="width:14px; height:14px;"></i> Step 1: Fundamental Principle &amp; Key Formula Applied
           </span>
-          <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">Foundation Step</span>
-        </div>
-        <div style="font-size:0.86rem; color:var(--text-primary); margin-bottom:6px;">
-          <strong>Core Concept:</strong> ${escapeHtml(steps.principle)}
-        </div>
-        ${steps.principleIntuition ? `
-          <div style="font-size:0.84rem; color:var(--text-secondary); line-height:1.6; margin-bottom:10px;">
-            <strong>Intuition:</strong> ${escapeHtml(steps.principleIntuition)}
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button type="button" class="qb-btn-toggle-explain" onclick="toggleSolutionConceptExplanation('studio_${qId}')" id="btnExplain_studio_${qId}">
+              <i data-lucide="help-circle" style="width:13px; height:13px;"></i> View Concept &amp; Reasoning
+            </button>
+            <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">Foundation Step</span>
           </div>
-        ` : ''}
-        <div style="background:rgba(6,182,212,0.08); border:1px dashed rgba(6,182,212,0.35); border-radius:6px; padding:10px 14px; font-size:0.92rem; color:#38bdf8;">
+        </div>
+        <div style="background:rgba(6,182,212,0.1); border:1px dashed rgba(6,182,212,0.45); border-radius:6px; padding:12px 16px; font-size:1.02rem; color:#38bdf8; overflow-x:auto;">
           ${renderLatexString(steps.formulaLatex)}
+        </div>
+        <div id="boxExplain_studio_${qId}" class="qb-concept-explanation-box" style="display:none; margin-top:10px;">
+          <div style="font-size:0.84rem; color:#bae6fd; font-weight:700; margin-bottom:4px;">Physical Concept &amp; Intuition:</div>
+          <div style="font-size:0.96rem; color:var(--text-primary); line-height:1.7;">
+            ${escapeHtml(steps.principleIntuition || steps.principle)}
+          </div>
         </div>
       </div>
 
@@ -8740,7 +8842,7 @@ function openStepSolutionStudio(qId) {
       <div class="studio-step-card step-derivation">
         <div class="studio-step-header">
           <span class="studio-step-tag" style="color:var(--accent-blue);">
-            <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Derivation &amp; Intermediate Work
+            <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Derivation &amp; Intermediate Work (${steps.parsedSteps.length} Key Steps)
           </span>
           <span style="font-size:0.72rem; color:var(--text-muted); font-weight:700;">Execution Step</span>
         </div>
@@ -8748,15 +8850,15 @@ function openStepSolutionStudio(qId) {
           ${steps.parsedSteps.map((s, sIdx) => `
             <div style="background:rgba(0,0,0,0.22); padding:12px 14px; border-radius:6px; border:1px solid var(--border-subtle);">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                <span style="font-size:0.75rem; font-weight:800; color:var(--accent-blue); background:rgba(37,99,235,0.15); padding:2px 8px; border-radius:4px;">
+                <span style="font-size:0.76rem; font-weight:800; color:var(--accent-blue); background:rgba(37,99,235,0.15); padding:2px 8px; border-radius:4px;">
                   Step 2.${sIdx + 1}: ${escapeHtml(s.title)}
                 </span>
-                <span style="font-size:0.7rem; color:var(--text-muted); font-weight:600;">
+                <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">
                   ${s.stepRubric ? escapeHtml(s.stepRubric) : `Step ${sIdx + 1}`}
                 </span>
               </div>
-              <div style="font-size:0.9rem; line-height:1.7; color:var(--text-primary);">
-                ${renderLatexString(s.text)}
+              <div class="sol-step-content" style="font-size:1.02rem; line-height:1.75; color:var(--text-primary);">
+                ${formatStepEquations(s.text)}
               </div>
             </div>
           `).join('')}
@@ -8983,8 +9085,8 @@ function openChapterSolutionSheetModal() {
                           ${s.stepRubric ? escapeHtml(s.stepRubric) : ''}
                         </span>
                       </div>
-                      <div style="font-size:0.88rem; color:var(--text-primary); line-height:1.65;">
-                        ${renderLatexString(s.text)}
+                      <div class="sol-step-content" style="font-size:0.96rem; color:var(--text-primary); line-height:1.7;">
+                        ${formatStepEquations(s.text)}
                       </div>
                     </div>
                   `).join('')}

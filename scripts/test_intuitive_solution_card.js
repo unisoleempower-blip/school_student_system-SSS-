@@ -131,6 +131,24 @@ assert(cleaned2.includes("Derivation:"), "Must prefix with Derivation:");
 assert(cleaned2.includes("$E = \\frac{\\sigma}{2\\varepsilon_0}$"), "Must transform raw formula into KaTeX math");
 console.log('[PASS] Full-Page Diagnostic Performance Studio markup, styling, and subtopic cleaners verified.');
 
+// 7. Verify Equation-by-Equation Newline Separation & Concept Explanation Toggle
+assert(cssContent.includes('.sol-math-line'), 'Must contain .sol-math-line class in styles.css');
+assert(cssContent.includes('.qb-concept-explanation-box'), 'Must contain .qb-concept-explanation-box class in styles.css');
+assert(cssContent.includes('.qb-btn-toggle-explain'), 'Must contain .qb-btn-toggle-explain class in styles.css');
+
+assert(appJsContent.includes('function formatStepEquations('), 'Must define formatStepEquations in app.js');
+assert(appJsContent.includes('window.formatStepEquations = formatStepEquations;'), 'Must export formatStepEquations to window');
+assert(appJsContent.includes('function toggleSolutionConceptExplanation('), 'Must define toggleSolutionConceptExplanation in app.js');
+assert(appJsContent.includes('window.toggleSolutionConceptExplanation = toggleSolutionConceptExplanation;'), 'Must export toggleSolutionConceptExplanation to window');
+
+// Test that physics derivations have exact governing formulas
+assert(appJsContent.includes(String.raw`v_d = \\frac{eE\\tau}{m}`), 'Must have drift velocity formula');
+assert(appJsContent.includes(String.raw`\\rho = \\frac{m}{n e^2 \\tau}`), 'Must have resistivity deduction formula');
+assert(appJsContent.includes(String.raw`Z = \\sqrt{R^2 + (X_L - X_C)^2}`), 'Must have LCR series impedance formula');
+assert(appJsContent.includes(String.raw`E = \\frac{\\sigma}{2\\varepsilon_0}`), 'Must have Gauss law plane sheet formula');
+
+console.log('[PASS] Equation-by-equation separation, concept toggle, and physics governing formulas verified.');
+
 console.log('======================================================');
 console.log('ALL INTUITIVE SOLUTION CARD ENGINE TESTS PASSED 100%!');
 console.log('======================================================');
