@@ -402,11 +402,13 @@ The frontend is organized as a Single Page Application (SPA) with seamless tab s
 * **Key Features**: Multi-chapter selection chips, Bloom's Taxonomy sliders, difficulty distribution, target board selector (CBSE, HP Board, JEE, NEET), dynamic KaTeX math preview, Word (`.docx`) export, and direct classroom assignment.
 
 ### Section 2: Question Bank & PYQs (`tabQuestionBank`)
-* **Purpose**: Comprehensive CBSE Class 10 & Senior Secondary repository.
+* **Purpose**: Comprehensive CBSE Class 10 & Senior Secondary repository with focused single-question presentation.
 * **Key Features**:
   * 438 questions spanning all 14 Class 10 NCERT Mathematics chapters.
   * Filters: Source (`CBSE_PYQ 2020-2024`, `NCERT_EXERCISE`, `SAMPLE_PATTERN`) and Difficulty (`EASY`, `MEDIUM`, `HARD`).
-  * **Intuitive Step Solution Studio**: Interactive modal with Concept Keys, Step Progressions, Traps/Common Errors, and printable chapter handouts.
+  * **Single-Question Focused Practice Mode**: Presents one question per page with Previous / Next navigation, keyboard arrow support, a progress tracker, and a quick-jump selector strip.
+  * **Hidden-by-Default Solution Architecture**: Questions prompt students to attempt independent solving first; clicking "View Step-by-Step Solution" reveals the 4-tier intuitive pedagogical mastercard.
+  * **Intuitive Step Solution Studio**: Interactive modal and printable chapter handouts with Concept Intuitions, Line-by-Line Derivations, and official CBSE / HP Board marking rubrics.
 
 ### Section 3: Class Progress Dashboard (`tabClassAnalytics`)
 * **Purpose**: Real-time cockpit for teachers during and after class assessments.
