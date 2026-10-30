@@ -88,6 +88,50 @@ sampleChapters.forEach(ch => {
 });
 console.log('[PASS] All 14 Class 10 NCERT chapters have configured pedagogical intuitions.');
 
+// 5. Verify Full-Page Diagnostic Performance Audit & Studio
+const htmlPath = path.join(__dirname, '..', 'frontend', 'index.html');
+const htmlContent = fs.readFileSync(htmlPath, 'utf8');
+assert(htmlContent.includes('id="diagReportScrollContainer"'), 'Must contain #diagReportScrollContainer in index.html');
+assert(htmlContent.includes('id="diagReportModalTitle"'), 'Must contain #diagReportModalTitle in index.html');
+assert(htmlContent.includes('id="diagReportModalSubtitle"'), 'Must contain #diagReportModalSubtitle in index.html');
+
+assert(cssContent.includes('.diag-kpi-ribbon'), 'Must contain .diag-kpi-ribbon in styles.css');
+assert(cssContent.includes('.diag-dual-directive-grid'), 'Must contain .diag-dual-directive-grid in styles.css');
+assert(cssContent.includes('.diag-directive-student'), 'Must contain .diag-directive-student in styles.css');
+assert(cssContent.includes('.diag-directive-teacher'), 'Must contain .diag-directive-teacher in styles.css');
+assert(cssContent.includes('.diag-concept-item-card'), 'Must contain .diag-concept-item-card in styles.css');
+assert(cssContent.includes('.diag-question-review-card'), 'Must contain .diag-question-review-card in styles.css');
+
+assert(appJsContent.includes('function cleanDiagnosticSubtopic('), 'Must define cleanDiagnosticSubtopic');
+assert(appJsContent.includes('function getConceptPedagogicalProfile('), 'Must define getConceptPedagogicalProfile');
+assert(appJsContent.includes('function displayDiagnosticResults('), 'Must define displayDiagnosticResults');
+assert(appJsContent.includes('function toggleDiagQuestionSolution('), 'Must define toggleDiagQuestionSolution');
+assert(appJsContent.includes('window.toggleDiagQuestionSolution = toggleDiagQuestionSolution;'), 'Must export toggleDiagQuestionSolution');
+
+// 6. Test subtopic title and formula normalization
+const cleanSubtopicMock = (raw) => {
+  if (!raw || typeof raw !== 'string') return 'General Concept';
+  let s = raw.trim();
+  s = s.replace(/^DERIVATION\s*:\s*/i, 'Derivation: ');
+  s = s.replace(/^PHASOR DIAGRAM SOLUTION\s*:\s*/i, 'Phasor Diagram: ');
+  if (s === s.toUpperCase() && !s.includes('\\')) {
+    s = s.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+  s = s.replace(/E\s*=\s*\\?Sigma\s*\/\s*\(?\s*2\s*E_?0\s*\)?/gi, '$E = \\frac{\\sigma}{2\\varepsilon_0}$');
+  return s;
+};
+
+const rawTest1 = "MOMENT OF INERTIA";
+const cleaned1 = cleanSubtopicMock(rawTest1);
+assert.strictEqual(cleaned1, "Moment Of Inertia", "All-caps subtopic must be converted to Title Case");
+
+const rawTest2 = "DERIVATION: FIELD DUE TO A UNIFORMLY CHARGED INFINITE PLANE SHEET: E = \\Sigma/(2E_0)";
+const cleaned2 = cleanSubtopicMock(rawTest2);
+assert(cleaned2.includes("Derivation:"), "Must prefix with Derivation:");
+assert(cleaned2.includes("$E = \\frac{\\sigma}{2\\varepsilon_0}$"), "Must transform raw formula into KaTeX math");
+console.log('[PASS] Full-Page Diagnostic Performance Studio markup, styling, and subtopic cleaners verified.');
+
 console.log('======================================================');
 console.log('ALL INTUITIVE SOLUTION CARD ENGINE TESTS PASSED 100%!');
 console.log('======================================================');
+

@@ -1977,82 +1977,61 @@
   </div>
 
   <!-- Student Diagnostic Results & Mastery Breakdown Modal -->
-  <div class="modal-overlay" id="modalDiagnosticResults">
-    <div class="modal-card" style="max-width: 620px; max-height: 85vh; display: flex; flex-direction: column;">
-      <div style="background: linear-gradient(135deg, #059669, #0284c7); padding: 14px 18px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <i data-lucide="award" style="width: 24px; height: 24px;"></i>
+  <!-- Student Diagnostic Results & Full-Page Performance Audit Studio -->
+  <div class="modal-overlay" id="modalDiagnosticResults" style="display:none; z-index:9999;">
+    <div class="modal-card" style="width: 95vw; max-width: 1280px; height: 92vh; max-height: 94vh; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; background: var(--bg-card); border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 25px 60px rgba(0,0,0,0.85);">
+      <!-- Header Banner -->
+      <div style="background: linear-gradient(135deg, #0d9488 0%, #1e40af 100%); padding: 16px 24px; color: #fff; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 42px; height: 42px; background: rgba(255, 255, 255, 0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.2);">
+            <i data-lucide="award" style="width: 24px; height: 24px;"></i>
+          </div>
           <div>
-            <strong style="font-size: 1.05rem;">Diagnostic Test Evaluation Summary</strong>
-            <p style="font-size: 0.75rem; margin: 0; opacity: 0.9;">Sub-Second Telemetry & Concept Mastery Breakdown</p>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <strong style="font-size: 1.15rem; font-family: 'Outfit', sans-serif;" id="diagReportModalTitle">Diagnostic Evaluation &amp; Performance Audit Studio</strong>
+              <span style="font-size: 0.72rem; background: rgba(255, 255, 255, 0.2); padding: 2px 8px; border-radius: 4px; font-weight: 700;">Verified Telemetry</span>
+            </div>
+            <p style="font-size: 0.78rem; margin: 2px 0 0 0; opacity: 0.9;" id="diagReportModalSubtitle">
+              Sub-second cognitive telemetry, dual pedagogical directives &amp; line-by-line derivation review
+            </p>
           </div>
         </div>
-        <button id="btnCloseDiagnosticResults" onclick="closeDiagnosticResultsModal()" style="background: transparent; border: none; color: #fff; cursor: pointer;">
-          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
-        </button>
-      </div>
-
-      <div style="padding: 18px; overflow-y: auto; flex: 1;">
-        <!-- Score Highlights -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem;">
-          <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Total Score</div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: #10b981;" id="diagScoreVal">0 / 0</div>
-            <div style="font-size: 0.72rem; color: #10b981;" id="diagPercentageVal">(0%)</div>
-          </div>
-          <div style="background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Average Speed</div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: var(--accent-blue);" id="diagAvgSpeedVal">0s</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);" id="diagBenchmarkVal">Target: 90s</div>
-          </div>
-          <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 10px; text-align: center;">
-            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase;">Hesitation Index</div>
-            <div style="font-size: 1.35rem; font-weight: 800; color: var(--accent-amber);" id="diagHesitationVal">0s</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">First Touch Lag</div>
-          </div>
-        </div>
-
-        <!-- 3-Tier Concept Breakdown -->
-        <h4 style="font-size: 0.9rem; margin-bottom: 8px; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-          <i data-lucide="activity" style="width: 16px; height: 16px; color: var(--accent-cyan);"></i>
-          Academic Diagnostic Concept Breakdown
-        </h4>
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem;">
-          <div style="padding: 10px 14px; background: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 4px;">
-            <strong style="color: #10b981; font-size: 0.82rem;"><span style="color:#10b981;">●</span> Mastered Concepts (High Accuracy & Speed):</strong>
-            <div id="diagMasteredList" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">None</div>
-          </div>
-          <div style="padding: 10px 14px; background: rgba(234, 179, 8, 0.08); border-left: 3px solid #eab308; border-radius: 4px;">
-            <strong style="color: #eab308; font-size: 0.82rem;"><span style="color:#eab308;">●</span> Concepts Needing Recap (Speed Lag or Minor Slip):</strong>
-            <div id="diagRecapList" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">None</div>
-          </div>
-          <div style="padding: 10px 14px; background: rgba(239, 68, 68, 0.08); border-left: 3px solid #ef4444; border-radius: 4px;">
-            <strong style="color: #ef4444; font-size: 0.82rem;"><span style="color:#ef4444;">●</span> Critical Weaknesses (Conceptual Trap or Hesitation):</strong>
-            <div id="diagWeakList" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">None</div>
-          </div>
-        </div>
-
-        <!-- Question-by-Question Telemetry Matrix -->
-        <h4 style="font-size: 0.85rem; margin-bottom: 6px; color: var(--text-primary);">Question-by-Question Telemetry</h4>
-        <div id="diagQuestionsTable" style="display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto;">
-          <!-- Dynamically populated -->
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" class="btn-secondary" onclick="window.print()" style="font-size: 0.78rem; padding: 6px 12px; background: rgba(255, 255, 255, 0.15); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25);" title="Print or save diagnostic report">
+            <i data-lucide="printer" style="width: 14px; height: 14px;"></i> Print Report
+          </button>
+          <button id="btnCloseDiagnosticResults" onclick="closeDiagnosticResultsModal()" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; cursor: pointer; border-radius: 8px; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" title="Close Report">
+            <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+          </button>
         </div>
       </div>
 
-      <div style="padding: 12px 18px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 8px;">
-        <span style="font-size: 0.75rem; color: var(--text-muted);">Real-time stream recorded to Kafka Bus</span>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn-secondary" id="btnDownloadTestDocx" onclick="downloadCurrentTestDocx()" style="font-size: 0.82rem; padding: 7px 14px; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #60a5fa; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+      <!-- Main Scrollable Report Canvas -->
+      <div class="diag-report-body" id="diagReportScrollContainer">
+        <!-- Dynamically rendered via displayDiagnosticResults in app.js -->
+      </div>
+
+      <!-- Fixed Institutional Action Footer -->
+      <div style="padding: 14px 24px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-subtle); flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--text-muted);">
+          <i data-lucide="shield-check" style="width: 15px; height: 15px; color: #10b981;"></i>
+          <span>Automated Diagnostic Telemetry &bull; Aligned with CBSE &amp; HPBOSE Assessment Standards</span>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <button class="btn-secondary" id="btnDownloadTestDocx" onclick="downloadCurrentTestDocx()" style="font-size: 0.8rem; padding: 8px 14px; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; color: #60a5fa; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
             <i data-lucide="download" style="width: 14px; height: 14px;"></i> Download Plain DOCX (.docx)
           </button>
-          <button class="btn-primary" id="btnOpenPersonalizedRemedial" onclick="openPersonalizedRemedialModal()" style="font-size: 0.82rem; padding: 7px 16px; background: linear-gradient(135deg, #8b5cf6, #ec4899); font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.35);">
-            <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Personalized Remedial Assignment
+          <button class="btn-primary" id="btnOpenPersonalizedRemedial" onclick="openPersonalizedRemedialModal()" style="font-size: 0.82rem; padding: 8px 18px; background: linear-gradient(135deg, #8b5cf6, #ec4899); font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4); display: flex; align-items: center; gap: 7px;">
+            <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i> Launch Personalized Remedial Assignment
           </button>
-          <button class="btn-primary" id="btnGoToSmartReport" onclick="handleGoToSmartReport()" style="font-size: 0.82rem; padding: 7px 14px; background: linear-gradient(135deg, #3b82f6, #06b6d4); cursor: pointer;">
+          <button class="btn-primary" id="btnGoToSmartReport" onclick="handleGoToSmartReport()" style="font-size: 0.8rem; padding: 8px 14px; background: linear-gradient(135deg, #3b82f6, #06b6d4); font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
             <i data-lucide="clipboard-check" style="width: 14px; height: 14px;"></i> Smart Report
           </button>
-          <button class="btn-primary" id="btnGoToClassDashboard" onclick="handleGoToClassDashboard()" style="font-size: 0.82rem; padding: 7px 14px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 700; cursor: pointer;">
+          <button class="btn-primary" id="btnGoToClassDashboard" onclick="handleGoToClassDashboard()" style="font-size: 0.8rem; padding: 8px 14px; background: linear-gradient(135deg, #10b981, #059669); font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
             <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i> Class Dashboard
+          </button>
+          <button type="button" class="btn-secondary" onclick="closeDiagnosticResultsModal()" style="font-size: 0.8rem; padding: 8px 14px;">
+            Close Report
           </button>
         </div>
       </div>

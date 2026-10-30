@@ -3190,11 +3190,14 @@ button:active,
   #modalStepSolutionStudio,
   #modalStepSolutionStudio *,
   #modalChapterSolutionSheet,
-  #modalChapterSolutionSheet * {
+  #modalChapterSolutionSheet *,
+  #modalDiagnosticResults,
+  #modalDiagnosticResults * {
     visibility: visible;
   }
   #modalStepSolutionStudio,
-  #modalChapterSolutionSheet {
+  #modalChapterSolutionSheet,
+  #modalDiagnosticResults {
     position: absolute;
     left: 0;
     top: 0;
@@ -3550,4 +3553,126 @@ button:active,
   border: 1px solid rgba(59, 130, 246, 0.25);
   flex-shrink: 0;
 }
+
+/* ==========================================================================
+   FULL-PAGE DIAGNOSTIC TEST EVALUATION & PERFORMANCE AUDIT STUDIO
+   ========================================================================== */
+#modalDiagnosticResults .modal-card {
+  width: 95vw !important;
+  max-width: 1280px !important;
+  height: 92vh !important;
+  max-height: 94vh !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: var(--bg-card) !important;
+}
+
+.diag-report-body {
+  padding: 24px 28px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  scrollbar-width: thin;
+}
+
+.diag-kpi-ribbon {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.diag-kpi-tile {
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.diag-kpi-tile:hover {
+  transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.diag-dual-directive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 20px;
+}
+
+.diag-directive-box {
+  background: var(--bg-secondary);
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.diag-directive-student {
+  border-left: 5px solid #06b6d4;
+  background: linear-gradient(180deg, rgba(6, 182, 212, 0.05) 0%, rgba(15, 23, 42, 0.7) 100%);
+}
+
+.diag-directive-teacher {
+  border-left: 5px solid #f59e0b;
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.05) 0%, rgba(15, 23, 42, 0.7) 100%);
+}
+
+.diag-concept-item-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.diag-concept-item-card:hover {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+.diag-question-review-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.diag-question-review-card:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+@media (max-width: 960px) {
+  .diag-dual-directive-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #modalDiagnosticResults .modal-card {
+    width: 98vw !important;
+    height: 96vh !important;
+  }
+  .diag-report-body {
+    padding: 16px 18px !important;
+  }
+}
+
 

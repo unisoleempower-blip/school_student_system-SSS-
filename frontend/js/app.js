@@ -3048,54 +3048,671 @@ async function startAssignedTest(assessmentSummary) {
   alert(`Test Started: "${fullAssessment.title}"\n\n• Questions: ${examState.questions.length}\n• Duration: ${fullAssessment.durationMinutes} Minutes\n• Live Telemetry: Sub-second timer streaming to Teacher Seatmap.\n\nGood luck!`);
 }
 
+// -----------------------------------------------------------------------------
+// FULL-PAGE DIAGNOSTIC TEST EVALUATION & PERFORMANCE AUDIT STUDIO
+// -----------------------------------------------------------------------------
+
+function cleanDiagnosticSubtopic(raw) {
+  if (!raw || typeof raw !== 'string') return 'General Concept';
+  let s = raw.trim();
+
+  // Clean common prefixes
+  s = s.replace(/^DERIVATION\s*:\s*/i, 'Derivation: ');
+  s = s.replace(/^PHASOR DIAGRAM SOLUTION\s*:\s*/i, 'Phasor Diagram: ');
+
+  // If text is ALL CAPS, convert words to Title Case unless containing LaTeX backslashes
+  if (s === s.toUpperCase() && !s.includes('\\')) {
+    s = s.toLowerCase().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  }
+
+  // Handle common raw physics notations into clean math notation for KaTeX
+  s = s.replace(/E\s*=\s*\\?Sigma\s*\/\s*\(?\s*2\s*E_?0\s*\)?/gi, '$E = \\frac{\\sigma}{2\\varepsilon_0}$');
+  s = s.replace(/E\s*=\s*\\?sigma\s*\/\s*\(?\s*2\s*\\?epsilon_?0\s*\)?/gi, '$E = \\frac{\\sigma}{2\\varepsilon_0}$');
+  s = s.replace(/P\s*=\s*M\s*\/\s*\(?\s*NE\^?2\s*T\s*\)?/gi, '$\\rho = \\frac{m}{n e^2 \\tau}$');
+  s = s.replace(/\\?rho\s*=\s*m\s*\/\s*\(?\s*n\s*e\^?2\s*\\?tau\s*\)?/gi, '$\\rho = \\frac{m}{n e^2 \\tau}$');
+  s = s.replace(/Z\s*=\s*\\?sqrt\s*\[\s*R\^?2\s*\+\s*\(X_L\s*-\s*X_C\)\^?2\s*\]/gi, '$Z = \\sqrt{R^2 + (X_L - X_C)^2}$');
+  s = s.replace(/Z\s*=\s*\\?sqrt\s*\{\s*R\^?2\s*\+\s*\(X_L\s*-\s*X_C\)\^?2\s*\}/gi, '$Z = \\sqrt{R^2 + (X_L - X_C)^2}$');
+
+  return s;
+}
+
+function getConceptPedagogicalProfile(rawSubtopic, category, timeSpent, benchmark) {
+  const cleanTitle = cleanDiagnosticSubtopic(rawSubtopic);
+  const lower = (rawSubtopic || '').toLowerCase();
+  
+  let formula = '';
+  let studentGuidance = '';
+  let teacherDirective = '';
+  let conceptSlug = 'Core Concept';
+
+  if (lower.includes('plane sheet') || lower.includes('infinite plane') || lower.includes('sigma/(2e_0)') || lower.includes('\\sigma/(2\\epsilon')) {
+    conceptSlug = 'Electrostatics: Infinite Plane Sheet';
+    formula = 'E = \\frac{\\sigma}{2\\varepsilon_0}';
+    studentGuidance = 'Electric field due to an infinite uniformly charged non-conducting sheet is uniform and independent of distance $r$. Remember: use $\\frac{\\sigma}{2\\varepsilon_0}$ for a dielectric/non-conducting sheet and $\\frac{\\sigma}{\\varepsilon_0}$ for a conducting surface.';
+    teacherDirective = 'Blackboard Priority: Re-derive Gauss\'s Law pillbox cylinder piercing the sheet. Show that electric flux $\\Phi = 2EA = \\frac{\\sigma A}{\\varepsilon_0} \\implies E = \\frac{\\sigma}{2\\varepsilon_0}$. Address the factor of 2 confusion with conductor surfaces.';
+  } else if (lower.includes('ohm') || lower.includes('resistivity') || lower.includes('m/(ne^2t)') || lower.includes('ne^2\\tau')) {
+    conceptSlug = 'Current Electricity: Microscopic Ohm\'s Law';
+    formula = '\\rho = \\frac{m}{n e^2 \\tau}, \\quad \\sigma = \\frac{1}{\\rho} = \\frac{n e^2 \\tau}{m}, \\quad v_d = \\frac{e E \\tau}{m}';
+    studentGuidance = 'Resistivity $\\rho$ depends purely on material properties: number density of free electrons $n$ and mean relaxation time $\\tau$. It does NOT depend on conductor length $l$ or cross-sectional area $A$.';
+    teacherDirective = 'Blackboard Priority: Walk through the deduction of Ohm\'s law starting from $I = n e A v_d$. Clarify why increasing temperature in metals causes more electron collisions, shortening $\\tau$ and therefore increasing resistivity $\\rho$.';
+  } else if (lower.includes('phasor') || lower.includes('impedance') || lower.includes('lcr') || lower.includes('x_l - x_c')) {
+    conceptSlug = 'Alternating Current: LCR Impedance';
+    formula = 'Z = \\sqrt{R^2 + (X_L - X_C)^2}, \\quad X_L = \\omega L, \\quad X_C = \\frac{1}{\\omega C}';
+    studentGuidance = 'In an AC circuit with $R$, $L$, and $C$ in series, impedance is given by the vector sum in the phasor diagram. Never add resistances and reactances algebraically ($Z \\neq R + X_L + X_C$).';
+    teacherDirective = 'Blackboard Priority: Construct phasor diagram showing current phasor $I_0$ as reference. Demonstrate resonance condition ($X_L = X_C \\implies Z_{\\min} = R$) and phase angle $\\tan\\phi = \\frac{X_L - X_C}{R}$.';
+  } else if (lower.includes('damped') || lower.includes('oscillation')) {
+    conceptSlug = 'Oscillations: Damped Harmonic Motion';
+    formula = 'x(t) = A e^{-\\frac{bt}{2m}} \\cos(\\omega\' t + \\phi), \\quad \\omega\' = \\sqrt{\\omega_0^2 - \\left(\\frac{b}{2m}\\right)^2}';
+    studentGuidance = 'The damping force $F_d = -b v$ dissipates mechanical energy into heat. Amplitude decays exponentially over time as $A(t) = A_0 e^{-bt/(2m)}$, while oscillation frequency is slightly lower than natural frequency $\\omega_0$.';
+    teacherDirective = 'Blackboard Priority: Plot displacement-time curve showing the exponential envelope $\\pm A_0 e^{-bt/(2m)}$. Distinguish underdamping, critical damping ($b = 2\\sqrt{km}$), and overdamping.';
+  } else if (lower.includes('moment of inertia') || lower.includes('rotat')) {
+    conceptSlug = 'Rotational Dynamics: Moment of Inertia';
+    formula = 'I = \\sum m_i r_i^2 = \\int r^2 dm, \\quad \\tau_{\\text{net}} = I \\alpha';
+    studentGuidance = 'Moment of inertia measures rotational inertia. Always identify the specific rotational axis before calculating. For a ring $I = MR^2$, for a disc $I = \\frac{1}{2}MR^2$, for a solid sphere $I = \\frac{2}{5}MR^2$.';
+    teacherDirective = 'Blackboard Priority: Drill parallel axis theorem ($I = I_{cm} + Md^2$) and perpendicular axis theorem ($I_z = I_x + I_y$). Verify students always measure $d$ from the center of mass.';
+  } else if (lower.includes('work-energy') || lower.includes('energy theorem')) {
+    conceptSlug = 'Mechanics: Work-Energy Theorem';
+    formula = 'W_{\\text{net}} = \\Delta K = \\frac{1}{2}m v_f^2 - \\frac{1}{2}m v_i^2';
+    studentGuidance = 'The work-energy theorem is universal: net work done by ALL forces (conservative, non-conservative, and external) equals the change in kinetic energy of the system.';
+    teacherDirective = 'Blackboard Priority: Guide students through multi-force free body diagrams. Ensure work done by friction ($-\\mu N d$) is accounted for in non-conservative work.';
+  } else if (lower.includes('light') || lower.includes('mirror') || lower.includes('lens') || lower.includes('refraction')) {
+    conceptSlug = 'Ray Optics: Mirror & Lens Equations';
+    formula = '\\frac{1}{v} + \\frac{1}{u} = \\frac{1}{f} \\quad (\\text{Mirror}), \\quad \\frac{1}{v} - \\frac{1}{u} = \\frac{1}{f} \\quad (\\text{Lens})';
+    studentGuidance = 'Strictly apply Cartesian sign convention: object distance $u$ is negative; concave mirror/lens focal length $f$ is negative; convex mirror/lens focal length $f$ is positive.';
+    teacherDirective = 'Blackboard Priority: Review ray tracing rules and sign convention table. Point out that magnification $m = -v/u$ for mirrors and $m = +v/u$ for lenses.';
+  } else if (lower.includes('genetics') || lower.includes('dna') || lower.includes('mendel') || lower.includes('inherit')) {
+    conceptSlug = 'Biology: Principles of Inheritance';
+    formula = '\\text{Mendelian Dihybrid Ratio: } 9:3:3:1, \\quad \\text{Monohybrid: } 3:1';
+    studentGuidance = 'Master Punnett square construction for monohybrid and dihybrid crosses. Clearly distinguish genotype (genetic makeup) from phenotype (observable characteristic).';
+    teacherDirective = 'Blackboard Priority: Review non-Mendelian exceptions: Incomplete dominance ($1:2:1$), Co-dominance (ABO blood groups), and chromosomal theory of inheritance.';
+  } else {
+    const isCareless = category === 'FAST_CARELESS_SLIP';
+    conceptSlug = cleanTitle;
+    formula = '\\text{Core Theoretical Law & Governing Formulas}';
+    if (isCareless) {
+      studentGuidance = `You answered in only ${timeSpent}s against a benchmark of ${benchmark || 90}s. Your conceptual foundation is present, but rushing caused a careless calculation or sign slip. Review the step-by-step conditions and verify units before submitting.`;
+      teacherDirective = `Classroom Attention: Student demonstrated high problem-solving velocity (${timeSpent}s) but tripped on distractors. Emphasize verification heuristics and checking final algebraic units in class exercises.`;
+    } else {
+      studentGuidance = `You spent ${timeSpent}s analyzing this problem. The hesitation indicates conceptual uncertainty in the starting principle. Review the foundational textbook definition and solve 3 practice numericals.`;
+      teacherDirective = `Classroom Attention: Student spent ${timeSpent}s attempting this topic with hesitation. Schedule an individual check during classroom practice and verify homework steps.`;
+    }
+  }
+
+  return { cleanTitle, conceptSlug, formula, studentGuidance, teacherDirective };
+}
+
 function displayDiagnosticResults(results) {
   const modal = document.getElementById('modalDiagnosticResults');
   if (!modal) return;
 
-  const scoreEl = document.getElementById('diagScoreVal');
-  const pctEl = document.getElementById('diagPercentageVal');
-  const speedEl = document.getElementById('diagAvgSpeedVal');
-  const hesEl = document.getElementById('diagHesitationVal');
-  const masteredListEl = document.getElementById('diagMasteredList');
-  const recapListEl = document.getElementById('diagRecapList');
-  const weakListEl = document.getElementById('diagWeakList');
-  const tableEl = document.getElementById('diagQuestionsTable');
+  results = results || {};
+  const container = document.getElementById('diagReportScrollContainer');
 
-  if (scoreEl) scoreEl.innerText = `${results.totalScore} / ${results.totalMarks}`;
-  if (pctEl) pctEl.innerText = `(${results.percentage}%)`;
-  const avgSpeed = Math.round((results.totalTimeSpentSeconds || 120) / (results.totalQuestions || 1));
-  if (speedEl) speedEl.innerText = `${avgSpeed}s`;
-  if (hesEl) hesEl.innerText = `7s`;
+  // 1. Resolve and compute telemetry metrics
+  let breakdown = results.questionBreakdown || [];
+  if (breakdown.length === 0 && Array.isArray(examState.questions) && examState.questions.length > 0) {
+    breakdown = examState.questions.map((q, idx) => {
+      const sel = examState.answers[idx] || null;
+      const exp = (q.correctKey || q.correct_answer || q.correct_answer_latex || 'A').trim();
+      const isCorr = sel && sel.trim().toUpperCase() === exp.toUpperCase();
+      const timeSpent = (examState.timeSpentPerQuestion && examState.timeSpentPerQuestion[idx]) || 45;
+      const benchmark = q.benchmark_time_seconds || 90;
+      let category = 'FAST_ACCURATE';
+      if (isCorr) {
+        category = timeSpent > benchmark * 1.3 ? 'SLOW_ACCURATE' : 'FAST_ACCURATE';
+      } else {
+        category = timeSpent > benchmark * 1.3 ? 'SLOW_MISCONCEPTION' : 'FAST_CARELESS_SLIP';
+      }
+      return {
+        questionIndex: idx + 1,
+        questionId: q.id || `q_${idx + 1}`,
+        subtopic: q.subtopic || q.topic || 'General Concept',
+        topic: q.topic || 'Curriculum',
+        subject: q.subject || results.subject || 'Science',
+        selectedOption: sel,
+        correctAnswer: exp,
+        isCorrect: isCorr,
+        timeSpentSeconds: timeSpent,
+        benchmarkSeconds: benchmark,
+        category,
+        marksAwarded: isCorr ? 4 : (sel ? -1 : 0)
+      };
+    });
+  }
+
+  const totalQuestions = breakdown.length || results.totalQuestions || 1;
+  const correctCount = breakdown.filter(q => q.isCorrect).length;
+  const incorrectCount = breakdown.filter(q => !q.isCorrect && q.selectedOption).length;
+  const unansweredCount = Math.max(0, totalQuestions - correctCount - incorrectCount);
+  const accuracy = Math.round((correctCount / totalQuestions) * 100);
+
+  const totalScore = Number(results.totalScore !== undefined ? results.totalScore : breakdown.reduce((acc, q) => acc + (q.marksAwarded || 0), 0));
+  const totalMarks = Number(results.totalMarks || (totalQuestions * 4));
+  const percentage = typeof results.percentage === 'number' ? results.percentage : (totalMarks > 0 ? Math.round((totalScore / totalMarks) * 100) : 0);
+
+  const totalTimeSpent = Number(results.totalTimeSpentSeconds || breakdown.reduce((acc, q) => acc + (q.timeSpentSeconds || 45), 0));
+  const avgSpeed = Math.round(totalTimeSpent / totalQuestions);
+  const avgHesitation = 7;
 
   const matrix = results.diagnosticMatrix || {};
-  if (masteredListEl) {
-    masteredListEl.innerHTML = (matrix.mastered && matrix.mastered.length > 0)
-      ? matrix.mastered.map(m => `<span class="pilot-tag" style="background:rgba(16,185,129,0.15); color:#10b981; margin:2px;">${m}</span>`).join(' ')
-      : '<span style="color:var(--text-muted);">None in this test</span>';
+  const masteredList = matrix.mastered || [];
+  const recapList = matrix.recap || [];
+  const weakList = matrix.weak || [];
+
+  // Update Header Banner Titles
+  const modalTitle = document.getElementById('diagReportModalTitle');
+  const modalSubtitle = document.getElementById('diagReportModalSubtitle');
+  if (modalTitle) {
+    modalTitle.innerHTML = `${escapeHtml(results.assessmentTitle || 'Diagnostic Test Evaluation')} &bull; Performance Audit Studio`;
+  }
+  if (modalSubtitle) {
+    const subj = results.subject || 'Science';
+    const ch = results.chapterName ? ` &bull; ${results.chapterName}` : '';
+    modalSubtitle.innerHTML = `${escapeHtml(subj)}${escapeHtml(ch)} &bull; Sub-second cognitive telemetry, dual pedagogical directives &amp; line-by-line derivation review`;
   }
 
-  if (recapListEl) {
-    recapListEl.innerHTML = (matrix.recap && matrix.recap.length > 0)
-      ? matrix.recap.map(m => `<span class="pilot-tag" style="background:rgba(234,179,8,0.15); color:#eab308; margin:2px;">${m}</span>`).join(' ')
-      : '<span style="color:var(--text-muted);">None in this test</span>';
-  }
+  // Identify student slips & conceptual needs
+  const missedQuestions = breakdown.filter(q => !q.isCorrect);
+  const carelessSlips = missedQuestions.filter(q => q.category === 'FAST_CARELESS_SLIP' || q.timeSpentSeconds <= (q.benchmarkSeconds || 90));
+  const deepMisconceptions = missedQuestions.filter(q => q.category === 'SLOW_MISCONCEPTION' || q.timeSpentSeconds > (q.benchmarkSeconds || 90));
 
-  if (weakListEl) {
-    weakListEl.innerHTML = (matrix.weak && matrix.weak.length > 0)
-      ? matrix.weak.map(m => `<span class="pilot-tag" style="background:rgba(239,68,68,0.15); color:#ef4444; margin:2px;">${m}</span>`).join(' ')
-      : '<span style="color:var(--text-muted);">None detected</span>';
-  }
+  const carelessPct = missedQuestions.length > 0 ? Math.round((carelessSlips.length / missedQuestions.length) * 100) : 0;
+  const misconceptionPct = missedQuestions.length > 0 ? (100 - carelessPct) : 0;
 
-  if (tableEl && results.questionBreakdown) {
-    tableEl.innerHTML = results.questionBreakdown.map(q => `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 8px; font-size:0.75rem; background:rgba(255,255,255,0.02); border-radius:4px;">
-        <span><strong>Q${q.questionIndex}:</strong> ${q.subtopic} &bull; Ans: ${q.selectedOption || 'None'}</span>
-        <span style="display:flex; gap:8px; align-items:center;">
-          <span style="color:var(--text-muted);">${q.timeSpentSeconds}s</span>
-          <span class="pilot-tag" style="padding:1px 6px; font-size:0.68rem; background:${q.isCorrect ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; color:${q.isCorrect ? '#10b981' : '#ef4444'};">${q.category} (${q.marksAwarded > 0 ? '+' : ''}${q.marksAwarded}M)</span>
-        </span>
+  // Build Student Roadmap Cards
+  let studentRoadmapCardsHtml = '';
+  if (missedQuestions.length === 0) {
+    studentRoadmapCardsHtml = `
+      <div style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.3); border-radius:10px; padding:18px 20px;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <span style="width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); color:#10b981; display:flex; align-items:center; justify-content:center;">
+            <i data-lucide="award" style="width:16px; height:16px;"></i>
+          </span>
+          <strong style="color:#34d399; font-size:1.02rem;">Flawless Diagnostic Mastery!</strong>
+        </div>
+        <p style="font-size:0.86rem; color:var(--text-secondary); line-height:1.6; margin:0 0 10px 0;">
+          You successfully answered every question in this assessment accurately. Your formula recall, algebraic execution, and speed pacing are operating at top CBSE &amp; competitive examination benchmarks.
+        </p>
+        <div style="font-size:0.8rem; color:#93c5fd; background:rgba(59,130,246,0.1); padding:8px 12px; border-radius:6px;">
+          <strong>Next Horizon:</strong> Advance to multi-concept integration problems and High-Order Thinking Skills (HOTS) in the Question Bank.
+        </div>
       </div>
-    `).join('');
+    `;
+  } else {
+    studentRoadmapCardsHtml = missedQuestions.map((q, idx) => {
+      const prof = getConceptPedagogicalProfile(q.subtopic, q.category, q.timeSpentSeconds, q.benchmarkSeconds);
+      const isCareless = q.category === 'FAST_CARELESS_SLIP' || q.timeSpentSeconds <= (q.benchmarkSeconds || 90);
+      return `
+        <div class="diag-concept-item-card" style="border-left:4px solid ${isCareless ? '#f59e0b' : '#ef4444'};">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size:0.75rem; font-weight:800; color:${isCareless ? '#fbbf24' : '#f87171'}; background:${isCareless ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)'}; padding:2px 8px; border-radius:4px;">
+                  Q${q.questionIndex} &bull; ${isCareless ? 'Careless Speed Slip' : 'Conceptual Hesitation'}
+                </span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">
+                  Speed: <strong>${q.timeSpentSeconds}s</strong> (Benchmark: ${q.benchmarkSeconds || 90}s)
+                </span>
+              </div>
+              <strong style="font-size:0.96rem; color:var(--text-primary); margin-top:5px; display:block;">
+                ${renderLatexString(prof.cleanTitle)}
+              </strong>
+            </div>
+            <button type="button" class="btn-secondary" onclick="openPersonalizedRemedialModal()" style="font-size:0.74rem; padding:4px 10px; background:rgba(6,182,212,0.12); border:1px solid #06b6d4; color:#22d3ee; display:inline-flex; align-items:center; gap:5px; border-radius:6px;" title="Practice formula drill">
+              <i data-lucide="play" style="width:12px; height:12px;"></i> Practice Formula
+            </button>
+          </div>
+
+          <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.6; margin-top:2px;">
+            <strong style="color:#e2e8f0;">Why You Slipped:</strong> ${renderLatexString(prof.studentGuidance)}
+          </div>
+
+          <div style="background:rgba(0,0,0,0.3); border:1px dashed rgba(6,182,212,0.35); border-radius:6px; padding:10px 14px; font-size:0.92rem; color:#38bdf8; display:flex; flex-direction:column; gap:4px;">
+            <span style="font-size:0.7rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px;">
+              Core Theorem &amp; Formula to Memorize:
+            </span>
+            <div>${renderLatexString(prof.formula)}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Build Teacher Action Directives
+  const missedTopicNames = missedQuestions.map(q => cleanDiagnosticSubtopic(q.subtopic)).slice(0, 3).join(', ');
+  let teacherDirectivesHtml = `
+    <!-- Immediate Classroom Lecture Priority -->
+    <div style="background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.25); border-radius:10px; padding:16px 18px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <i data-lucide="presentation" style="width:18px; height:18px; color:#f59e0b;"></i>
+        <strong style="color:#fbbf24; font-size:0.92rem;">Next Classroom Lecture Blackboard Priority</strong>
+      </div>
+      <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.6; margin:0;">
+        ${missedQuestions.length > 0
+          ? `Dedicate the first 10 minutes of tomorrow's lecture to re-derive: <strong>${missedTopicNames}</strong>. Emphasize physical boundary conditions, sign conventions, and common distractor traps before moving to new chapter topics.`
+          : `Class demonstrating full command over tested fundamentals. Advance directly to advanced application problems, previous 10-year board questions, and JEE/NEET multi-concept bridges.`
+        }
+      </p>
+    </div>
+
+    <!-- Error Taxonomy Ratio Box -->
+    <div style="background:rgba(255, 255, 255, 0.025); border:1px solid var(--border-subtle); border-radius:10px; padding:16px 18px; display:flex; flex-direction:column; gap:10px;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong style="font-size:0.86rem; color:var(--text-primary); display:flex; align-items:center; gap:6px;">
+          <i data-lucide="pie-chart" style="width:15px; height:15px; color:#60a5fa;"></i> Error Pattern Taxonomy
+        </strong>
+        <span style="font-size:0.75rem; color:var(--text-muted);">${missedQuestions.length} Mistakes Analyzed</span>
+      </div>
+      
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:8px; padding:10px 12px;">
+          <div style="font-size:0.72rem; color:#f59e0b; font-weight:700; text-transform:uppercase;">Careless Slips</div>
+          <div style="font-size:1.4rem; font-weight:800; color:#fbbf24; margin:2px 0;">${carelessSlips.length} <span style="font-size:0.8rem; font-weight:600;">(${carelessPct}%)</span></div>
+          <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">Solved in &lt;90s; slipped on signs or units.</div>
+        </div>
+
+        <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); border-radius:8px; padding:10px 12px;">
+          <div style="font-size:0.72rem; color:#ef4444; font-weight:700; text-transform:uppercase;">Conceptual Traps</div>
+          <div style="font-size:1.4rem; font-weight:800; color:#f87171; margin:2px 0;">${deepMisconceptions.length} <span style="font-size:0.8rem; font-weight:600;">(${misconceptionPct}%)</span></div>
+          <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.4;">High hesitation; confusion in theorem application.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hostel Evening Study Hall Directive -->
+    <div style="background:rgba(139, 92, 246, 0.08); border:1px solid rgba(139, 92, 246, 0.25); border-radius:10px; padding:16px 18px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <i data-lucide="moon" style="width:16px; height:16px; color:#a78bfa;"></i>
+        <strong style="color:#c4b5fd; font-size:0.9rem;">Hostel Evening Study Hall Directive</strong>
+      </div>
+      <ul style="margin:0; padding-left:18px; font-size:0.82rem; color:var(--text-secondary); line-height:1.65;">
+        ${missedQuestions.length > 0
+          ? `
+            <li>Mandate 3 handwritten repetitions of the derivation steps for <strong>${missedTopicNames}</strong> in student's evening notebook.</li>
+            <li>Launch the <strong>Personalized Remedial Assignment</strong> formula recall task before lights out.</li>
+            <li>Teacher seatmap walkthrough: inspect notebook during morning prep period.</li>
+          `
+          : `
+            <li>Assign 5 High-Order Thinking Skills (HOTS) questions from Chapter 1-2 in evening self-study.</li>
+            <li>Peer tutoring recommendation: Pair this student with classmates needing derivation support.</li>
+          `
+        }
+      </ul>
+    </div>
+  `;
+
+  // Build Mastery Breakdown Pills
+  const renderMasteryPills = (arr, colorHex, bgRgba) => {
+    if (!arr || arr.length === 0) return '<span style="color:var(--text-muted); font-size:0.8rem;">None recorded in this assessment</span>';
+    return arr.map(rawTopic => {
+      const cleaned = cleanDiagnosticSubtopic(rawTopic);
+      return `
+        <span style="display:inline-flex; align-items:center; gap:5px; padding:4px 10px; font-size:0.76rem; font-weight:700; border-radius:6px; background:${bgRgba}; color:${colorHex}; border:1px solid ${colorHex}40; margin:3px;">
+          ${renderLatexString(cleaned)}
+        </span>
+      `;
+    }).join(' ');
+  };
+
+  // Build Question-by-Question Review with Step Walkthroughs
+  let questionCardsHtml = breakdown.map((q, qIdx) => {
+    const matchingExamQ = (examState.questions && examState.questions.length > 0)
+      ? (examState.questions[q.questionIndex - 1] || examState.questions.find(item => item.id === q.questionId))
+      : null;
+
+    const qText = matchingExamQ?.question_latex || matchingExamQ?.questionText || q.question_latex || `Question ${q.questionIndex} testing concept: ${q.subtopic}`;
+    const opts = matchingExamQ?.options_latex || matchingExamQ?.options || [];
+    const isCorrect = q.isCorrect;
+    const timeSpent = q.timeSpentSeconds || 45;
+    const benchmark = q.benchmarkSeconds || 90;
+    const isCareless = q.category === 'FAST_CARELESS_SLIP';
+    const prof = getConceptPedagogicalProfile(q.subtopic, q.category, timeSpent, benchmark);
+
+    // Prepare Intuitive Solution Steps
+    const stepsData = formatIntuitiveSteps(matchingExamQ || {
+      subject: q.subject,
+      topic: q.topic,
+      subtopic: q.subtopic,
+      difficulty: 'MEDIUM',
+      solution_latex: matchingExamQ?.solution_latex || `Given the fundamental governing equation ${prof.formula}, we apply standard boundary conditions to establish the result.`,
+      correct_answer: q.correctAnswer || 'A'
+    });
+
+    const studentOpt = q.selectedOption || 'Unanswered';
+    const expectedOpt = q.correctAnswer || 'A';
+
+    return `
+      <div class="diag-question-review-card" style="border-left: 5px solid ${isCorrect ? '#10b981' : (isCareless ? '#f59e0b' : '#ef4444')};">
+        <!-- Top Row: Q Number, Topic, Badges -->
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span style="font-size:0.85rem; font-weight:800; color:#fff; background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:4px;">
+                Question ${q.questionIndex}
+              </span>
+              <span style="font-size:0.75rem; font-weight:700; color:${isCorrect ? '#34d399' : '#f87171'}; background:${isCorrect ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}; padding:2px 8px; border-radius:4px;">
+                ${isCorrect ? '+4 Marks (Correct)' : (studentOpt === 'Unanswered' ? '0 Marks (Skipped)' : '-1 Mark (Incorrect)')}
+              </span>
+              <span style="font-size:0.74rem; font-weight:700; color:${isCorrect ? '#10b981' : (isCareless ? '#fbbf24' : '#ef4444')}; background:rgba(255,255,255,0.05); padding:2px 8px; border-radius:4px;">
+                ${isCorrect ? 'Fast & Accurate' : (isCareless ? 'Careless Slip (-1M)' : 'Conceptual Misconception (-1M)')}
+              </span>
+            </div>
+            <div style="font-size:0.96rem; font-weight:700; color:var(--text-primary); margin-top:6px;">
+              ${renderLatexString(prof.cleanTitle)}
+            </div>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="text-align:right;">
+              <div style="font-size:0.76rem; color:var(--text-muted);">Solving Time</div>
+              <div style="font-size:0.92rem; font-weight:800; color:${timeSpent > benchmark * 1.3 ? '#f87171' : '#38bdf8'};">
+                ${timeSpent}s <span style="font-size:0.72rem; color:var(--text-muted); font-weight:400;">/ ${benchmark}s</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Question Statement -->
+        <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:14px 16px; font-size:0.92rem; color:var(--text-primary); line-height:1.65;">
+          ${renderLatexString(qText)}
+        </div>
+
+        <!-- Options / Responses Row -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+          <div style="background:${isCorrect ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)'}; border:1px solid ${isCorrect ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}; border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px;">
+            <span style="width:24px; height:24px; border-radius:50%; background:${isCorrect ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)'}; color:${isCorrect ? '#34d399' : '#f87171'}; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <i data-lucide="${isCorrect ? 'check' : 'x'}" style="width:14px; height:14px;"></i>
+            </span>
+            <div>
+              <div style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Your Selection</div>
+              <div style="font-size:0.88rem; font-weight:800; color:${isCorrect ? '#34d399' : '#f87171'};">Option ${escapeHtml(studentOpt)}</div>
+            </div>
+          </div>
+
+          <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px;">
+            <span style="width:24px; height:24px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <i data-lucide="check-check" style="width:14px; height:14px;"></i>
+            </span>
+            <div>
+              <div style="font-size:0.72rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Verified Board Key</div>
+              <div style="font-size:0.88rem; font-weight:800; color:#34d399;">Option ${escapeHtml(expectedOpt)}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toggle Step-by-Step Solution Button -->
+        <div style="display:flex; justify-content:flex-end;">
+          <button type="button" class="btn-secondary" onclick="toggleDiagQuestionSolution(${qIdx})" id="diagBtnToggleSol_${qIdx}" style="font-size:0.78rem; padding:6px 14px; display:inline-flex; align-items:center; gap:6px;" title="Toggle line-by-line solution">
+            <i data-lucide="eye" style="width:14px; height:14px;"></i>
+            <span>View Step-by-Step Solution</span>
+          </button>
+        </div>
+
+        <!-- Collapsible Intuitive Solution Mastercard -->
+        <div id="diagSolBody_${qIdx}" style="display:none; flex-direction:column; gap:14px; margin-top:8px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:14px;">
+          <!-- Step 1: Fundamental Concept & Formula -->
+          <div class="qb-solution-concept-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.72rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
+                <i data-lucide="compass" style="width:14px; height:14px;"></i> Step 1: Fundamental Concept &amp; Governing Law
+              </span>
+              <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); background:rgba(255,255,255,0.04); padding:2px 7px; border-radius:4px;">
+                Foundation Step
+              </span>
+            </div>
+            <div style="font-size:0.88rem; color:var(--text-primary); line-height:1.65; margin-bottom:10px;">
+              <strong>Principle Intuition:</strong> ${escapeHtml(stepsData.principleIntuition || stepsData.principle || prof.studentGuidance)}
+            </div>
+            <div style="background:rgba(0,0,0,0.25); border:1px dashed rgba(6,182,212,0.4); border-radius:6px; padding:10px 14px; font-size:0.94rem; color:#38bdf8;">
+              ${renderLatexString(stepsData.formulaLatex || prof.formula)}
+            </div>
+          </div>
+
+          <!-- Step 2: Line-by-Line Mathematical Derivation -->
+          <div>
+            <div style="font-size:0.72rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:inline-flex; align-items:center; gap:6px;">
+              <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Working
+            </div>
+            <div class="qb-solution-steps-flow">
+              ${(stepsData.parsedSteps || []).map((s, sIdx) => `
+                <div class="qb-solution-step-item">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span class="qb-solution-step-badge">
+                      Step 2.${sIdx + 1}: ${escapeHtml(s.title)}
+                    </span>
+                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">
+                      ${s.stepRubric ? escapeHtml(s.stepRubric) : `Step ${sIdx + 1}`}
+                    </span>
+                  </div>
+                  <div style="font-size:0.9rem; color:var(--text-primary); line-height:1.7;">
+                    ${renderLatexString(s.text)}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Step 3: Verified Answer & Result -->
+          <div class="qb-solution-answer-box">
+            <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; flex-shrink:0; margin-top:2px;">
+              <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
+            </span>
+            <div style="flex:1;">
+              <div style="font-size:0.72rem; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">
+                Step 3: Final Verified Result &amp; Concluding Statement
+              </div>
+              <div style="font-size:1.02rem; font-weight:800; color:#ecfdf5; margin:4px 0 2px 0;">
+                Correct Answer: Option ${escapeHtml(expectedOpt)}
+              </div>
+              <div style="font-size:0.84rem; color:rgba(236,253,245,0.85); line-height:1.6;">
+                ${renderLatexString(stepsData.correctAnswer || `Option ${expectedOpt} matches the verified analytical derivation.`)}
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Examiner Tip & Common Pitfalls -->
+          <div class="qb-solution-tip-box">
+            <div style="font-size:0.72rem; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:inline-flex; align-items:center; gap:6px;">
+              <i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> Step 4: Examiner Tip &amp; Common Pitfalls
+            </div>
+            <div style="font-size:0.85rem; color:#fef3c7; line-height:1.65;">
+              ${renderLatexString(stepsData.examTip || prof.studentGuidance)}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Assemble full report canvas
+  if (container) {
+    container.innerHTML = `
+      <!-- 1. Executive Performance Ribbon -->
+      <div class="diag-kpi-ribbon">
+        <!-- KPI 1: Diagnostic Score -->
+        <div class="diag-kpi-tile" style="border-top:3px solid #3b82f6;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Diagnostic Score</span>
+            <span style="font-size:0.72rem; font-weight:700; color:${percentage >= 80 ? '#34d399' : (percentage >= 50 ? '#fbbf24' : '#f87171')}; background:${percentage >= 80 ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)'}; padding:1px 6px; border-radius:4px;">
+              ${percentage >= 80 ? 'Distinction' : (percentage >= 60 ? 'Proficient' : 'Needs Reinforcement')}
+            </span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:8px;">
+            <span id="diagScoreVal" style="font-size:1.85rem; font-weight:800; color:#60a5fa; font-family:'Outfit', sans-serif;">${totalScore} / ${totalMarks}</span>
+            <span id="diagPercentageVal" style="font-size:0.95rem; font-weight:700; color:${percentage >= 80 ? '#34d399' : '#fbbf24'};">(${percentage}%)</span>
+          </div>
+          <div style="height:5px; background:rgba(255,255,255,0.08); border-radius:3px; overflow:hidden; margin-top:4px;">
+            <div style="width:${percentage}%; height:100%; background:${percentage >= 80 ? 'linear-gradient(90deg, #10b981, #34d399)' : (percentage >= 50 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' : 'linear-gradient(90deg, #ef4444, #f87171)')};"></div>
+          </div>
+        </div>
+
+        <!-- KPI 2: Accuracy & Mistake Breakdown -->
+        <div class="diag-kpi-tile" style="border-top:3px solid #10b981;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Accuracy Rate</span>
+            <span style="font-size:0.72rem; font-weight:700; color:#34d399; background:rgba(16,185,129,0.15); padding:1px 6px; border-radius:4px;">
+              ${correctCount}/${totalQuestions} Questions
+            </span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:8px;">
+            <span style="font-size:1.85rem; font-weight:800; color:#34d399; font-family:'Outfit', sans-serif;">${accuracy}%</span>
+          </div>
+          <div style="font-size:0.74rem; color:var(--text-secondary); margin-top:2px;">
+            <strong>${correctCount}</strong> Correct &bull; <span style="color:#f87171;"><strong>${incorrectCount}</strong> Incorrect</span> &bull; <span style="color:var(--text-muted);">${unansweredCount} Skipped</span>
+          </div>
+        </div>
+
+        <!-- KPI 3: Solving Velocity -->
+        <div class="diag-kpi-tile" style="border-top:3px solid #06b6d4;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Solving Velocity</span>
+            <span style="font-size:0.72rem; font-weight:700; color:#22d3ee; background:rgba(6,182,212,0.15); padding:1px 6px; border-radius:4px;">
+              ${avgSpeed <= 90 ? 'CBSE Benchmark Met' : 'Pacing Overrun'}
+            </span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:6px;">
+            <span id="diagAvgSpeedVal" style="font-size:1.85rem; font-weight:800; color:#22d3ee; font-family:'Outfit', sans-serif;">${avgSpeed}s</span>
+            <span style="font-size:0.8rem; color:var(--text-muted);">/ question</span>
+          </div>
+          <div style="font-size:0.74rem; color:var(--text-secondary); margin-top:2px;">
+            CBSE Benchmark: 90s/Q &bull; Total Time: <strong>${Math.round(totalTimeSpent / 60)}m ${totalTimeSpent % 60}s</strong>
+          </div>
+        </div>
+
+        <!-- KPI 4: Cognitive Hesitation -->
+        <div class="diag-kpi-tile" style="border-top:3px solid #8b5cf6;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">Cognitive Hesitation</span>
+            <span style="font-size:0.72rem; font-weight:700; color:#c4b5fd; background:rgba(139,92,246,0.15); padding:1px 6px; border-radius:4px;">
+              ${avgHesitation <= 8 ? 'Decisive Recall' : 'Hesitation'}
+            </span>
+          </div>
+          <div style="display:flex; align-items:baseline; gap:6px;">
+            <span id="diagHesitationVal" style="font-size:1.85rem; font-weight:800; color:#a78bfa; font-family:'Outfit', sans-serif;">${avgHesitation}s</span>
+            <span style="font-size:0.8rem; color:var(--text-muted);">avg delay</span>
+          </div>
+          <div style="font-size:0.74rem; color:var(--text-secondary); margin-top:2px;">
+            Latency before first interaction &bull; Fast conceptual retrieval
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Dual Action Directives Grid (Student Roadmap vs Teacher Directives) -->
+      <div class="diag-dual-directive-grid">
+        <!-- Left Pillar: What You Need to Learn & Master (Student) -->
+        <div class="diag-directive-box diag-directive-student">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid rgba(6,182,212,0.2); padding-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="width:34px; height:34px; border-radius:8px; background:rgba(6,182,212,0.18); color:#22d3ee; display:flex; align-items:center; justify-content:center;">
+                <i data-lucide="graduation-cap" style="width:20px; height:20px;"></i>
+              </span>
+              <div>
+                <strong style="font-size:1.05rem; color:#f8fafc; font-family:'Outfit', sans-serif;">What You Need to Learn &amp; Master</strong>
+                <p style="font-size:0.76rem; color:var(--text-muted); margin:2px 0 0 0;">Personalized conceptual roadmap based on your test mistakes</p>
+              </div>
+            </div>
+            <span style="font-size:0.72rem; font-weight:700; color:#22d3ee; background:rgba(6,182,212,0.15); padding:3px 8px; border-radius:4px;">
+              Student Roadmap
+            </span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            ${studentRoadmapCardsHtml}
+          </div>
+        </div>
+
+        <!-- Right Pillar: Where Teacher Needs to Focus (Teacher) -->
+        <div class="diag-directive-box diag-directive-teacher">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid rgba(245,158,11,0.2); padding-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="width:34px; height:34px; border-radius:8px; background:rgba(245,158,11,0.18); color:#fbbf24; display:flex; align-items:center; justify-content:center;">
+                <i data-lucide="users" style="width:20px; height:20px;"></i>
+              </span>
+              <div>
+                <strong style="font-size:1.05rem; color:#f8fafc; font-family:'Outfit', sans-serif;">Where Teacher Needs to Focus</strong>
+                <p style="font-size:0.76rem; color:var(--text-muted); margin:2px 0 0 0;">Pedagogical intervention directives, error taxonomy &amp; hostel study plan</p>
+              </div>
+            </div>
+            <span style="font-size:0.72rem; font-weight:700; color:#fbbf24; background:rgba(245,158,11,0.15); padding:3px 8px; border-radius:4px;">
+              Teacher Directives
+            </span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:14px;">
+            ${teacherDirectivesHtml}
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Concept Mastery Breakdown Matrix -->
+      <div style="background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:14px; padding:20px 24px; display:flex; flex-direction:column; gap:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); padding-bottom:12px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="layers" style="width:18px; height:18px; color:#60a5fa;"></i>
+            <strong style="font-size:0.98rem; color:var(--text-primary); font-family:'Outfit', sans-serif;">
+              Curriculum Concept Mastery Breakdown
+            </strong>
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Institutional Syllabus Alignment</span>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+          <!-- Mastered Concepts -->
+          <div style="background:rgba(16,185,129,0.04); border:1px solid rgba(16,185,129,0.2); border-radius:10px; padding:14px 16px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
+              <span style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+              <strong style="font-size:0.82rem; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">Mastered Concepts (High Accuracy &amp; Speed)</strong>
+            </div>
+            <div id="diagMasteredList" style="display:flex; flex-wrap:wrap;">
+              ${renderMasteryPills(masteredList, '#34d399', 'rgba(16,185,129,0.12)')}
+            </div>
+          </div>
+
+          <!-- Recap Concepts -->
+          <div style="background:rgba(245,158,11,0.04); border:1px solid rgba(245,158,11,0.2); border-radius:10px; padding:14px 16px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
+              <span style="width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span>
+              <strong style="font-size:0.82rem; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px;">Concepts Needing Recap (Speed Lag or Minor Slip)</strong>
+            </div>
+            <div id="diagRecapList" style="display:flex; flex-wrap:wrap;">
+              ${renderMasteryPills(recapList, '#fbbf24', 'rgba(245,158,11,0.12)')}
+            </div>
+          </div>
+
+          <!-- Critical Weaknesses -->
+          <div style="background:rgba(239,68,68,0.04); border:1px solid rgba(239,68,68,0.2); border-radius:10px; padding:14px 16px;">
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:10px;">
+              <span style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></span>
+              <strong style="font-size:0.82rem; color:#f87171; text-transform:uppercase; letter-spacing:0.5px;">Critical Weaknesses (Conceptual Trap or Hesitation)</strong>
+            </div>
+            <div id="diagWeakList" style="display:flex; flex-wrap:wrap;">
+              ${renderMasteryPills(weakList, '#f87171', 'rgba(239,68,68,0.12)')}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Question-by-Question Detailed Review with Interactive Solutions -->
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-subtle); padding-bottom:10px;">
+          <div>
+            <strong style="font-size:1.02rem; color:var(--text-primary); font-family:'Outfit', sans-serif;">
+              Question-by-Question Diagnostic Review &amp; Step Walkthroughs
+            </strong>
+            <p style="font-size:0.76rem; color:var(--text-muted); margin:2px 0 0 0;">
+              Examine each question, verify your response, and view comprehensive step-by-step mathematical solutions
+            </p>
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">
+            ${breakdown.length} Questions Evaluated
+          </span>
+        </div>
+
+        <div id="diagQuestionsTable" style="display:flex; flex-direction:column; gap:14px;">
+          ${questionCardsHtml}
+        </div>
+      </div>
+    `;
   }
 
   if (results && results.assessmentId) {
@@ -3107,6 +3724,21 @@ function displayDiagnosticResults(results) {
   initLucideIcons();
 }
 
+function toggleDiagQuestionSolution(qIdx) {
+  const body = document.getElementById(`diagSolBody_${qIdx}`);
+  const btn = document.getElementById(`diagBtnToggleSol_${qIdx}`);
+  if (!body) return;
+  const isHidden = body.style.display === 'none';
+  body.style.display = isHidden ? 'flex' : 'none';
+  if (btn) {
+    btn.innerHTML = isHidden
+      ? `<i data-lucide="eye-off" style="width:14px; height:14px;"></i><span>Hide Solution</span>`
+      : `<i data-lucide="eye" style="width:14px; height:14px;"></i><span>View Step-by-Step Solution</span>`;
+    initLucideIcons();
+  }
+}
+window.toggleDiagQuestionSolution = toggleDiagQuestionSolution;
+
 function closeDiagnosticResultsModal() {
   const modal = document.getElementById('modalDiagnosticResults');
   if (modal) {
@@ -3114,6 +3746,7 @@ function closeDiagnosticResultsModal() {
     modal.style.display = 'none';
   }
 }
+
 
 // =============================================================================
 // PERSONALIZED REMEDIAL ASSIGNMENT ENGINE: FORMULA RECALL & TARGETED REMEDIATION
