@@ -7641,11 +7641,25 @@ function filterQuestionBankCards() {
     });
   }
 
-  if (statsLabel) {
-    statsLabel.innerHTML = `Showing <strong>${filtered.length}</strong> of <strong>${state.questionBankData.length}</strong> authentic questions in bank`;
-  }
+  state.qbFilteredQuestions = filtered;
+  state.qbCurrentPage = 0;
+  state.qbSolutionRevealed = false;
 
-  if (filtered.length === 0) {
+  renderQbCurrentPage();
+}
+
+function renderQbCurrentPage() {
+  const container = document.getElementById('containerQbQuestions');
+  const statsLabel = document.getElementById('qbCountLabel');
+  if (!container) return;
+
+  const filtered = state.qbFilteredQuestions || [];
+  const total = filtered.length;
+
+  if (total === 0) {
+    if (statsLabel) {
+      statsLabel.innerHTML = `Showing <strong>0</strong> of <strong>${state.questionBankData?.length || 0}</strong> authentic questions in bank`;
+    }
     container.innerHTML = `
       <div style="text-align:center; padding: 3rem 1.5rem; background:var(--bg-card); border-radius:var(--radius-md); border:1px dashed var(--border-subtle); color:var(--text-muted);">
         <i data-lucide="search-x" style="width:32px; height:32px; margin:0 auto 10px; display:block; color:var(--text-muted);"></i>
@@ -7660,75 +7674,278 @@ function filterQuestionBankCards() {
     return;
   }
 
-  const displayQuestions = filtered.slice(0, 40);
+  // Clamp current question index
+  if (state.qbCurrentPage === undefined || state.qbCurrentPage < 0) state.qbCurrentPage = 0;
+  if (state.qbCurrentPage >= total) state.qbCurrentPage = total - 1;
+  const currentIdx = state.qbCurrentPage;
 
-  container.innerHTML = displayQuestions.map((q, idx) => {
-    const qId = q.id || `q_${idx}`;
-    const chNum = q.chapter_number || '';
-    const chName = q.chapter_name || q.chapter || 'Chapter';
-    const source = q.question_source || q.pyq_appearance || (q.ncert_mapping ? q.ncert_mapping.pyq_tag : 'CBSE Board Question');
-    const diff = (q.difficulty || 'MEDIUM').toUpperCase();
-    const marks = q.marks || (diff === 'EASY' ? 1 : (diff === 'HARD' ? 5 : 3));
-    const timeSec = q.benchmark_time_seconds || 90;
-    const steps = formatIntuitiveSteps(q);
+  if (statsLabel) {
+    statsLabel.innerHTML = `Showing Question <strong>${currentIdx + 1}</strong> of <strong>${total}</strong> in selected scope &bull; 1 Question Per Page Mode`;
+  }
 
-    const isPyq = q.question_source === 'CBSE_PYQ' || source.toUpperCase().includes('BOARD') || source.toUpperCase().includes('PYQ');
-    const isExample = q.question_source === 'NCERT_TEXTBOOK' || source.toUpperCase().includes('EXAMPLE') || source.toUpperCase().includes('NCERT');
-    const sourceBadgeStyle = isPyq
-      ? 'background:rgba(245, 158, 11, 0.12); color:#f59e0b; border:1px solid rgba(245, 158, 11, 0.35);'
-      : isExample
-      ? 'background:rgba(16, 185, 129, 0.12); color:#10b981; border:1px solid rgba(16, 185, 129, 0.35);'
-      : 'background:rgba(14, 165, 233, 0.12); color:#0ea5e9; border:1px solid rgba(14, 165, 233, 0.35);';
+  const q = filtered[currentIdx];
+  const qId = q.id || `q_${currentIdx}`;
+  const chNum = q.chapter_number || '';
+  const chName = q.chapter_name || q.chapter || 'Chapter';
+  const source = q.question_source || q.pyq_appearance || (q.ncert_mapping ? q.ncert_mapping.pyq_tag : 'CBSE Board Question');
+  const diff = (q.difficulty || 'MEDIUM').toUpperCase();
+  const marks = q.marks || (diff === 'EASY' ? 1 : (diff === 'HARD' ? 5 : 3));
+  const timeSec = q.benchmark_time_seconds || 90;
+  const steps = formatIntuitiveSteps(q);
 
-    const diffBadgeStyle = diff === 'HARD'
-      ? 'background:rgba(239, 68, 68, 0.12); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3);'
-      : diff === 'EASY'
-      ? 'background:rgba(16, 185, 129, 0.12); color:#10b981; border:1px solid rgba(16, 185, 129, 0.3);'
-      : 'background:rgba(245, 158, 11, 0.12); color:#f59e0b; border:1px solid rgba(245, 158, 11, 0.3);';
+  const isPyq = q.question_source === 'CBSE_PYQ' || source.toUpperCase().includes('BOARD') || source.toUpperCase().includes('PYQ');
+  const isExample = q.question_source === 'NCERT_TEXTBOOK' || source.toUpperCase().includes('EXAMPLE') || source.toUpperCase().includes('NCERT');
+  const sourceBadgeStyle = isPyq
+    ? 'background:rgba(245, 158, 11, 0.12); color:#f59e0b; border:1px solid rgba(245, 158, 11, 0.35);'
+    : isExample
+    ? 'background:rgba(16, 185, 129, 0.12); color:#10b981; border:1px solid rgba(16, 185, 129, 0.35);'
+    : 'background:rgba(14, 165, 233, 0.12); color:#0ea5e9; border:1px solid rgba(14, 165, 233, 0.35);';
 
-    const options = q.options_latex || [];
+  const diffBadgeStyle = diff === 'HARD'
+    ? 'background:rgba(239, 68, 68, 0.12); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.3);'
+    : diff === 'EASY'
+    ? 'background:rgba(16, 185, 129, 0.12); color:#10b981; border:1px solid rgba(16, 185, 129, 0.3);'
+    : 'background:rgba(245, 158, 11, 0.12); color:#f59e0b; border:1px solid rgba(245, 158, 11, 0.3);';
 
-    return `
-      <div class="glass-card" style="padding:16px 18px; margin-bottom:12px; border:1px solid var(--border-subtle); transition:all 0.2s ease;" id="qbCard_${qId}">
-        <!-- CARD TOP META BAR -->
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:10px;">
-          <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
-            <span style="font-size:0.72rem; font-weight:800; color:var(--text-muted); background:var(--bg-secondary); padding:2px 7px; border-radius:4px; border:1px solid var(--border-subtle);">
-              #${idx + 1} &bull; ${qId}
+  const options = q.options_latex || [];
+  const percentComplete = Math.round(((currentIdx + 1) / total) * 100);
+
+  // Build Quick Question Jump Pills (window of nearby questions)
+  let pillStart = Math.max(0, currentIdx - 4);
+  let pillEnd = Math.min(total, pillStart + 9);
+  if (pillEnd - pillStart < 9) {
+    pillStart = Math.max(0, pillEnd - 9);
+  }
+  let pillsHtml = '';
+  for (let i = pillStart; i < pillEnd; i++) {
+    pillsHtml += `
+      <button type="button" class="qb-jump-pill ${i === currentIdx ? 'active' : ''}" onclick="setQbQuestionIndex(${i})" title="Jump directly to Question ${i + 1}">
+        ${i + 1}
+      </button>
+    `;
+  }
+
+  // Jump Dropdown options
+  const jumpOptionsHtml = filtered.map((item, idx) => {
+    const itemCh = item.chapter_number ? `Ch ${item.chapter_number}` : '';
+    const itemDiff = (item.difficulty || '').toUpperCase();
+    return `<option value="${idx}" ${idx === currentIdx ? 'selected' : ''}>Q${idx + 1} ${itemCh ? `(${itemCh})` : ''} - ${itemDiff}</option>`;
+  }).join('');
+
+  // Top/Bottom Nav bar generator
+  const renderNavBar = (isBottom = false) => `
+    <div class="qb-nav-banner" ${isBottom ? 'style="margin-top:16px;"' : 'style="margin-bottom:14px;"'}>
+      <button type="button" class="qb-nav-btn" onclick="prevQbQuestion()" ${currentIdx === 0 ? 'disabled' : ''} title="Previous Question (Keyboard: Left Arrow)">
+        <i data-lucide="chevron-left" style="width:16px; height:16px;"></i>
+        <span>Previous Question</span>
+      </button>
+
+      <div class="qb-nav-center">
+        <div class="qb-nav-meta-line">
+          <span class="qb-page-badge">Question ${currentIdx + 1} of ${total}</span>
+          <select class="qb-jump-select" onchange="setQbQuestionIndex(Number(this.value))" title="Quick Jump to Question">
+            ${jumpOptionsHtml}
+          </select>
+        </div>
+        <div class="qb-nav-progress-track">
+          <div class="qb-nav-progress-fill" style="width:${percentComplete}%;"></div>
+        </div>
+        <div class="qb-jump-pill-strip">
+          ${pillsHtml}
+        </div>
+      </div>
+
+      <button type="button" class="qb-nav-btn btn-nav-primary" onclick="nextQbQuestion()" ${currentIdx === total - 1 ? 'disabled' : ''} title="Next Question (Keyboard: Right Arrow)">
+        <span>Next Question</span>
+        <i data-lucide="chevron-right" style="width:16px; height:16px;"></i>
+      </button>
+    </div>
+  `;
+
+  // Solution Section: Prompt Card (when hidden) or Full Intuitive Mastercard (when revealed)
+  let solutionSectionHtml = '';
+  if (!state.qbSolutionRevealed) {
+    solutionSectionHtml = `
+      <div class="qb-solution-prompt-card" id="qbSolutionPrompt_${qId}">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <span class="qb-solution-lock-badge">
+            <i data-lucide="book-open" style="width:20px; height:20px;"></i>
+          </span>
+          <div>
+            <div style="font-weight:800; font-size:0.96rem; color:#f8fafc; font-family:'Outfit', sans-serif;">
+              Step-by-Step Solution &amp; Pedagogical Walkthrough
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+              Attempt this question on your own first! When you are ready, click below to reveal the formula, line-by-line derivation, verified answer, and CBSE marking rubric.
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-primary" onclick="toggleCardSolutionView('${qId}')" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); padding:9px 20px; font-weight:700; font-size:0.86rem; display:inline-flex; align-items:center; gap:8px; border-radius:8px; box-shadow:0 4px 14px rgba(37,99,235,0.35); cursor:pointer;">
+          <i data-lucide="eye" style="width:16px; height:16px;"></i> View Step-by-Step Solution
+        </button>
+      </div>
+    `;
+  } else {
+    solutionSectionHtml = `
+      <div class="qb-solution-mastercard" id="solutionCard_${qId}">
+        <!-- CARD HEADER -->
+        <div class="qb-solution-card-header">
+          <div class="qb-solution-card-title">
+            <span class="qb-solution-card-badge">
+              <i data-lucide="book-open-check" style="width:16px; height:16px;"></i>
             </span>
-            <span style="font-size:0.75rem; font-weight:700; color:var(--accent-blue); background:rgba(37,99,235,0.1); padding:2px 8px; border-radius:4px;">
+            <div>
+              <div style="font-size:0.94rem; font-weight:800; color:#93c5fd; font-family:'Outfit', sans-serif;">
+                Step-by-Step Solution &amp; Pedagogical Walkthrough
+              </div>
+              <div style="font-size:0.73rem; color:var(--text-muted); margin-top:2px;">
+                Complete conceptual explanation &bull; Board marking scheme &bull; Examiner tips
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:0.75rem; font-weight:700; color:#10b981; background:rgba(16,185,129,0.12); padding:3px 10px; border-radius:4px; border:1px solid rgba(16,185,129,0.3);">
+              Answer: ${renderLatexString(steps.correctAnswer)}
+            </span>
+            <button type="button" class="btn-secondary" onclick="toggleCardSolutionView('${qId}')" id="btnToggleSol_${qId}" style="font-size:0.74rem; padding:4px 11px; display:inline-flex; align-items:center; gap:6px;" title="Hide Solution">
+              <i data-lucide="eye-off" style="width:13px; height:13px;"></i>
+              <span>Hide Solution</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SOLUTION CONTENT BODY -->
+        <div id="solBody_${qId}" style="display:flex; flex-direction:column; gap:16px;">
+          <!-- STEP 1: FUNDAMENTAL PRINCIPLE & FORMULA -->
+          <div class="qb-solution-concept-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.72rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
+                <i data-lucide="compass" style="width:14px; height:14px;"></i> Step 1: Fundamental Concept &amp; Governing Formula
+              </span>
+              <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); background:rgba(255,255,255,0.04); padding:2px 7px; border-radius:4px;">
+                Foundation Step
+              </span>
+            </div>
+            <div style="font-size:0.88rem; color:var(--text-primary); line-height:1.65; margin-bottom:10px;">
+              <strong>Intuition:</strong> ${escapeHtml(steps.principleIntuition || steps.principle)}
+            </div>
+            <div style="background:rgba(0,0,0,0.25); border:1px dashed rgba(6,182,212,0.4); border-radius:6px; padding:10px 14px; font-size:0.94rem; color:#38bdf8;">
+              ${renderLatexString(steps.formulaLatex)}
+            </div>
+          </div>
+
+          <!-- STEP 2: LINE-BY-LINE MATHEMATICAL DERIVATION (WITH CLEAR GAPS) -->
+          <div>
+            <div style="font-size:0.72rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:inline-flex; align-items:center; gap:6px;">
+              <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Working (${steps.parsedSteps.length} Key Steps)
+            </div>
+            <div class="qb-solution-steps-flow">
+              ${steps.parsedSteps.map((s, sIdx) => `
+                <div class="qb-solution-step-item">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <span class="qb-solution-step-badge">
+                      Step 2.${sIdx + 1}: ${escapeHtml(s.title)}
+                    </span>
+                    <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">
+                      ${s.stepRubric ? escapeHtml(s.stepRubric) : `Step ${sIdx + 1}`}
+                    </span>
+                  </div>
+                  <div style="font-size:0.9rem; color:var(--text-primary); line-height:1.7;">
+                    ${renderLatexString(s.text)}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- STEP 3: FINAL VERIFIED RESULT -->
+          <div class="qb-solution-answer-box">
+            <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; flex-shrink:0; margin-top:2px;">
+              <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
+            </span>
+            <div style="flex:1;">
+              <div style="font-size:0.72rem; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">
+                Step 3: Final Verified Result &amp; Concluding Statement
+              </div>
+              <div style="font-size:1.02rem; font-weight:800; color:#ecfdf5; margin:4px 0 2px 0;">
+                ${renderLatexString(steps.correctAnswer)}
+              </div>
+              <div style="font-size:0.82rem; color:#a7f3d0; line-height:1.5;">
+                ${escapeHtml(steps.answerInterpretation || 'This result completes the derivation according to the prescribed NCERT and Board criteria.')}
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 4: BOARD MARKING SCHEME & EXAMINER ADVICE -->
+          <div class="qb-solution-exam-tip-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+              <span style="font-size:0.72rem; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
+                <i data-lucide="award" style="width:14px; height:14px;"></i> Step 4: Official CBSE / HP Board Step Rubric (${marks} Mark${marks > 1 ? 's' : ''})
+              </span>
+              <span style="font-size:0.72rem; color:#f59e0b; font-weight:700;">Examiner Marking Guide</span>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem; color:var(--text-secondary); margin-bottom:10px;">
+              ${steps.rubric.map(r => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0; border-bottom:1px dashed rgba(255,255,255,0.06);">
+                  <span>${escapeHtml(r.step)}</span>
+                  <strong style="color:#fbbf24; margin-left:8px;">${r.marks}</strong>
+                </div>
+              `).join('')}
+            </div>
+            <div style="display:flex; align-items:flex-start; gap:8px; font-size:0.82rem; color:#fde68a; line-height:1.55; padding-top:4px;">
+              <i data-lucide="alert-triangle" style="width:14px; height:14px; color:#fbbf24; flex-shrink:0; margin-top:2px;"></i>
+              <span><strong>Examiner Advice:</strong> ${escapeHtml(steps.examTip || 'Follow step-by-step arithmetic without skipping formula statements to secure maximum board credit.')}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="qb-single-view-container">
+      ${renderNavBar(false)}
+
+      <div class="glass-card qb-question-focus-card" id="qbCard_${qId}">
+        <!-- CARD TOP META BAR -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+            <span style="font-size:0.75rem; font-weight:800; color:var(--text-muted); background:var(--bg-secondary); padding:3px 9px; border-radius:6px; border:1px solid var(--border-subtle);">
+              #Q${currentIdx + 1} of ${total} &bull; ${qId}
+            </span>
+            <span style="font-size:0.76rem; font-weight:700; color:var(--accent-blue); background:rgba(37,99,235,0.12); padding:3px 10px; border-radius:6px; border:1px solid rgba(37,99,235,0.25);">
               Ch ${chNum}: ${escapeHtml(chName)}
             </span>
-            <span style="font-size:0.72rem; font-weight:700; padding:2px 8px; border-radius:4px; ${sourceBadgeStyle}">
+            <span style="font-size:0.74rem; font-weight:700; padding:3px 10px; border-radius:6px; ${sourceBadgeStyle}">
               ${escapeHtml(source)}
             </span>
-            <span style="font-size:0.7rem; font-weight:700; padding:2px 7px; border-radius:4px; ${diffBadgeStyle}">
+            <span style="font-size:0.72rem; font-weight:700; padding:3px 8px; border-radius:6px; ${diffBadgeStyle}">
               ${diff}
             </span>
           </div>
-          <div style="display:flex; align-items:center; gap:8px; font-size:0.74rem; color:var(--text-muted);">
-            <span><i data-lucide="award" style="width:12px; height:12px; vertical-align:middle;"></i> ${marks} Mark${marks > 1 ? 's' : ''}</span>
+          <div style="display:flex; align-items:center; gap:10px; font-size:0.78rem; color:var(--text-muted);">
+            <span><i data-lucide="award" style="width:13px; height:13px; vertical-align:middle;"></i> ${marks} Mark${marks > 1 ? 's' : ''}</span>
             <span>&bull;</span>
-            <span><i data-lucide="clock" style="width:12px; height:12px; vertical-align:middle;"></i> ${timeSec}s</span>
+            <span><i data-lucide="clock" style="width:13px; height:13px; vertical-align:middle;"></i> Benchmark: ${timeSec}s</span>
           </div>
         </div>
 
         <!-- QUESTION STATEMENT -->
-        <div class="qb-question-statement" style="font-size:0.94rem; color:var(--text-primary); line-height:1.6; margin-bottom:12px; font-weight:500;">
+        <div class="qb-question-statement" style="font-size:1.06rem; color:var(--text-primary); line-height:1.75; margin:16px 0 18px 0; font-weight:500;">
           ${renderLatexString(q.question_latex || q.questionText || '')}
         </div>
 
         <!-- OPTIONS GRID (IF MCQ) -->
         ${options.length > 0 ? `
-          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:8px; margin-bottom:12px;">
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:10px; margin-bottom:16px;">
             ${options.map((opt, oIdx) => {
               const letter = String.fromCharCode(65 + oIdx);
               const optText = typeof opt === 'object' ? (opt.latex || opt.text || '') : String(opt);
               const isCorrect = (typeof opt === 'object' && opt.is_correct) || (q.correct_answer_latex === letter) || (q.correct_answer === letter);
 
               return `
-                <div class="qb-option-tile" data-correct="${isCorrect ? 'true' : 'false'}" id="opt_${qId}_${oIdx}" style="padding:8px 12px; background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:6px; font-size:0.86rem; display:flex; align-items:baseline; gap:8px;">
-                  <strong style="font-size:0.8rem; color:var(--accent-blue);">${letter}.</strong>
+                <div class="qb-option-tile" data-correct="${isCorrect ? 'true' : 'false'}" id="opt_${qId}_${oIdx}" style="padding:10px 14px; background:var(--bg-secondary); border:1px solid var(--border-subtle); border-radius:8px; font-size:0.9rem; display:flex; align-items:baseline; gap:10px; transition:all 0.2s ease;">
+                  <strong style="font-size:0.84rem; color:var(--accent-blue);">${letter}.</strong>
                   <span style="flex:1;">${renderLatexString(optText)}</span>
                 </div>
               `;
@@ -7736,151 +7953,88 @@ function filterQuestionBankCards() {
           </div>
         ` : ''}
 
-        <!-- INTUITIVE STEP-BY-STEP SOLUTION CARD -->
-        <div class="qb-solution-mastercard" id="solutionCard_${qId}">
-          <!-- CARD HEADER -->
-          <div class="qb-solution-card-header">
-            <div class="qb-solution-card-title">
-              <span class="qb-solution-card-badge">
-                <i data-lucide="book-open-check" style="width:16px; height:16px;"></i>
-              </span>
-              <div>
-                <div style="font-size:0.92rem; font-weight:800; color:#93c5fd; font-family:'Outfit', sans-serif;">
-                  Step-by-Step Solution &amp; Pedagogical Walkthrough
-                </div>
-                <div style="font-size:0.73rem; color:var(--text-muted); margin-top:2px;">
-                  Complete conceptual explanation &bull; Board marking scheme &bull; Examiner tips
-                </div>
-              </div>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:0.75rem; font-weight:700; color:#10b981; background:rgba(16,185,129,0.12); padding:3px 10px; border-radius:4px; border:1px solid rgba(16,185,129,0.3);">
-                Answer: ${renderLatexString(steps.correctAnswer)}
-              </span>
-              <button type="button" class="btn-secondary" onclick="toggleCardSolutionView('${qId}')" id="btnToggleSol_${qId}" style="font-size:0.72rem; padding:4px 9px;" title="Collapse or Expand Solution">
-                <i data-lucide="chevron-up" id="iconToggleSol_${qId}" style="width:13px; height:13px;"></i>
-              </button>
-            </div>
-          </div>
+        <!-- INTUITIVE STEP-BY-STEP SOLUTION CARD OR PROMPT -->
+        ${solutionSectionHtml}
 
-          <!-- SOLUTION CONTENT BODY -->
-          <div id="solBody_${qId}" style="display:flex; flex-direction:column; gap:16px;">
-            <!-- STEP 1: FUNDAMENTAL PRINCIPLE & FORMULA -->
-            <div class="qb-solution-concept-box">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span style="font-size:0.72rem; font-weight:800; color:#22d3ee; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
-                  <i data-lucide="compass" style="width:14px; height:14px;"></i> Step 1: Fundamental Concept &amp; Governing Formula
-                </span>
-                <span style="font-size:0.7rem; font-weight:700; color:var(--text-muted); background:rgba(255,255,255,0.04); padding:2px 7px; border-radius:4px;">
-                  Foundation Step
-                </span>
-              </div>
-              <div style="font-size:0.88rem; color:var(--text-primary); line-height:1.65; margin-bottom:10px;">
-                <strong>Intuition:</strong> ${escapeHtml(steps.principleIntuition || steps.principle)}
-              </div>
-              <div style="background:rgba(0,0,0,0.25); border:1px dashed rgba(6,182,212,0.4); border-radius:6px; padding:10px 14px; font-size:0.94rem; color:#38bdf8;">
-                ${renderLatexString(steps.formulaLatex)}
-              </div>
-            </div>
-
-            <!-- STEP 2: LINE-BY-LINE MATHEMATICAL DERIVATION (WITH CLEAR GAPS) -->
-            <div>
-              <div style="font-size:0.72rem; font-weight:800; color:#60a5fa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; display:inline-flex; align-items:center; gap:6px;">
-                <i data-lucide="list-ordered" style="width:14px; height:14px;"></i> Step 2: Line-by-Line Mathematical Working (${steps.parsedSteps.length} Key Steps)
-              </div>
-              <div class="qb-solution-steps-flow">
-                ${steps.parsedSteps.map((s, sIdx) => `
-                  <div class="qb-solution-step-item">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                      <span class="qb-solution-step-badge">
-                        Step 2.${sIdx + 1}: ${escapeHtml(s.title)}
-                      </span>
-                      <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">
-                        ${s.stepRubric ? escapeHtml(s.stepRubric) : `Step ${sIdx + 1}`}
-                      </span>
-                    </div>
-                    <div style="font-size:0.9rem; color:var(--text-primary); line-height:1.7;">
-                      ${renderLatexString(s.text)}
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-
-            <!-- STEP 3: FINAL VERIFIED RESULT -->
-            <div class="qb-solution-answer-box">
-              <span style="display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:50%; background:rgba(16,185,129,0.2); color:#34d399; flex-shrink:0; margin-top:2px;">
-                <i data-lucide="check-circle" style="width:16px; height:16px;"></i>
-              </span>
-              <div style="flex:1;">
-                <div style="font-size:0.72rem; font-weight:800; color:#34d399; text-transform:uppercase; letter-spacing:0.5px;">
-                  Step 3: Final Verified Result &amp; Concluding Statement
-                </div>
-                <div style="font-size:1.02rem; font-weight:800; color:#ecfdf5; margin:4px 0 2px 0;">
-                  ${renderLatexString(steps.correctAnswer)}
-                </div>
-                <div style="font-size:0.82rem; color:#a7f3d0; line-height:1.5;">
-                  ${escapeHtml(steps.answerInterpretation || 'This result completes the derivation according to the prescribed NCERT and Board criteria.')}
-                </div>
-              </div>
-            </div>
-
-            <!-- STEP 4: BOARD MARKING SCHEME & EXAMINER ADVICE -->
-            <div class="qb-solution-exam-tip-box">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <span style="font-size:0.72rem; font-weight:800; color:#fbbf24; text-transform:uppercase; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:6px;">
-                  <i data-lucide="award" style="width:14px; height:14px;"></i> Step 4: Official CBSE / HP Board Step Rubric (${marks} Mark${marks > 1 ? 's' : ''})
-                </span>
-                <span style="font-size:0.72rem; color:#f59e0b; font-weight:700;">Examiner Marking Guide</span>
-              </div>
-              <div style="display:flex; flex-direction:column; gap:6px; font-size:0.82rem; color:var(--text-secondary); margin-bottom:10px;">
-                ${steps.rubric.map(r => `
-                  <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0; border-bottom:1px dashed rgba(255,255,255,0.06);">
-                    <span>${escapeHtml(r.step)}</span>
-                    <strong style="color:#fbbf24; margin-left:8px;">${r.marks}</strong>
-                  </div>
-                `).join('')}
-              </div>
-              <div style="display:flex; align-items:flex-start; gap:8px; font-size:0.82rem; color:#fde68a; line-height:1.55; padding-top:4px;">
-                <i data-lucide="alert-triangle" style="width:14px; height:14px; color:#fbbf24; flex-shrink:0; margin-top:2px;"></i>
-                <span><strong>Examiner Advice:</strong> ${escapeHtml(steps.examTip || 'Follow step-by-step arithmetic without skipping formula statements to secure maximum board credit.')}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ACTIONS ROW WITH STEP-BY-STEP SOLUTION STUDIO TRIGGER -->
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-top:12px; padding-top:10px; border-top:1px solid var(--border-subtle);">
+        <!-- ACTIONS ROW -->
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-top:16px; padding-top:14px; border-top:1px solid var(--border-subtle);">
           <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <button type="button" class="btn-primary" onclick="openStepSolutionStudio('${qId}')" style="font-size:0.78rem; padding:6px 14px; background:linear-gradient(135deg, #1e40af, #2563eb); font-weight:700; display:inline-flex; align-items:center; gap:6px;" title="Prepare comprehensive step-by-step solution, marking rubric, and classroom notes">
-              <i data-lucide="sparkles" style="width:13px; height:13px;"></i> Prepare Step-by-Step Solution
+            <button type="button" class="btn-primary" onclick="openStepSolutionStudio('${qId}')" style="font-size:0.78rem; padding:6px 14px; background:linear-gradient(135deg, #1e40af, #2563eb); font-weight:700; display:inline-flex; align-items:center; gap:6px;" title="Open comprehensive step-by-step solution studio modal">
+              <i data-lucide="sparkles" style="width:13px; height:13px;"></i> Open in Studio Modal
             </button>
-            <button type="button" class="btn-secondary" onclick="copyQbLatexToClipboard('${qId}')" style="font-size:0.75rem; padding:5px 10px;" title="Copy clean LaTeX text to clipboard">
+            <button type="button" class="btn-secondary" onclick="copyQbLatexToClipboard('${qId}')" style="font-size:0.75rem; padding:6px 12px;" title="Copy clean LaTeX text to clipboard">
               <i data-lucide="copy" style="width:12px; height:12px;"></i> Copy LaTeX
             </button>
             ${options.length > 0 ? `
-              <button type="button" class="btn-secondary" onclick="toggleQbCardAnswer('${qId}')" style="font-size:0.75rem; padding:5px 10px;" title="Highlight the correct option">
+              <button type="button" class="btn-secondary" onclick="toggleQbCardAnswer('${qId}')" style="font-size:0.75rem; padding:6px 12px;" title="Highlight the correct option">
                 <i data-lucide="eye" style="width:12px; height:12px;"></i> Show Answer
               </button>
             ` : ''}
           </div>
-          <button type="button" class="btn-primary" onclick="assignQbQuestionToClass('${qId}')" style="font-size:0.76rem; padding:6px 14px; background:linear-gradient(135deg, #10b981, #059669); font-weight:700;">
+          <button type="button" class="btn-primary" onclick="assignQbQuestionToClass('${qId}')" style="font-size:0.76rem; padding:6px 16px; background:linear-gradient(135deg, #10b981, #059669); font-weight:700;">
             <i data-lucide="zap" style="width:13px; height:13px;"></i> Create Flash Quiz
           </button>
         </div>
       </div>
-    `;
-  }).join('');
 
-  if (filtered.length > 40) {
-    container.innerHTML += `
-      <div style="text-align:center; padding:12px; color:var(--text-muted); font-size:0.82rem;">
-        Showing top 40 of ${filtered.length} questions. Use Chapter or Search filters above to explore all questions.
-      </div>
-    `;
-  }
+      ${renderNavBar(true)}
+    </div>
+  `;
 
   initLucideIcons();
+}
+
+function nextQbQuestion() {
+  const total = state.qbFilteredQuestions?.length || 0;
+  if (state.qbCurrentPage < total - 1) {
+    state.qbCurrentPage++;
+    state.qbSolutionRevealed = false;
+    renderQbCurrentPage();
+    const tab = document.getElementById('tabQuestionBank');
+    if (tab) {
+      window.scrollTo({ top: tab.offsetTop - 20, behavior: 'smooth' });
+    }
+  }
+}
+
+function prevQbQuestion() {
+  if (state.qbCurrentPage > 0) {
+    state.qbCurrentPage--;
+    state.qbSolutionRevealed = false;
+    renderQbCurrentPage();
+    const tab = document.getElementById('tabQuestionBank');
+    if (tab) {
+      window.scrollTo({ top: tab.offsetTop - 20, behavior: 'smooth' });
+    }
+  }
+}
+
+function setQbQuestionIndex(idx) {
+  const total = state.qbFilteredQuestions?.length || 0;
+  if (total === 0) return;
+  state.qbCurrentPage = Math.max(0, Math.min(idx, total - 1));
+  state.qbSolutionRevealed = false;
+  renderQbCurrentPage();
+  const tab = document.getElementById('tabQuestionBank');
+  if (tab) {
+    window.scrollTo({ top: tab.offsetTop - 20, behavior: 'smooth' });
+  }
+}
+
+if (!window._qbKeyNavInitialized && typeof document !== 'undefined') {
+  window._qbKeyNavInitialized = true;
+  document.addEventListener('keydown', (e) => {
+    if (state.activeTeacherTab !== 'tabQuestionBank') return;
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextQbQuestion();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      prevQbQuestion();
+    }
+  });
 }
 
 function openStepSolutionStudio(qId) {
@@ -8377,14 +8531,12 @@ window.resetQbFilters = resetQbFilters;
 window.handleQbSubjectChange = handleQbSubjectChange;
 
 function toggleCardSolutionView(qId) {
-  const body = document.getElementById(`solBody_${qId}`);
-  const icon = document.getElementById(`iconToggleSol_${qId}`);
-  if (!body) return;
-  const isHidden = body.style.display === 'none';
-  body.style.display = isHidden ? 'flex' : 'none';
-  if (icon) {
-    icon.setAttribute('data-lucide', isHidden ? 'chevron-up' : 'chevron-down');
-    initLucideIcons();
-  }
+  state.qbSolutionRevealed = !state.qbSolutionRevealed;
+  renderQbCurrentPage();
 }
 window.toggleCardSolutionView = toggleCardSolutionView;
+window.nextQbQuestion = nextQbQuestion;
+window.prevQbQuestion = prevQbQuestion;
+window.setQbQuestionIndex = setQbQuestionIndex;
+window.renderQbCurrentPage = renderQbCurrentPage;
+

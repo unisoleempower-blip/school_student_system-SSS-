@@ -18,16 +18,25 @@ assert(cssContent.includes('.qb-solution-concept-box'), 'Must contain .qb-soluti
 assert(cssContent.includes('.qb-solution-step-item'), 'Must contain .qb-solution-step-item class');
 assert(cssContent.includes('.qb-solution-answer-box'), 'Must contain .qb-solution-answer-box class');
 assert(cssContent.includes('.qb-solution-exam-tip-box'), 'Must contain .qb-solution-exam-tip-box class');
+assert(cssContent.includes('.qb-nav-banner'), 'Must contain .qb-nav-banner class');
+assert(cssContent.includes('.qb-solution-prompt-card'), 'Must contain .qb-solution-prompt-card class');
+assert(cssContent.includes('.qb-jump-pill'), 'Must contain .qb-jump-pill class');
+assert(cssContent.includes('.qb-page-badge'), 'Must contain .qb-page-badge class');
 assert(cssContent.includes('@media print'), 'Must contain @media print styles');
-console.log('[PASS] CSS styles verified for intuitive solution mastercard and print mode.');
+console.log('[PASS] CSS styles verified for intuitive solution mastercard, single-question pagination, and print mode.');
 
-// 2. Check structure of formatIntuitiveSteps
+// 2. Check structure of formatIntuitiveSteps and Single-Question Navigation
 assert(appJsContent.includes('parsedSteps,'), 'Must return parsedSteps in formatIntuitiveSteps');
 assert(appJsContent.includes('principleIntuition,'), 'Must return principleIntuition in formatIntuitiveSteps');
 assert(appJsContent.includes('examTip'), 'Must return examTip in formatIntuitiveSteps');
 assert(appJsContent.includes('function toggleCardSolutionView(qId)'), 'Must define toggleCardSolutionView');
 assert(appJsContent.includes('window.toggleCardSolutionView = toggleCardSolutionView;'), 'Must export toggleCardSolutionView');
-console.log('[PASS] formatIntuitiveSteps contract and toggleCardSolutionView verified.');
+assert(appJsContent.includes('function nextQbQuestion()'), 'Must define nextQbQuestion');
+assert(appJsContent.includes('function prevQbQuestion()'), 'Must define prevQbQuestion');
+assert(appJsContent.includes('function setQbQuestionIndex(idx)'), 'Must define setQbQuestionIndex');
+assert(appJsContent.includes('function renderQbCurrentPage()'), 'Must define renderQbCurrentPage');
+assert(appJsContent.includes('state.qbSolutionRevealed = false'), 'Solution must be hidden by default on question transition');
+console.log('[PASS] formatIntuitiveSteps contract, single-question navigation, and solution toggle verified.');
 
 // 3. Test math-safe parsing
 const mathSafeSplit = (text) => {
