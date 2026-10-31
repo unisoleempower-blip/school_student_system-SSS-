@@ -249,18 +249,27 @@ async function testHttpEndpoints() {
   assert(liveJsContent.includes('window.geminiLiveVoiceTutor'), 'Must expose window.geminiLiveVoiceTutor');
   assert(liveJsContent.includes('thinkingBudget: 0'), 'Must configure thinkingBudget: 0 for sub-2s conversational latency');
   assert(liveJsContent.includes('switchToQuestion'), 'Must define switchToQuestion for multi-question continuity');
-  // Test 9: Verify Interactive Whiteboard (tldraw) Integration
-  console.log('\n[TEST 9] Verifying Interactive Whiteboard (tldraw) Integration...');
+  // Test 9: Verify Interactive Whiteboard (tldraw) Local Bundle Integration
+  console.log('\n[TEST 9] Verifying Interactive Whiteboard (tldraw) Local Bundle Integration...');
   const wbHtmlPath = path.join(__dirname, '..', 'frontend', 'whiteboard.html');
   assert(fs.existsSync(wbHtmlPath), 'whiteboard.html must exist');
   const wbHtml = fs.readFileSync(wbHtmlPath, 'utf8');
-  assert(wbHtml.includes('tldraw'), 'whiteboard.html must import tldraw');
-  assert(wbHtml.includes('WhiteboardController'), 'Must define WhiteboardController');
-  assert(wbHtml.includes('addQuestionHeader'), 'Must support question header shape creation');
-  assert(wbHtml.includes('drawPhysicsDiagram'), 'Must support physics/optics/circuit diagram drawing');
-  assert(wbHtml.includes('addStepFormula'), 'Must support formula step box drawing');
-  assert(wbHtml.includes('highlightDoubt'), 'Must support doubt note with pointer arrow');
-  assert(wbHtml.includes('addFinalAnswer'), 'Must support final answer card');
+  assert(wbHtml.includes('tldraw-standalone.bundle.js'), 'whiteboard.html must load local tldraw bundle');
+  assert(wbHtml.includes('tldraw.css'), 'whiteboard.html must load local tldraw CSS');
+
+  const bundlePath = path.join(__dirname, '..', 'frontend', 'vendor', 'tldraw', 'tldraw-standalone.bundle.js');
+  assert(fs.existsSync(bundlePath), 'tldraw-standalone.bundle.js must exist');
+  const bundleContent = fs.readFileSync(bundlePath, 'utf8');
+  assert(bundleContent.includes('whiteboardController'), 'Bundle must expose whiteboardController');
+
+  const srcWbPath = path.join(__dirname, '..', 'frontend', 'src_whiteboard', 'index.jsx');
+  assert(fs.existsSync(srcWbPath), 'src_whiteboard/index.jsx must exist');
+  const srcWbContent = fs.readFileSync(srcWbPath, 'utf8');
+  assert(srcWbContent.includes('addQuestionHeader'), 'Must support question header shape creation');
+  assert(srcWbContent.includes('drawPhysicsDiagram'), 'Must support physics/optics/circuit diagram drawing');
+  assert(srcWbContent.includes('addStepFormula'), 'Must support formula step box drawing');
+  assert(srcWbContent.includes('highlightDoubt'), 'Must support doubt note with pointer arrow');
+  assert(srcWbContent.includes('addFinalAnswer'), 'Must support final answer card');
 
   assert(appJsContent.includes('toggleLiveWhiteboard'), 'app.js must define toggleLiveWhiteboard');
   assert(appJsContent.includes('toggleExpandWhiteboard'), 'app.js must define toggleExpandWhiteboard');
@@ -271,7 +280,7 @@ async function testHttpEndpoints() {
 
   assert(cssContent.includes('.qb-whiteboard-container'), 'styles.css must style .qb-whiteboard-container');
   assert(cssContent.includes('.qb-whiteboard-iframe'), 'styles.css must style .qb-whiteboard-iframe');
-  console.log('[PASS] tldraw Interactive Whiteboard & Voice Assistant synchronization verified.');
+  console.log('[PASS] Local tldraw Interactive Whiteboard & Voice Assistant synchronization verified.');
 
   console.log('\n========================================================================');
   console.log('ALL AI VOICE TUTOR & TLDRAW WHITEBOARD TESTS PASSED 100%!');
