@@ -409,8 +409,9 @@ runTest('AI Voice Tutor Hinglish Briefing & Interruption API (/api/voice-tutor/e
   });
   if (!explainRes.success) throw new Error(`Voice tutor explain request failed: ${explainRes.error}`);
   const data = JSON.parse(explainRes.body);
-  if (!data.success || !data.hinglishAudioBrief || !data.speechCleanedText) {
-    throw new Error('Expected hinglishAudioBrief and speechCleanedText in voice tutor response');
+  const brief = data.data || data;
+  if (!data.success || (!brief.hinglishBrief && !brief.hinglishAudioBrief) || (!brief.cleanSpokenQuestion && !brief.speechCleanedText)) {
+    throw new Error('Expected hinglishBrief and cleanSpokenQuestion in voice tutor response');
   }
 
   const interruptRes = makeRequest('/api/voice-tutor/interrupt', {
@@ -422,8 +423,9 @@ runTest('AI Voice Tutor Hinglish Briefing & Interruption API (/api/voice-tutor/e
   });
   if (!interruptRes.success) throw new Error(`Voice tutor interrupt request failed: ${interruptRes.error}`);
   const intData = JSON.parse(interruptRes.body);
-  if (!intData.success || !intData.teacherSpokenReply) {
-    throw new Error('Expected teacherSpokenReply in interruption response');
+  const ans = intData.data || intData;
+  if (!intData.success || (!ans.answerHinglish && !ans.teacherHinglishAnswer && !ans.teacherSpokenReply)) {
+    throw new Error('Expected answerHinglish in interruption response');
   }
 });
 

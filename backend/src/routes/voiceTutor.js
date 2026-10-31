@@ -53,6 +53,7 @@ router.post('/explain', async (req, res) => {
 
     res.json({
       success: true,
+      ...brief,
       data: brief
     });
   } catch (err) {
@@ -84,6 +85,7 @@ router.post('/interrupt', async (req, res) => {
 
     res.json({
       success: true,
+      ...answer,
       data: answer
     });
   } catch (err) {
