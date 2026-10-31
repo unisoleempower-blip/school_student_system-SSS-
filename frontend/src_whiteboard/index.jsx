@@ -2,6 +2,8 @@ import React, { Component, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Tldraw, toRichText } from 'tldraw';
 
+const TLDRAW_LICENSE_KEY = 'tldraw-2027-02-08/WyJVUTc3RFF3ViIsWyIqIl0sMTYsIjIwMjctMDItMDgiXQ.W95pPYmfqD1hlaYOY7dQoVq/E5phnss0Q1a46kpkTrDjMH4qMeJZxCqJ8NLpIvyGlqoIWQNZUaPL9I1h/sKzKA';
+
 let editorInstance = null;
 let shapeYOffset = 60;
 const queuedEvents = [];
@@ -543,6 +545,7 @@ function WhiteboardApp() {
       ErrorBoundary,
       null,
       React.createElement(Tldraw, {
+        licenseKey: TLDRAW_LICENSE_KEY,
         onMount: handleMount,
         autoFocus: false,
         inferDarkMode: true,
