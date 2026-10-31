@@ -75,8 +75,24 @@ async function testInterruption() {
   console.log('[PASS] Live student interruption doubt handler answered accurately in natural Hinglish.');
 }
 
-// 4. Verify Frontend Integration in app.js and styles.css
-console.log('\n[TEST 4] Verifying Frontend Voice Engine Integration...');
+// 4. Test Neural Audio Synthesis
+console.log('\n[TEST 4] Testing Neural Audio Synthesis Engine...');
+const { synthesizeNeuralAudio, NEURAL_VOICES } = require('../backend/src/services/aiVoiceTutorService');
+assert(NEURAL_VOICES.swara, 'Must define swara neural voice');
+assert(NEURAL_VOICES.madhur, 'Must define madhur neural voice');
+assert(NEURAL_VOICES.neerja, 'Must define neerja neural voice');
+
+async function testNeuralAudioSynthesis() {
+  const audioRes = await synthesizeNeuralAudio({ text: 'Namaste! Chalo question solve karte hain.', voiceKey: 'swara' });
+  assert(Buffer.isBuffer(audioRes.buffer), 'Must return audio buffer');
+  assert(audioRes.buffer.length > 5000, 'Audio buffer must contain MP3 audio data');
+  assert.strictEqual(audioRes.voice, 'hi-IN-SwaraNeural');
+  console.log(`  Neural MP3 Generated: ${audioRes.buffer.length} bytes (Voice: ${audioRes.voice})`);
+  console.log('[PASS] Ultra-realistic human neural MP3 audio synthesized successfully.');
+}
+
+// 5. Verify Frontend Integration in app.js and styles.css
+console.log('\n[TEST 5] Verifying Frontend Voice Engine Integration...');
 const appJsPath = path.join(__dirname, '..', 'frontend', 'js', 'app.js');
 const appJsContent = fs.readFileSync(appJsPath, 'utf8');
 
@@ -85,9 +101,12 @@ assert(appJsContent.includes('function explainQuestionInHinglish('), 'Must defin
 assert(appJsContent.includes('function interruptVoiceTutor('), 'Must define interruptVoiceTutor in app.js');
 assert(appJsContent.includes('function toggleVoiceMicInput('), 'Must define toggleVoiceMicInput in app.js');
 assert(appJsContent.includes('function submitVoiceDoubt('), 'Must define submitVoiceDoubt in app.js');
+assert(appJsContent.includes('function setVoiceTutorPersona('), 'Must define setVoiceTutorPersona in app.js');
+assert(appJsContent.includes('stopVoiceAudioPlayback'), 'Must define stopVoiceAudioPlayback for clean audio management');
 assert(appJsContent.includes('window.readQuestionAloud = readQuestionAloud;'), 'Must export readQuestionAloud to window');
 assert(appJsContent.includes('window.explainQuestionInHinglish = explainQuestionInHinglish;'), 'Must export explainQuestionInHinglish to window');
 assert(appJsContent.includes('window.interruptVoiceTutor = interruptVoiceTutor;'), 'Must export interruptVoiceTutor to window');
+assert(appJsContent.includes('window.setVoiceTutorPersona = setVoiceTutorPersona;'), 'Must export setVoiceTutorPersona to window');
 assert(appJsContent.includes('stopVoiceTutor()'), 'Navigation must automatically stop active speech');
 
 const cssPath = path.join(__dirname, '..', 'frontend', 'css', 'styles.css');
@@ -96,12 +115,19 @@ assert(cssContent.includes('.qb-voice-tutor-banner'), 'Must contain .qb-voice-tu
 assert(cssContent.includes('.qb-voice-wave'), 'Must contain .qb-voice-wave in styles.css');
 assert(cssContent.includes('.qb-voice-transcript-drawer'), 'Must contain .qb-voice-transcript-drawer in styles.css');
 assert(cssContent.includes('.qb-voice-interruption-box'), 'Must contain .qb-voice-interruption-box in styles.css');
-console.log('[PASS] Frontend DOM and JS audio engine bindings verified.');
+assert(cssContent.includes('.qb-voice-persona-select'), 'Must contain .qb-voice-persona-select in styles.css');
+assert(cssContent.includes('.qb-voice-badge-neural'), 'Must contain .qb-voice-badge-neural in styles.css');
+console.log('[PASS] Frontend DOM, persona selectors, and JS audio engine bindings verified.');
 
-// 5. Test Live HTTP Routes
-console.log('\n[TEST 5] Testing Backend HTTP Endpoints (/api/voice-tutor)...');
+// 6. Test Live HTTP Routes
+console.log('\n[TEST 6] Testing Backend HTTP Endpoints (/api/voice-tutor)...');
 async function testHttpEndpoints() {
-  const API_BASE = 'http://localhost:5050';
+  const { app } = require('../backend/src/server');
+  const http = require('http');
+
+  const server = http.createServer(app);
+  await new Promise(resolve => server.listen(5098, resolve));
+  const API_BASE = 'http://localhost:5098';
 
   try {
     const explainRes = await fetch(`${API_BASE}/api/voice-tutor/explain`, {
@@ -117,6 +143,7 @@ async function testHttpEndpoints() {
     const explainData = await explainRes.json();
     assert.strictEqual(explainData.success, true);
     assert(explainData.data.hinglishBrief, 'Must return hinglishBrief');
+    assert(explainData.data.audioUrl, 'Must return audioUrl');
     console.log('  POST /api/voice-tutor/explain -> HTTP 200 OK');
 
     const interruptRes = await fetch(`${API_BASE}/api/voice-tutor/interrupt`, {
@@ -132,8 +159,26 @@ async function testHttpEndpoints() {
     assert.strictEqual(interruptData.success, true);
     assert(interruptData.data.answerHinglish, 'Must return answerHinglish');
     console.log('  POST /api/voice-tutor/interrupt -> HTTP 200 OK');
-  } catch (err) {
-    console.warn('[INFO] Live HTTP test skipped or server restarting:', err.message);
+
+    const audioRes = await fetch(`${API_BASE}/api/voice-tutor/audio?text=Namaste&voice=swara`);
+    assert.strictEqual(audioRes.status, 200, 'GET /api/voice-tutor/audio must return 200');
+    assert.strictEqual(audioRes.headers.get('content-type'), 'audio/mpeg');
+    const audioBuf = await audioRes.arrayBuffer();
+    assert(audioBuf.byteLength > 2000, 'Audio response must be valid MP3 stream');
+    console.log(`  GET /api/voice-tutor/audio -> HTTP 200 OK (Streamed ${audioBuf.byteLength} bytes MP3)`);
+
+    const synthRes = await fetch(`${API_BASE}/api/voice-tutor/synthesize`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'Testing audio', voice: 'madhur' })
+    });
+    assert.strictEqual(synthRes.status, 200, 'POST /api/voice-tutor/synthesize must return 200');
+    const synthData = await synthRes.json();
+    assert.strictEqual(synthData.success, true);
+    assert(synthData.audioDataUri, 'Must return audioDataUri');
+    console.log('  POST /api/voice-tutor/synthesize -> HTTP 200 OK');
+  } finally {
+    server.close();
   }
 
   console.log('\n======================================================');
@@ -144,7 +189,10 @@ async function testHttpEndpoints() {
 async function runAll() {
   await testHinglishBrief();
   await testInterruption();
+  await testNeuralAudioSynthesis();
   await testHttpEndpoints();
+  process.exit(0);
 }
+
 
 runAll();

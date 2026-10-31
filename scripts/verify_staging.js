@@ -427,6 +427,16 @@ runTest('AI Voice Tutor Hinglish Briefing & Interruption API (/api/voice-tutor/e
   if (!intData.success || (!ans.answerHinglish && !ans.teacherHinglishAnswer && !ans.teacherSpokenReply)) {
     throw new Error('Expected answerHinglish in interruption response');
   }
+
+  const synthRes = makeRequest('/api/voice-tutor/synthesize', {
+    method: 'POST',
+    data: { text: 'Namaste! Chalo step by step samajhte hain.', voice: 'swara' }
+  });
+  if (!synthRes.success) throw new Error(`Voice tutor synthesize request failed: ${synthRes.error}`);
+  const synthData = JSON.parse(synthRes.body);
+  if (!synthData.success || !synthData.audioDataUri) {
+    throw new Error('Expected audioDataUri in synthesize response');
+  }
 });
 
 

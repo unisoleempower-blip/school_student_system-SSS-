@@ -5,6 +5,18 @@
 // ============================================================================
 
 require('dotenv').config();
+const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
+
+// Microsoft Azure Neural Voices with genuine human accent and inflection
+const NEURAL_VOICES = {
+  swara: 'hi-IN-SwaraNeural',          // Female - Expressive, warm Hinglish (Default)
+  madhur: 'hi-IN-MadhurNeural',        // Male - Calm, clear Indian teacher
+  neerja: 'en-IN-NeerjaExpressiveNeural', // Female - Natural Indian English
+  prabhat: 'en-IN-PrabhatNeural'       // Male - Natural Indian English
+};
+
+// In-memory LRU audio buffer cache to provide 0ms instant playback for repeated questions
+const audioBufferCache = new Map();
 
 /**
  * Clean LaTeX mathematical expressions into speech-friendly natural strings
@@ -17,9 +29,9 @@ function cleanLatexForSpeech(latexStr) {
   // Replace common LaTeX expressions with natural spoken equivalents
   s = s.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1 upon $2');
   s = s.replace(/\\sqrt\{([^}]+)\}/g, 'square root of $1');
-  s = s.replace(/\\times/g, ' multiplied by ');
+  s = s.replace(/\\times/g, ' into ');
   s = s.replace(/\\pm/g, 'plus minus ');
-  s = s.replace(/\\cdot/g, ' dot ');
+  s = s.replace(/\\cdot/g, ' into ');
   s = s.replace(/\\approx/g, ' approximately equal to ');
   s = s.replace(/\\implies/g, ' which implies that ');
   s = s.replace(/\\sigma/g, 'sigma');
@@ -33,17 +45,64 @@ function cleanLatexForSpeech(latexStr) {
   s = s.replace(/\\alpha/g, 'alpha');
   s = s.replace(/\\beta/g, 'beta');
   s = s.replace(/\\Delta/g, 'delta');
+  s = s.replace(/\\phi/g, 'phi');
   s = s.replace(/v_d/g, 'v d');
   s = s.replace(/X_L/g, 'X L');
   s = s.replace(/X_C/g, 'X C');
+  s = s.replace(/a_n/g, 'a n');
+  s = s.replace(/S_n/g, 'S n');
   s = s.replace(/\^2/g, ' square');
   s = s.replace(/\^3/g, ' cube');
   s = s.replace(/\\text\{([^}]+)\}/g, '$1');
   s = s.replace(/\\mathbf\{([^}]+)\}/g, '$1');
   s = s.replace(/\\vec\{([^}]+)\}/g, 'vector $1');
+  s = s.replace(/\\le/g, 'less than or equal to');
+  s = s.replace(/\\ge/g, 'greater than or equal to');
+  s = s.replace(/\\neq/g, 'not equal to');
+  s = s.replace(/=/g, ' equals ');
   s = s.replace(/[\$\\]/g, ''); // strip remaining $ and \
   s = s.replace(/\s+/g, ' ').trim();
   return s;
+}
+
+/**
+ * Synthesize studio-grade human Neural MP3 audio using Microsoft Azure Neural voices
+ */
+async function synthesizeNeuralAudio({ text, voiceKey = 'swara' }) {
+  const selectedVoice = NEURAL_VOICES[voiceKey] || NEURAL_VOICES.swara;
+  const cleanText = cleanLatexForSpeech(text);
+  const cacheKey = `${selectedVoice}::${cleanText.trim()}`;
+
+  if (audioBufferCache.has(cacheKey)) {
+    return {
+      buffer: audioBufferCache.get(cacheKey),
+      voice: selectedVoice,
+      fromCache: true
+    };
+  }
+
+  const tts = new MsEdgeTTS();
+  await tts.setMetadata(selectedVoice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+  const { audioStream } = tts.toStream(cleanText);
+  const chunks = [];
+
+  return new Promise((resolve, reject) => {
+    audioStream.on('data', chunk => chunks.push(chunk));
+    audioStream.on('end', () => {
+      const buffer = Buffer.concat(chunks);
+      if (audioBufferCache.size > 250) {
+        const oldestKey = audioBufferCache.keys().next().value;
+        audioBufferCache.delete(oldestKey);
+      }
+      audioBufferCache.set(cacheKey, buffer);
+      resolve({
+        buffer,
+        voice: selectedVoice,
+        fromCache: false
+      });
+    });
+    audioStream.on('error', err => reject(err));
+  });
 }
 
 /**
@@ -304,5 +363,7 @@ Output strictly in JSON:
 module.exports = {
   cleanLatexForSpeech,
   generateHinglishAudioBrief,
-  answerStudentInterruption
+  answerStudentInterruption,
+  synthesizeNeuralAudio,
+  NEURAL_VOICES
 };

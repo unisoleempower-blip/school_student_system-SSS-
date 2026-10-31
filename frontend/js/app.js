@@ -8524,9 +8524,27 @@ const voiceTutorState = {
   isSpeaking: false,
   isListening: false,
   activeMode: 'IDLE', // 'READING' | 'HINGLISH_EXPLAINING' | 'INTERRUPTED'
+  selectedVoice: 'swara', // 'swara' (Female Hinglish) | 'madhur' (Male Hinglish) | 'neerja' (Female Indian English) | 'prabhat' (Male Indian English)
   cachedBriefs: {},
+  currentAudio: null, // HTML5 Audio element for studio Neural MP3 playback
   recognition: null
 };
+
+// Set teacher voice persona (Swara, Madhur, Neerja, Prabhat)
+function setVoiceTutorPersona(qId, persona) {
+  voiceTutorState.selectedVoice = persona || 'swara';
+  const badge = document.getElementById(`voiceStatusBadge_${qId}`);
+  if (badge) {
+    const titles = {
+      swara: 'Voice: Swara (Expressive Hinglish)',
+      madhur: 'Voice: Madhur (Clear Hinglish)',
+      neerja: 'Voice: Neerja (Indian English)',
+      prabhat: 'Voice: Prabhat (Indian English)'
+    };
+    badge.innerHTML = `<i data-lucide="headphones" style="width:13px;height:13px;color:#38bdf8;"></i> ${titles[persona] || 'Voice: Swara'}`;
+    initLucideIcons();
+  }
+}
 
 // Clean raw LaTeX to natural spoken text
 function cleanLatexForClientVoice(rawText) {
@@ -8536,9 +8554,9 @@ function cleanLatexForClientVoice(rawText) {
   s = s.replace(/\\sqrt\{([^}]+)\}/g, 'square root of $1');
   s = s.replace(/\\times/g, ' into ');
   s = s.replace(/\\pm/g, 'plus minus ');
-  s = s.replace(/\\cdot/g, ' dot ');
+  s = s.replace(/\\cdot/g, ' into ');
   s = s.replace(/\\approx/g, ' approximately ');
-  s = s.replace(/\\implies/g, ' implies ');
+  s = s.replace(/\\implies/g, ' which implies that ');
   s = s.replace(/\\sigma/g, 'sigma');
   s = s.replace(/\\varepsilon_0/g, 'epsilon not');
   s = s.replace(/\\rho/g, 'rho');
@@ -8550,51 +8568,124 @@ function cleanLatexForClientVoice(rawText) {
   s = s.replace(/\\alpha/g, 'alpha');
   s = s.replace(/\\beta/g, 'beta');
   s = s.replace(/\\Delta/g, 'delta');
+  s = s.replace(/\\phi/g, 'phi');
   s = s.replace(/v_d/g, 'v d');
   s = s.replace(/X_L/g, 'X L');
   s = s.replace(/X_C/g, 'X C');
+  s = s.replace(/a_n/g, 'a n');
+  s = s.replace(/S_n/g, 'S n');
   s = s.replace(/\^2/g, ' square');
   s = s.replace(/\^3/g, ' cube');
   s = s.replace(/\\text\{([^}]+)\}/g, '$1');
   s = s.replace(/\\mathbf\{([^}]+)\}/g, '$1');
+  s = s.replace(/\\le/g, 'less than or equal to');
+  s = s.replace(/\\ge/g, 'greater than or equal to');
+  s = s.replace(/\\neq/g, 'not equal to');
+  s = s.replace(/=/g, ' equals ');
   s = s.replace(/[\$\\]/g, '');
   s = s.replace(/\s+/g, ' ').trim();
   return s;
 }
 
-// Select best Indian English / Hindi natural voice
+// Select best Indian English / Hindi natural voice for WebSpeech fallback
 function getOptimalVoice() {
   if (typeof window === 'undefined' || !window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices() || [];
-  // 1. Check Indian English or Hindi
-  const indianVoice = voices.find(v => (v.lang === 'en-IN' || v.lang === 'hi-IN' || v.name.includes('India') || v.name.includes('Hindi') || v.name.includes('Rishi') || v.name.includes('Lekha') || v.name.includes('Google हिन्दी')));
-  if (indianVoice) return indianVoice;
-  // 2. Fallback to English natural voice
-  const naturalVoice = voices.find(v => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha')));
-  return naturalVoice || voices[0] || null;
+  if (!voices.length) return null;
+
+  const topPicks = [
+    v => v.name.includes('Swara') || v.name.includes('Madhur') || v.name.includes('Neerja'),
+    v => (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Online')) && (v.lang === 'hi-IN' || v.lang === 'en-IN'),
+    v => v.lang === 'hi-IN' || v.name.includes('Hindi') || v.name.includes('हिन्दी'),
+    v => v.lang === 'en-IN' || v.name.includes('India') || v.name.includes('Rishi') || v.name.includes('Lekha'),
+    v => (v.name.includes('Natural') || v.name.includes('Enhanced') || v.name.includes('Samantha') || v.name.includes('Google')) && v.lang.startsWith('en'),
+    v => v.lang.startsWith('en')
+  ];
+
+  for (const pick of topPicks) {
+    const match = voices.find(pick);
+    if (match) return match;
+  }
+  return voices[0] || null;
 }
 
-// Speak text using window.speechSynthesis
-function speakWithVoiceEngine(textToSpeak, onStart, onEnd) {
-  if (typeof window === 'undefined' || !window.speechSynthesis) {
-    console.warn('SpeechSynthesis not supported on this browser.');
+// Stop all audio playback (both HTML5 Neural MP3 audio and WebSpeech)
+function stopVoiceAudioPlayback() {
+  if (voiceTutorState.currentAudio) {
+    try {
+      voiceTutorState.currentAudio.pause();
+      voiceTutorState.currentAudio.currentTime = 0;
+    } catch (e) {}
+    voiceTutorState.currentAudio = null;
+  }
+  if (typeof window !== 'undefined' && window.speechSynthesis) {
+    try { window.speechSynthesis.cancel(); } catch (e) {}
+  }
+  voiceTutorState.isSpeaking = false;
+}
+
+// Speak text using human Neural MP3 audio stream with WebSpeech fallback
+async function speakWithVoiceEngine(textToSpeak, voiceOverride, onStart, onEnd) {
+  stopVoiceAudioPlayback();
+
+  if (!textToSpeak || !textToSpeak.trim()) {
     if (onEnd) onEnd();
     return;
   }
 
-  window.speechSynthesis.cancel(); // Stop any pending speech
-
   const cleanText = cleanLatexForClientVoice(textToSpeak);
+  const voice = voiceOverride || voiceTutorState.selectedVoice || 'swara';
+  const streamUrl = `${getApiBaseUrl()}/api/voice-tutor/audio?text=${encodeURIComponent(cleanText)}&voice=${encodeURIComponent(voice)}`;
+
+  // 1. Try studio-quality Neural MP3 Audio stream
+  try {
+    const audio = new Audio();
+    voiceTutorState.currentAudio = audio;
+
+    audio.onplay = () => {
+      voiceTutorState.isSpeaking = true;
+      if (onStart) onStart();
+    };
+
+    audio.onended = () => {
+      voiceTutorState.isSpeaking = false;
+      voiceTutorState.currentAudio = null;
+      if (onEnd) onEnd();
+    };
+
+    audio.onerror = (e) => {
+      console.warn('[VOICE TUTOR] Neural Audio stream error, falling back to enhanced browser voice:', e);
+      voiceTutorState.currentAudio = null;
+      speakWithBrowserWebSpeech(cleanText, onStart, onEnd);
+    };
+
+    audio.src = streamUrl;
+    await audio.play();
+    return;
+  } catch (err) {
+    console.warn('[VOICE TUTOR] Direct play failed or blocked by autoplay policy, falling back to speech synthesis:', err);
+    speakWithBrowserWebSpeech(cleanText, onStart, onEnd);
+  }
+}
+
+// Fallback browser speech synthesis with enhanced natural voices
+function speakWithBrowserWebSpeech(cleanText, onStart, onEnd) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    if (onEnd) onEnd();
+    return;
+  }
+
+  window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(cleanText);
   const voice = getOptimalVoice();
   if (voice) {
     utterance.voice = voice;
-    utterance.lang = voice.lang || 'en-IN';
+    utterance.lang = voice.lang || 'hi-IN';
   } else {
-    utterance.lang = 'en-IN';
+    utterance.lang = 'hi-IN';
   }
 
-  utterance.rate = 0.96; // Slightly slower, warm teacher cadence
+  utterance.rate = 1.0; // Natural conversational human speed
   utterance.pitch = 1.02;
 
   utterance.onstart = () => {
@@ -8607,14 +8698,14 @@ function speakWithVoiceEngine(textToSpeak, onStart, onEnd) {
     if (onEnd) onEnd();
   };
 
-  utterance.onerror = (err) => {
-    console.warn('Speech error:', err);
+  utterance.onerror = () => {
     voiceTutorState.isSpeaking = false;
     if (onEnd) onEnd();
   };
 
   window.speechSynthesis.speak(utterance);
 }
+
 
 // 1. Read Question Statement Aloud
 async function readQuestionAloud(qId) {
@@ -8645,6 +8736,7 @@ async function readQuestionAloud(qId) {
 
   speakWithVoiceEngine(
     cleanQ,
+    'neerja',
     null,
     () => {
       if (voiceTutorState.activeMode === 'READING') {
@@ -8677,8 +8769,8 @@ async function explainQuestionInHinglish(qId) {
   if (banner) banner.classList.add('speaking');
   if (wave) wave.classList.add('active');
   if (drawer) drawer.style.display = 'flex';
-  if (badge) badge.innerHTML = `<i data-lucide="sparkles" style="width:13px;height:13px;"></i> Synthesizing Hinglish Audio Guide...`;
-  if (transcript) transcript.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;vertical-align:middle;"></i> AI Voice Teacher is preparing the audio roadmap in Hinglish...`;
+  if (badge) badge.innerHTML = `<i data-lucide="sparkles" style="width:13px;height:13px;"></i> Synthesizing Neural Hinglish Audio...`;
+  if (transcript) transcript.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;vertical-align:middle;"></i> AI Voice Teacher is preparing smooth audio explanation...`;
   if (btnInterrupt) btnInterrupt.style.display = 'inline-flex';
   if (btnStop) btnStop.style.display = 'inline-flex';
   initLucideIcons();
@@ -8695,7 +8787,8 @@ async function explainQuestionInHinglish(qId) {
           questionText: rawQ,
           solutionText: qObj.solution_latex || '',
           chapterName: qObj.chapter_name || qObj.chapter || '',
-          topic: qObj.topic || qObj.subtopic || ''
+          topic: qObj.topic || qObj.subtopic || '',
+          voice: voiceTutorState.selectedVoice || 'swara'
         })
       });
       if (res.ok) {
@@ -8710,7 +8803,7 @@ async function explainQuestionInHinglish(qId) {
 
   if (!briefData) {
     briefData = {
-      hinglishBrief: "Is question ko solve karne ke liye pehle given values aur required variable note karo. Phir core formula identify karke step by step solve karo. Units aur signs ka dhyan zaroor rakhein!",
+      hinglishBrief: "Namaste! Is question ko solve karne ke liye pehle given values aur required variable note karo. Phir core formula identify karke step by step solve karo. Units aur signs ka dhyan zaroor rakhein!",
       firstStepFormula: "Apply Standard Governing Law",
       pitfallTip: "Direct answer ke bajaye pehle formula statement zaroor likhein."
     };
@@ -8720,9 +8813,9 @@ async function explainQuestionInHinglish(qId) {
     transcript.innerHTML = `
       <div style="font-weight:700; color:#38bdf8; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
         <span><i data-lucide="sparkles" style="width:14px;height:14px;vertical-align:middle;"></i> Hinglish Strategy Roadmap:</span>
-        <span style="font-size:0.7rem; color:var(--text-muted);">${briefData.source === 'GROQ_AI' ? 'Groq LPU Instant Voice' : 'Curated Teacher Guide'}</span>
+        <span style="font-size:0.7rem; color:#34d399; background:rgba(16,185,129,0.12); padding:2px 8px; border-radius:10px; border:1px solid rgba(16,185,129,0.3);">Studio Neural Audio</span>
       </div>
-      <div style="font-size:0.96rem; color:#f8fafc; line-height:1.7; margin-bottom:10px;">
+      <div style="font-size:0.96rem; color:#f8fafc; line-height:1.75; margin-bottom:10px;">
         ${escapeHtml(briefData.hinglishBrief)}
       </div>
       <div style="background:rgba(14,165,233,0.12); border:1px dashed rgba(14,165,233,0.4); border-radius:6px; padding:8px 12px; font-size:0.86rem; color:#bae6fd; margin-bottom:6px;">
@@ -8735,11 +8828,12 @@ async function explainQuestionInHinglish(qId) {
     initLucideIcons();
   }
 
-  if (badge) badge.innerHTML = `<i data-lucide="headphones" style="width:13px;height:13px;"></i> Speaking Hinglish Guide... (Click 'Interrupt' anytime to ask doubt)`;
+  if (badge) badge.innerHTML = `<i data-lucide="headphones" style="width:13px;height:13px;"></i> Speaking Hinglish Guide (${voiceTutorState.selectedVoice === 'madhur' ? 'Madhur' : voiceTutorState.selectedVoice === 'neerja' ? 'Neerja' : 'Swara'})... Click 'Interrupt' anytime to ask doubt`;
   initLucideIcons();
 
   speakWithVoiceEngine(
     briefData.hinglishBrief,
+    voiceTutorState.selectedVoice,
     null,
     () => {
       if (voiceTutorState.activeMode === 'HINGLISH_EXPLAINING') {
@@ -8754,10 +8848,7 @@ async function explainQuestionInHinglish(qId) {
 
 // 3. Interrupt Voice Tutor & Ask Doubt
 function interruptVoiceTutor(qId) {
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-  }
-  voiceTutorState.isSpeaking = false;
+  stopVoiceAudioPlayback();
   voiceTutorState.activeMode = 'INTERRUPTED';
 
   const banner = document.getElementById(`voiceBanner_${qId}`);
@@ -8799,7 +8890,7 @@ function toggleVoiceMicInput(qId) {
   }
 
   // Stop any active speech
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  stopVoiceAudioPlayback();
 
   const rec = new SpeechRec();
   rec.lang = 'hi-IN'; // Recognizes both Hindi and English/Hinglish
@@ -8865,7 +8956,8 @@ async function submitVoiceDoubt(qId) {
       body: JSON.stringify({
         questionText: rawQ,
         solutionText: qObj.solution_latex || '',
-        studentDoubt: doubtText
+        studentDoubt: doubtText,
+        voice: voiceTutorState.selectedVoice || 'swara'
       })
     });
     if (res.ok) {
@@ -8892,7 +8984,7 @@ async function submitVoiceDoubt(qId) {
       </div>
       <div style="background:rgba(16,185,129,0.12); border-left:3px solid #34d399; padding:10px 14px; border-radius:6px;">
         <strong style="color:#34d399; font-size:0.84rem;"><i data-lucide="message-square" style="width:13px;height:13px;vertical-align:middle;"></i> Teacher's Hinglish Explanation:</strong>
-        <p style="margin:6px 0 0 0; color:#ecfdf5; font-size:0.96rem; line-height:1.7;">${escapeHtml(answerData.answerHinglish)}</p>
+        <p style="margin:6px 0 0 0; color:#ecfdf5; font-size:0.96rem; line-height:1.75;">${escapeHtml(answerData.answerHinglish)}</p>
         <p style="margin:8px 0 0 0; color:#bae6fd; font-size:0.82rem;"><strong>Next Step:</strong> ${escapeHtml(answerData.suggestedNextStep)}</p>
       </div>
     `;
@@ -8910,6 +9002,7 @@ async function submitVoiceDoubt(qId) {
 
   speakWithVoiceEngine(
     answerData.answerHinglish,
+    voiceTutorState.selectedVoice,
     null,
     () => {
       if (banner) banner.classList.remove('speaking');
@@ -8929,13 +9022,10 @@ function quickAskDoubt(qId, doubtText) {
 
 // 6. Stop Voice Tutor
 function stopVoiceTutor(qId, closeDrawer = true) {
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-  }
+  stopVoiceAudioPlayback();
   if (voiceTutorState.recognition) {
     try { voiceTutorState.recognition.stop(); } catch (e) {}
   }
-  voiceTutorState.isSpeaking = false;
   voiceTutorState.isListening = false;
   voiceTutorState.activeMode = 'IDLE';
 
@@ -8971,6 +9061,8 @@ window.closeVoiceDrawer = closeVoiceDrawer;
 window.toggleVoiceMicInput = toggleVoiceMicInput;
 window.submitVoiceDoubt = submitVoiceDoubt;
 window.quickAskDoubt = quickAskDoubt;
+window.setVoiceTutorPersona = setVoiceTutorPersona;
+
 
 function renderQbCurrentPage() {
   const container = document.getElementById('containerQbQuestions');
@@ -9268,6 +9360,7 @@ function renderQbCurrentPage() {
             <div class="qb-voice-brand">
               <i data-lucide="headphones" style="width:17px; height:17px; color:#38bdf8;"></i>
               <span>AI Voice Tutor &bull; Hinglish Guide</span>
+              <span class="qb-voice-badge-neural"><i data-lucide="sparkles" style="width:11px; height:11px;"></i> Human Neural HD</span>
               <div class="qb-voice-wave" id="voiceWave_${qId}">
                 <div class="qb-voice-wave-bar"></div>
                 <div class="qb-voice-wave-bar"></div>
@@ -9277,10 +9370,16 @@ function renderQbCurrentPage() {
               </div>
             </div>
             <div class="qb-voice-actions-row">
-              <button type="button" class="qb-voice-btn qb-voice-btn-read" onclick="readQuestionAloud('${qId}')" id="btnReadQ_${qId}" title="Read question statement aloud">
+              <select class="qb-voice-persona-select" onchange="setVoiceTutorPersona('${qId}', this.value)" title="Choose Voice Teacher Accent">
+                <option value="swara" ${voiceTutorState.selectedVoice === 'swara' ? 'selected' : ''}>Swara (Warm Hinglish)</option>
+                <option value="madhur" ${voiceTutorState.selectedVoice === 'madhur' ? 'selected' : ''}>Madhur (Clear Hinglish)</option>
+                <option value="neerja" ${voiceTutorState.selectedVoice === 'neerja' ? 'selected' : ''}>Neerja (Indian English)</option>
+                <option value="prabhat" ${voiceTutorState.selectedVoice === 'prabhat' ? 'selected' : ''}>Prabhat (Indian English)</option>
+              </select>
+              <button type="button" class="qb-voice-btn qb-voice-btn-read" onclick="readQuestionAloud('${qId}')" id="btnReadQ_${qId}" title="Read question statement aloud in natural human voice">
                 <i data-lucide="volume-2" style="width:14px; height:14px;"></i> Read Question
               </button>
-              <button type="button" class="qb-voice-btn qb-voice-btn-hinglish" onclick="explainQuestionInHinglish('${qId}')" id="btnExplainHinglish_${qId}" title="Explain what to do in mixed Hinglish">
+              <button type="button" class="qb-voice-btn qb-voice-btn-hinglish" onclick="explainQuestionInHinglish('${qId}')" id="btnExplainHinglish_${qId}" title="Explain what to do in smooth mixed Hinglish">
                 <i data-lucide="sparkles" style="width:14px; height:14px;"></i> Explain in Hinglish
               </button>
               <button type="button" class="qb-voice-btn qb-voice-btn-interrupt" onclick="interruptVoiceTutor('${qId}')" id="btnInterrupt_${qId}" title="Pause &amp; ask a doubt" style="display:none;">
