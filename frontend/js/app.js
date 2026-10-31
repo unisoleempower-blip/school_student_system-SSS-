@@ -8707,143 +8707,14 @@ function speakWithBrowserWebSpeech(cleanText, onStart, onEnd) {
 }
 
 
-// 1. Read Question Statement Aloud
+// 1. Read Question Statement Aloud (Routed to Real-Time Voice Assistant)
 async function readQuestionAloud(qId) {
-  stopVoiceTutor(qId, false);
-  voiceTutorState.activeQuestionId = qId;
-  voiceTutorState.activeMode = 'READING';
-
-  const qObj = (state.qbFilteredQuestions || []).find(item => item.id === qId) || {};
-  const rawQ = qObj.question_latex || qObj.questionText || document.querySelector('.qb-question-statement')?.innerText || '';
-  const cleanQ = cleanLatexForClientVoice(rawQ);
-
-  const banner = document.getElementById(`voiceBanner_${qId}`);
-  const wave = document.getElementById(`voiceWave_${qId}`);
-  const drawer = document.getElementById(`voiceDrawer_${qId}`);
-  const badge = document.getElementById(`voiceStatusBadge_${qId}`);
-  const transcript = document.getElementById(`voiceTranscript_${qId}`);
-  const btnInterrupt = document.getElementById(`btnInterrupt_${qId}`);
-  const btnStop = document.getElementById(`btnStopVoice_${qId}`);
-
-  if (banner) banner.classList.add('speaking');
-  if (wave) wave.classList.add('active');
-  if (drawer) drawer.style.display = 'flex';
-  if (badge) badge.innerHTML = `<i data-lucide="volume-2" style="width:13px;height:13px;"></i> Reading Question Statement...`;
-  if (transcript) transcript.innerHTML = `<strong>Reading Question Aloud:</strong><p style="margin-top:6px; color:#e2e8f0;">${cleanQ}</p>`;
-  if (btnInterrupt) btnInterrupt.style.display = 'inline-flex';
-  if (btnStop) btnStop.style.display = 'inline-flex';
-  initLucideIcons();
-
-  speakWithVoiceEngine(
-    cleanQ,
-    'neerja',
-    null,
-    () => {
-      if (voiceTutorState.activeMode === 'READING') {
-        if (banner) banner.classList.remove('speaking');
-        if (wave) wave.classList.remove('active');
-        if (badge) badge.innerHTML = `<i data-lucide="check-circle" style="width:13px;height:13px;color:#34d399;"></i> Question Read Completed`;
-        initLucideIcons();
-      }
-    }
-  );
+  return startRealtimeVoiceAssistant(qId);
 }
 
-// 2. Explain in Hinglish (What to do briefing)
+// 2. Explain in Hinglish (Routed to Real-Time Voice Assistant)
 async function explainQuestionInHinglish(qId) {
-  stopVoiceTutor(qId, false);
-  voiceTutorState.activeQuestionId = qId;
-  voiceTutorState.activeMode = 'HINGLISH_EXPLAINING';
-
-  const qObj = (state.qbFilteredQuestions || []).find(item => item.id === qId) || {};
-  const rawQ = qObj.question_latex || qObj.questionText || '';
-
-  const banner = document.getElementById(`voiceBanner_${qId}`);
-  const wave = document.getElementById(`voiceWave_${qId}`);
-  const drawer = document.getElementById(`voiceDrawer_${qId}`);
-  const badge = document.getElementById(`voiceStatusBadge_${qId}`);
-  const transcript = document.getElementById(`voiceTranscript_${qId}`);
-  const btnInterrupt = document.getElementById(`btnInterrupt_${qId}`);
-  const btnStop = document.getElementById(`btnStopVoice_${qId}`);
-
-  if (banner) banner.classList.add('speaking');
-  if (wave) wave.classList.add('active');
-  if (drawer) drawer.style.display = 'flex';
-  if (badge) badge.innerHTML = `<i data-lucide="sparkles" style="width:13px;height:13px;"></i> Synthesizing Neural Hinglish Audio...`;
-  if (transcript) transcript.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;vertical-align:middle;"></i> AI Voice Teacher is preparing smooth audio explanation...`;
-  if (btnInterrupt) btnInterrupt.style.display = 'inline-flex';
-  if (btnStop) btnStop.style.display = 'inline-flex';
-  initLucideIcons();
-
-  let briefData = voiceTutorState.cachedBriefs[qId];
-
-  if (!briefData) {
-    try {
-      const res = await fetch(`${getApiBaseUrl()}/api/voice-tutor/explain`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          questionId: qId,
-          questionText: rawQ,
-          solutionText: qObj.solution_latex || '',
-          chapterName: qObj.chapter_name || qObj.chapter || '',
-          topic: qObj.topic || qObj.subtopic || '',
-          voice: voiceTutorState.selectedVoice || 'swara'
-        })
-      });
-      if (res.ok) {
-        const json = await res.json();
-        briefData = json.data;
-        voiceTutorState.cachedBriefs[qId] = briefData;
-      }
-    } catch (netErr) {
-      console.warn('[VOICE TUTOR] API call failed, generating locally:', netErr);
-    }
-  }
-
-  if (!briefData) {
-    briefData = {
-      hinglishBrief: "Namaste! Is question ko solve karne ke liye pehle given values aur required variable note karo. Phir core formula identify karke step by step solve karo. Units aur signs ka dhyan zaroor rakhein!",
-      firstStepFormula: "Apply Standard Governing Law",
-      pitfallTip: "Direct answer ke bajaye pehle formula statement zaroor likhein."
-    };
-  }
-
-  if (transcript) {
-    transcript.innerHTML = `
-      <div style="font-weight:700; color:#38bdf8; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
-        <span><i data-lucide="sparkles" style="width:14px;height:14px;vertical-align:middle;"></i> Hinglish Strategy Roadmap:</span>
-        <span style="font-size:0.7rem; color:#34d399; background:rgba(16,185,129,0.12); padding:2px 8px; border-radius:10px; border:1px solid rgba(16,185,129,0.3);">Studio Neural Audio</span>
-      </div>
-      <div style="font-size:0.96rem; color:#f8fafc; line-height:1.75; margin-bottom:10px;">
-        ${escapeHtml(briefData.hinglishBrief)}
-      </div>
-      <div style="background:rgba(14,165,233,0.12); border:1px dashed rgba(14,165,233,0.4); border-radius:6px; padding:8px 12px; font-size:0.86rem; color:#bae6fd; margin-bottom:6px;">
-        <strong>First Step Formula:</strong> ${renderLatexString(briefData.firstStepFormula)}
-      </div>
-      <div style="font-size:0.82rem; color:#fde68a;">
-        <strong>Watch Out:</strong> ${escapeHtml(briefData.pitfallTip)}
-      </div>
-    `;
-    initLucideIcons();
-  }
-
-  if (badge) badge.innerHTML = `<i data-lucide="headphones" style="width:13px;height:13px;"></i> Speaking Hinglish Guide (${voiceTutorState.selectedVoice === 'madhur' ? 'Madhur' : voiceTutorState.selectedVoice === 'neerja' ? 'Neerja' : 'Swara'})... Click 'Interrupt' anytime to ask doubt`;
-  initLucideIcons();
-
-  speakWithVoiceEngine(
-    briefData.hinglishBrief,
-    voiceTutorState.selectedVoice,
-    null,
-    () => {
-      if (voiceTutorState.activeMode === 'HINGLISH_EXPLAINING') {
-        if (banner) banner.classList.remove('speaking');
-        if (wave) wave.classList.remove('active');
-        if (badge) badge.innerHTML = `<i data-lucide="check-circle" style="width:13px;height:13px;color:#34d399;"></i> Explanation Complete &bull; Ask any doubts below`;
-        initLucideIcons();
-      }
-    }
-  );
+  return startRealtimeVoiceAssistant(qId);
 }
 
 // 3. Interrupt Voice Tutor & Ask Doubt
@@ -9084,16 +8955,7 @@ function closeVoiceDrawer(qId) {
 // Based on https://github.com/moktagithub005/real_time_voice_agent
 // ============================================================================
 
-async function startRealtimeVoiceAssistant(qId) {
-  // If already active on this question, clicking acts as stop
-  if (window.geminiLiveVoiceTutor && window.geminiLiveVoiceTutor.isSessionActive() && window.geminiLiveVoiceTutor.getActiveQuestionId() === qId) {
-    stopRealtimeVoiceAssistant(qId);
-    return;
-  }
-
-  // Stop any other single-turn playback
-  stopVoiceTutor(qId, false);
-
+function attachLiveVoiceCallbacks(qId) {
   const banner = document.getElementById(`voiceBanner_${qId}`);
   const wave = document.getElementById(`voiceWave_${qId}`);
   const badge = document.getElementById(`voiceStatusBadge_${qId}`);
@@ -9103,8 +8965,167 @@ async function startRealtimeVoiceAssistant(qId) {
   const btnStop = document.getElementById(`btnStopVoice_${qId}`);
   const liveVisualizer = document.getElementById(`voiceLiveVisualizer_${qId}`);
   const liveHint = document.getElementById(`voiceLiveHint_${qId}`);
-  const micMeter = document.getElementById(`micMeter_${qId}`);
-  const tutorMeter = document.getElementById(`tutorMeter_${qId}`);
+
+  if (drawer) drawer.style.display = 'flex';
+  if (liveVisualizer) liveVisualizer.style.display = 'flex';
+  if (liveHint) liveHint.style.display = 'flex';
+  if (btnStop) btnStop.style.display = 'inline-flex';
+
+  if (btnLive) {
+    btnLive.classList.add('live-active');
+    btnLive.innerHTML = `<span class="qb-live-pulsing-dot" style="background:#ef4444; box-shadow:0 0 8px #ef4444;"></span> <i data-lucide="phone-off" style="width:13px; height:13px;"></i> End Live Call`;
+  }
+  if (badge) {
+    badge.innerHTML = `<span class="qb-live-pulsing-dot"></span> <span style="color:#34d399; font-weight:800;">Gemini Live Active &bull; Speak anytime to interrupt</span>`;
+  }
+  if (banner) banner.classList.add('speaking');
+  if (wave) wave.classList.add('active');
+
+  if (transcript && !document.getElementById(`liveChatStream_${qId}`)) {
+    transcript.innerHTML = `
+      <div style="font-size:0.84rem; color:#94a3b8; font-style:italic; padding:6px 0; display:flex; align-items:center; gap:8px;">
+        <i data-lucide="radio" style="width:14px; height:14px; color:#38bdf8;"></i> Full-duplex WebSocket stream active (16kHz mic ingest & 24kHz neural audio egress).
+      </div>
+      <div id="liveChatStream_${qId}" class="qb-live-chat-stream"></div>
+    `;
+
+    // Populate existing session transcript history if any
+    const stream = document.getElementById(`liveChatStream_${qId}`);
+    if (stream && voiceTutorState.liveTranscriptHistory && voiceTutorState.liveTranscriptHistory.length > 0) {
+      voiceTutorState.liveTranscriptHistory.forEach(item => {
+        const bubble = document.createElement('div');
+        bubble.className = item.role === 'student' ? 'qb-live-bubble-student' : 'qb-live-bubble-tutor';
+        const speakerLabel = item.role === 'student' ? 'Student (You)' : 'Voice Teacher';
+        bubble.innerHTML = `<strong>${speakerLabel}:</strong> ${escapeHtml(item.text)}`;
+        stream.appendChild(bubble);
+      });
+      stream.scrollTop = stream.scrollHeight;
+    }
+  }
+
+  initLucideIcons();
+
+  window.geminiLiveVoiceTutor.setCallbacks({
+    onStatusChange: (status) => {
+      const curBadge = document.getElementById(`voiceStatusBadge_${qId}`);
+      const curBanner = document.getElementById(`voiceBanner_${qId}`);
+      const curWave = document.getElementById(`voiceWave_${qId}`);
+      if (status === 'CONNECTED') {
+        if (curBadge) {
+          curBadge.innerHTML = `<span class="qb-live-pulsing-dot"></span> <span style="color:#34d399; font-weight:800;">Gemini Live Active &bull; Speak anytime to interrupt</span>`;
+        }
+        if (curBanner) curBanner.classList.add('speaking');
+        if (curWave) curWave.classList.add('active');
+        initLucideIcons();
+      } else if (status === 'DISCONNECTED') {
+        stopRealtimeVoiceAssistant(qId, false);
+      }
+    },
+    onTranscript: ({ role, text, isInterim }) => {
+      const stream = document.getElementById(`liveChatStream_${qId}`);
+      if (!stream) return;
+
+      let targetBubble = document.getElementById(`bubble_${qId}_${role}_current`);
+      if (!targetBubble) {
+        targetBubble = document.createElement('div');
+        targetBubble.id = `bubble_${qId}_${role}_current`;
+        targetBubble.className = role === 'student' ? 'qb-live-bubble-student' : 'qb-live-bubble-tutor';
+        stream.appendChild(targetBubble);
+      }
+
+      const speakerLabel = role === 'student' ? 'Student (You)' : 'Voice Teacher';
+      targetBubble.innerHTML = `<strong>${speakerLabel}:</strong> ${escapeHtml(text)}${isInterim ? ' <span style="opacity:0.6;">...</span>' : ''}`;
+      stream.scrollTop = stream.scrollHeight;
+    },
+    onTurnComplete: (turn) => {
+      const studentBubble = document.getElementById(`bubble_${qId}_student_current`);
+      if (studentBubble) studentBubble.removeAttribute('id');
+      const tutorBubble = document.getElementById(`bubble_${qId}_tutor_current`);
+      if (tutorBubble) tutorBubble.removeAttribute('id');
+
+      if (!voiceTutorState.liveTranscriptHistory) voiceTutorState.liveTranscriptHistory = [];
+      if (turn.studentText) voiceTutorState.liveTranscriptHistory.push({ role: 'student', text: turn.studentText });
+      if (turn.tutorText) voiceTutorState.liveTranscriptHistory.push({ role: 'tutor', text: turn.tutorText });
+    },
+    onInterrupted: () => {
+      const curBanner = document.getElementById(`voiceBanner_${qId}`);
+      const curBadge = document.getElementById(`voiceStatusBadge_${qId}`);
+      if (curBanner) {
+        curBanner.classList.remove('speaking');
+        curBanner.classList.add('listening');
+      }
+      if (curBadge) {
+        curBadge.innerHTML = `<span class="qb-live-pulsing-dot" style="background:#f43f5e; box-shadow:0 0 8px #f43f5e;"></span> <span style="color:#fb7185; font-weight:800;">Auto-Interrupted! Listening to your voice...</span>`;
+      }
+      initLucideIcons();
+    },
+    onAudioLevel: (micLevel, tutorLevel) => {
+      const mFill = document.getElementById(`micMeter_${qId}`);
+      const tFill = document.getElementById(`tutorMeter_${qId}`);
+      const curBanner = document.getElementById(`voiceBanner_${qId}`);
+      if (mFill) mFill.style.width = `${Math.min(100, Math.round(micLevel * 100))}%`;
+      if (tFill) tFill.style.width = `${Math.min(100, Math.round(tutorLevel * 100))}%`;
+      if (micLevel > 0.15) {
+        if (curBanner) curBanner.classList.add('listening');
+      } else if (tutorLevel > 0.08) {
+        if (curBanner) {
+          curBanner.classList.remove('listening');
+          curBanner.classList.add('speaking');
+        }
+      }
+    },
+    onError: (err) => {
+      console.error('[GEMINI LIVE ERROR]', err);
+      const curBadge = document.getElementById(`voiceStatusBadge_${qId}`);
+      if (curBadge) {
+        curBadge.innerHTML = `<i data-lucide="alert-circle" style="width:13px;height:13px;color:#f43f5e;"></i> Live Session Error: ${escapeHtml(err.message || 'Connection lost')}`;
+      }
+      initLucideIcons();
+    }
+  });
+}
+
+function syncLiveVoiceAssistantToCurrentQuestion() {
+  if (!window.geminiLiveVoiceTutor || !window.geminiLiveVoiceTutor.isSessionActive()) return;
+  const filtered = state.qbFilteredQuestions || [];
+  const qObj = filtered[state.qbCurrentPage] || {};
+  const qId = qObj.id || `q_${state.qbCurrentPage}`;
+  const rawQ = qObj.question_latex || qObj.questionText || '';
+  const rawS = qObj.solution_latex || '';
+  const ch = qObj.chapter_name || qObj.chapter || '';
+  const top = qObj.topic || qObj.subtopic || '';
+
+  // Wire UI for the new question
+  attachLiveVoiceCallbacks(qId);
+
+  // Send new question turn to active Gemini Live session
+  window.geminiLiveVoiceTutor.switchToQuestion({
+    questionId: qId,
+    questionText: rawQ,
+    solutionText: rawS,
+    chapterName: ch,
+    topic: top
+  });
+}
+
+async function startRealtimeVoiceAssistant(qId) {
+  // If already active on this question, clicking acts as stop
+  if (window.geminiLiveVoiceTutor && window.geminiLiveVoiceTutor.isSessionActive() && window.geminiLiveVoiceTutor.getActiveQuestionId() === qId) {
+    stopRealtimeVoiceAssistant(qId);
+    return;
+  }
+
+  // Reset transcript history for a fresh call
+  voiceTutorState.liveTranscriptHistory = [];
+
+  const banner = document.getElementById(`voiceBanner_${qId}`);
+  const badge = document.getElementById(`voiceStatusBadge_${qId}`);
+  const drawer = document.getElementById(`voiceDrawer_${qId}`);
+  const transcript = document.getElementById(`voiceTranscript_${qId}`);
+  const btnLive = document.getElementById(`btnLiveVoice_${qId}`);
+  const btnStop = document.getElementById(`btnStopVoice_${qId}`);
+  const liveVisualizer = document.getElementById(`voiceLiveVisualizer_${qId}`);
+  const liveHint = document.getElementById(`voiceLiveHint_${qId}`);
 
   // Retrieve Question data
   const qObj = (state.qbFilteredQuestions || []).find(item => item.id === qId) || {};
@@ -9135,6 +9156,8 @@ async function startRealtimeVoiceAssistant(qId) {
   }
   initLucideIcons();
 
+  attachLiveVoiceCallbacks(qId);
+
   try {
     await window.geminiLiveVoiceTutor.startSession({
       questionId: qId,
@@ -9142,79 +9165,12 @@ async function startRealtimeVoiceAssistant(qId) {
       solutionText: rawS,
       chapterName: ch,
       topic: top,
-      apiBaseUrl: getApiBaseUrl(),
-      callbacks: {
-        onStatusChange: (status) => {
-          if (status === 'CONNECTED') {
-            if (badge) {
-              badge.innerHTML = `<span class="qb-live-pulsing-dot"></span> <span style="color:#34d399; font-weight:800;">Gemini Live Active &bull; Speak anytime to interrupt</span>`;
-            }
-            if (banner) banner.classList.add('speaking');
-            if (wave) wave.classList.add('active');
-            initLucideIcons();
-          } else if (status === 'DISCONNECTED') {
-            stopRealtimeVoiceAssistant(qId, false);
-          }
-        },
-        onTranscript: ({ role, text, isInterim }) => {
-          const stream = document.getElementById(`liveChatStream_${qId}`);
-          if (!stream) return;
-
-          let targetBubble = document.getElementById(`bubble_${qId}_${role}_current`);
-          if (!targetBubble) {
-            targetBubble = document.createElement('div');
-            targetBubble.id = `bubble_${qId}_${role}_current`;
-            targetBubble.className = role === 'student' ? 'qb-live-bubble-student' : 'qb-live-bubble-tutor';
-            stream.appendChild(targetBubble);
-          }
-
-          const speakerLabel = role === 'student' ? 'Student (You)' : 'Voice Teacher';
-          targetBubble.innerHTML = `<strong>${speakerLabel}:</strong> ${escapeHtml(text)}${isInterim ? ' <span style="opacity:0.6;">...</span>' : ''}`;
-          stream.scrollTop = stream.scrollHeight;
-        },
-        onTurnComplete: () => {
-          const studentBubble = document.getElementById(`bubble_${qId}_student_current`);
-          if (studentBubble) studentBubble.removeAttribute('id');
-          const tutorBubble = document.getElementById(`bubble_${qId}_tutor_current`);
-          if (tutorBubble) tutorBubble.removeAttribute('id');
-        },
-        onInterrupted: () => {
-          if (banner) {
-            banner.classList.remove('speaking');
-            banner.classList.add('listening');
-          }
-          if (badge) {
-            badge.innerHTML = `<span class="qb-live-pulsing-dot" style="background:#f43f5e; box-shadow:0 0 8px #f43f5e;"></span> <span style="color:#fb7185; font-weight:800;">Auto-Interrupted! Listening to your voice...</span>`;
-          }
-          initLucideIcons();
-        },
-        onAudioLevel: (micLevel, tutorLevel) => {
-          const mFill = document.getElementById(`micMeter_${qId}`);
-          const tFill = document.getElementById(`tutorMeter_${qId}`);
-          if (mFill) mFill.style.width = `${Math.min(100, Math.round(micLevel * 100))}%`;
-          if (tFill) tFill.style.width = `${Math.min(100, Math.round(tutorLevel * 100))}%`;
-          if (micLevel > 0.15) {
-            if (banner) banner.classList.add('listening');
-          } else if (tutorLevel > 0.08) {
-            if (banner) {
-              banner.classList.remove('listening');
-              banner.classList.add('speaking');
-            }
-          }
-        },
-        onError: (err) => {
-          console.error('[GEMINI LIVE ERROR]', err);
-          if (badge) {
-            badge.innerHTML = `<i data-lucide="alert-circle" style="width:13px;height:13px;color:#f43f5e;"></i> Live Session Error: ${escapeHtml(err.message || 'Connection lost')}`;
-          }
-          initLucideIcons();
-        }
-      }
+      apiBaseUrl: getApiBaseUrl()
     });
   } catch (err) {
     console.error('Failed to start Gemini Live voice assistant:', err);
     if (badge) {
-      badge.innerHTML = `<i data-lucide="alert-triangle" style="width:13px;height:13px;color:#f43f5e;"></i> Live session setup failed. Use "Explain in Hinglish" for Neural Audio.`;
+      badge.innerHTML = `<i data-lucide="alert-triangle" style="width:13px;height:13px;color:#f43f5e;"></i> Live session setup failed: ${escapeHtml(err.message || 'Microphone or network error')}`;
     }
     if (btnLive) {
       btnLive.classList.remove('live-active');
@@ -9561,13 +9517,13 @@ function renderQbCurrentPage() {
           </div>
         </div>
 
-        <!-- AI VOICE TUTOR & HINGLISH EXPLANATION BAR -->
+        <!-- AI REAL-TIME LIVE VOICE ASSISTANT BAR -->
         <div class="qb-voice-tutor-banner" id="voiceBanner_${qId}">
           <div class="qb-voice-header-row">
             <div class="qb-voice-brand">
-              <i data-lucide="headphones" style="width:17px; height:17px; color:#38bdf8;"></i>
-              <span>AI Voice Tutor &bull; Hinglish Guide</span>
-              <span class="qb-voice-badge-neural"><i data-lucide="sparkles" style="width:11px; height:11px;"></i> Human Neural HD</span>
+              <i data-lucide="radio" style="width:17px; height:17px; color:#38bdf8;"></i>
+              <span>Real-Time Voice Assistant &bull; Gemini Live</span>
+              <span class="qb-voice-badge-neural"><i data-lucide="sparkles" style="width:11px; height:11px;"></i> Full-Duplex</span>
               <div class="qb-voice-wave" id="voiceWave_${qId}">
                 <div class="qb-voice-wave-bar"></div>
                 <div class="qb-voice-wave-bar"></div>
@@ -9577,28 +9533,13 @@ function renderQbCurrentPage() {
               </div>
             </div>
             <div class="qb-voice-actions-row">
-              <select class="qb-voice-persona-select" onchange="setVoiceTutorPersona('${qId}', this.value)" title="Choose Voice Teacher Accent">
-                <option value="swara" ${voiceTutorState.selectedVoice === 'swara' ? 'selected' : ''}>Swara (Warm Hinglish)</option>
-                <option value="madhur" ${voiceTutorState.selectedVoice === 'madhur' ? 'selected' : ''}>Madhur (Clear Hinglish)</option>
-                <option value="neerja" ${voiceTutorState.selectedVoice === 'neerja' ? 'selected' : ''}>Neerja (Indian English)</option>
-                <option value="prabhat" ${voiceTutorState.selectedVoice === 'prabhat' ? 'selected' : ''}>Prabhat (Indian English)</option>
-              </select>
-              <button type="button" class="qb-voice-btn qb-voice-btn-live" onclick="startRealtimeVoiceAssistant('${qId}')" id="btnLiveVoice_${qId}" title="Start real-time full-duplex conversational voice tutor with instant auto-interruption">
+              <button type="button" class="qb-voice-btn qb-voice-btn-live" onclick="startRealtimeVoiceAssistant('${qId}')" id="btnLiveVoice_${qId}" title="Start real-time full-duplex conversational voice assistant with instant auto-interruption">
                 <span class="qb-live-pulsing-dot"></span>
                 <i data-lucide="radio" style="width:13px; height:13px;"></i> Live Voice Assistant
                 <span class="qb-live-tag">LIVE</span>
               </button>
-              <button type="button" class="qb-voice-btn qb-voice-btn-read" onclick="readQuestionAloud('${qId}')" id="btnReadQ_${qId}" title="Read question statement aloud in natural human voice">
-                <i data-lucide="volume-2" style="width:14px; height:14px;"></i> Read Question
-              </button>
-              <button type="button" class="qb-voice-btn qb-voice-btn-hinglish" onclick="explainQuestionInHinglish('${qId}')" id="btnExplainHinglish_${qId}" title="Explain what to do in smooth mixed Hinglish">
-                <i data-lucide="sparkles" style="width:14px; height:14px;"></i> Explain in Hinglish
-              </button>
-              <button type="button" class="qb-voice-btn qb-voice-btn-interrupt" onclick="interruptVoiceTutor('${qId}')" id="btnInterrupt_${qId}" title="Pause &amp; ask a doubt" style="display:none;">
-                <i data-lucide="hand" style="width:14px; height:14px;"></i> Interrupt / Ask Doubt
-              </button>
-              <button type="button" class="qb-voice-btn qb-voice-btn-stop" onclick="stopRealtimeVoiceAssistant('${qId}', true); stopVoiceTutor('${qId}');" id="btnStopVoice_${qId}" title="Stop audio playback or live call" style="display:none;">
-                <i data-lucide="square" style="width:12px; height:12px;"></i> Stop
+              <button type="button" class="qb-voice-btn qb-voice-btn-stop" onclick="stopRealtimeVoiceAssistant('${qId}', true);" id="btnStopVoice_${qId}" title="End live call" style="display:none;">
+                <i data-lucide="phone-off" style="width:12px; height:12px;"></i> End Call
               </button>
             </div>
           </div>
@@ -9720,15 +9661,22 @@ function renderQbCurrentPage() {
   `;
 
   initLucideIcons();
+  if (window.geminiLiveVoiceTutor && window.geminiLiveVoiceTutor.isSessionActive()) {
+    attachLiveVoiceCallbacks(qId);
+  }
 }
 
 function nextQbQuestion() {
-  if (typeof stopVoiceTutor === 'function') stopVoiceTutor();
+  const isLive = window.geminiLiveVoiceTutor && window.geminiLiveVoiceTutor.isSessionActive();
+  if (!isLive && typeof stopVoiceTutor === 'function') stopVoiceTutor();
   const total = state.qbFilteredQuestions?.length || 0;
   if (state.qbCurrentPage < total - 1) {
     state.qbCurrentPage++;
     state.qbSolutionRevealed = false;
     renderQbCurrentPage();
+    if (isLive) {
+      syncLiveVoiceAssistantToCurrentQuestion();
+    }
     const tab = document.getElementById('tabQuestionBank');
     if (tab) {
       window.scrollTo({ top: tab.offsetTop - 20, behavior: 'smooth' });
@@ -9737,12 +9685,16 @@ function nextQbQuestion() {
 }
 
 function prevQbQuestion() {
-  if (typeof stopVoiceTutor === 'function') stopVoiceTutor();
+  const isLive = window.geminiLiveVoiceTutor && window.geminiLiveVoiceTutor.isSessionActive();
+  if (!isLive && typeof stopVoiceTutor === 'function') stopVoiceTutor();
   const total = state.qbFilteredQuestions?.length || 0;
   if (state.qbCurrentPage > 0) {
     state.qbCurrentPage--;
     state.qbSolutionRevealed = false;
     renderQbCurrentPage();
+    if (isLive) {
+      syncLiveVoiceAssistantToCurrentQuestion();
+    }
     const tab = document.getElementById('tabQuestionBank');
     if (tab) {
       window.scrollTo({ top: tab.offsetTop - 20, behavior: 'smooth' });
@@ -9751,12 +9703,16 @@ function prevQbQuestion() {
 }
 
 function setQbQuestionIndex(idx) {
-  if (typeof stopVoiceTutor === 'function') stopVoiceTutor();
+  const isLive = window.geminiLiveVoiceTutor && window.geminiLiveVoiceTutor.isSessionActive();
+  if (!isLive && typeof stopVoiceTutor === 'function') stopVoiceTutor();
   const total = state.qbFilteredQuestions?.length || 0;
   if (total === 0) return;
   state.qbCurrentPage = Math.max(0, Math.min(idx, total - 1));
   state.qbSolutionRevealed = false;
   renderQbCurrentPage();
+  if (isLive) {
+    syncLiveVoiceAssistantToCurrentQuestion();
+  }
   const tab = document.getElementById('tabQuestionBank');
   if (tab) {
     window.scrollTo({ top: tab.offsetTop - 20, behavior: 'smooth' });

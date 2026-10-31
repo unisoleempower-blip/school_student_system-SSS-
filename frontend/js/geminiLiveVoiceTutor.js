@@ -2,11 +2,11 @@
  * ============================================================================
  * UNISOLE AI SCHOOL - REAL-TIME FULL-DUPLEX VOICE ASSISTANT ENGINE
  * Powered by Google Gemini Multimodal Live API (WebSockets)
- * Based on https://github.com/moktagithub005/real_time_voice_agent
  * Features:
- *  - Full-Duplex 16kHz PCM Ingest & 24kHz PCM Egress
+ *  - Full-Duplex Universal 16kHz PCM Ingest (Auto-Resampled) & 24kHz PCM Egress
  *  - Instant Hands-Free Natural Interruption via Server-Side VAD
- *  - Real-time Bidirectional Streaming Transcription
+ *  - Sub-2s Turnaround with Zero Thinking Budget Constraint
+ *  - Continuous Multi-Question Navigation (Maintains Live Session on Switch)
  *  - Live Mic & Speaker Waveform Audio Visualizers
  * ============================================================================
  */
@@ -32,18 +32,51 @@
     return new Uint8Array(output.buffer);
   }
 
+  // Universal high-quality linear downsampler to 16000Hz PCM
+  function downsampleTo16000(inputSamples, inputSampleRate) {
+    if (!inputSamples || inputSamples.length === 0) return new Float32Array(0);
+    if (inputSampleRate === 16000) return inputSamples;
+    const ratio = inputSampleRate / 16000;
+    const newLength = Math.round(inputSamples.length / ratio);
+    const result = new Float32Array(newLength);
+    let offsetResult = 0;
+    let offsetInput = 0;
+    while (offsetResult < result.length) {
+      const nextOffsetInput = Math.round((offsetResult + 1) * ratio);
+      let accum = 0;
+      let count = 0;
+      for (let i = offsetInput; i < nextOffsetInput && i < inputSamples.length; i++) {
+        accum += inputSamples[i];
+        count++;
+      }
+      result[offsetResult] = count > 0 ? (accum / count) : 0;
+      offsetResult++;
+      offsetInput = nextOffsetInput;
+    }
+    return result;
+  }
+
   async function parseSocketMessage(data) {
-    const text = typeof data === 'string' ? data : await data.text();
-    return JSON.parse(text);
+    if (typeof data === 'string') return JSON.parse(data);
+    if (data instanceof Blob) {
+      const text = await data.text();
+      return JSON.parse(text);
+    }
+    if (data instanceof ArrayBuffer) {
+      const text = new TextDecoder().decode(data);
+      return JSON.parse(text);
+    }
+    return JSON.parse(data.toString());
   }
 
   class GeminiLiveVoiceTutorEngine {
     constructor() {
       this.socket = null;
-      this.inputContext = null;
+      this.audioContext = null;
       this.inputStream = null;
+      this.mediaStreamSource = null;
       this.processor = null;
-      this.outputContext = null;
+      this.muteGain = null;
       this.outputGain = null;
       this.inputAnalyser = null;
       this.outputAnalyser = null;
@@ -51,6 +84,7 @@
       this.scheduledEnd = 0;
       this.status = 'DISCONNECTED'; // DISCONNECTED, CONNECTING, CONNECTED
       this.activeQuestionId = null;
+      this.activeQuestionData = null;
       this.callbacks = {};
       this.levelAnimationId = null;
       this.isStreamingVoice = false;
@@ -59,6 +93,8 @@
 
       this.currentInputText = '';
       this.currentOutputText = '';
+      this._setupResolve = null;
+      this._setupReject = null;
     }
 
     getStatus() {
@@ -73,6 +109,10 @@
       return this.status === 'CONNECTED' || this.status === 'CONNECTING';
     }
 
+    setCallbacks(callbacks = {}) {
+      this.callbacks = Object.assign({}, this.callbacks, callbacks);
+    }
+
     stopPlayback() {
       for (const source of this.sources) {
         try {
@@ -82,8 +122,8 @@
         }
       }
       this.sources = [];
-      if (this.outputContext) {
-        this.scheduledEnd = this.outputContext.currentTime;
+      if (this.audioContext) {
+        this.scheduledEnd = this.audioContext.currentTime;
       }
       if (this.callbacks.onInterrupted) {
         this.callbacks.onInterrupted();
@@ -91,7 +131,7 @@
     }
 
     playAudioChunk(base64Audio) {
-      if (!this.outputContext || !this.outputGain) return;
+      if (!this.audioContext || !this.outputGain) return;
       try {
         const binary = atob(base64Audio);
         const pcm = new Int16Array(binary.length / 2);
@@ -99,17 +139,18 @@
           pcm[i] = binary.charCodeAt(i * 2) | (binary.charCodeAt(i * 2 + 1) << 8);
         }
 
-        const audioBuffer = this.outputContext.createBuffer(1, pcm.length, 24000);
+        // Gemini egress rate is 24000Hz PCM
+        const audioBuffer = this.audioContext.createBuffer(1, pcm.length, 24000);
         const channel = audioBuffer.getChannelData(0);
         for (let i = 0; i < pcm.length; i++) {
           channel[i] = pcm[i] / 0x8000;
         }
 
-        const source = this.outputContext.createBufferSource();
+        const source = this.audioContext.createBufferSource();
         source.buffer = audioBuffer;
         source.connect(this.outputGain);
 
-        const startAt = Math.max(this.outputContext.currentTime, this.scheduledEnd);
+        const startAt = Math.max(this.audioContext.currentTime, this.scheduledEnd);
         source.start(startAt);
         this.scheduledEnd = startAt + audioBuffer.duration;
         this.sources.push(source);
@@ -123,12 +164,33 @@
     }
 
     handleServerMessage(message) {
+      if (message.setupComplete) {
+        console.log('[GEMINI LIVE] Setup handshake confirmed by server.');
+        if (this._setupResolve) {
+          this._setupResolve();
+          this._setupResolve = null;
+        }
+        return;
+      }
+
+      if (message.error) {
+        console.error('[GEMINI LIVE] Server error message:', message.error);
+        if (this._setupReject) {
+          this._setupReject(new Error(message.error.message || 'Gemini Live setup rejected'));
+          this._setupReject = null;
+        }
+        if (this.callbacks.onError) {
+          this.callbacks.onError(new Error(message.error.message || 'Gemini error'));
+        }
+        return;
+      }
+
       const content = message.serverContent;
       if (!content) return;
 
       // Real-time server-side voice activity interruption
       if (content.interrupted) {
-        console.log('[GEMINI LIVE] Interruption detected! Halting playing audio immediately.');
+        console.log('[GEMINI LIVE] Interruption detected! Pausing tutor playback.');
         this.stopPlayback();
       }
 
@@ -192,6 +254,7 @@
       }
 
       this.activeQuestionId = questionId;
+      this.activeQuestionData = { questionId, questionText, solutionText, chapterName, topic };
       this.callbacks = callbacks;
       this.status = 'CONNECTING';
       if (this.callbacks.onStatusChange) this.callbacks.onStatusChange('CONNECTING');
@@ -211,110 +274,23 @@
         const { token, model, wsUrl } = await tokenRes.json();
         const liveWsUrl = wsUrl || `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=${encodeURIComponent(token)}`;
 
-        // 2. Open WebSocket
-        const socket = new WebSocket(liveWsUrl);
-        this.socket = socket;
-
-        await new Promise((resolve, reject) => {
-          const timeout = window.setTimeout(() => reject(new Error('Timed out opening Gemini Live WebSocket')), 10000);
-          socket.onopen = () => {
-            window.clearTimeout(timeout);
-            resolve();
-          };
-          socket.onerror = (e) => {
-            window.clearTimeout(timeout);
-            reject(new Error('Gemini Live WebSocket connection failed'));
-          };
-          socket.onclose = (e) => {
-            window.clearTimeout(timeout);
-            reject(new Error(`Gemini Live closed unexpectedly (${e.code})`));
-          };
-        });
-
-        // 3. Audio Output Setup (24kHz destination)
+        // 2. Setup Unified AudioContext (Native hardware rate to avoid sample rate mismatch)
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        this.outputContext = new AudioCtx({ latencyHint: 'interactive' });
-        this.outputGain = this.outputContext.createGain();
-        this.outputAnalyser = this.outputContext.createAnalyser();
+        if (!this.audioContext || this.audioContext.state === 'closed') {
+          this.audioContext = new AudioCtx({ latencyHint: 'interactive' });
+        }
+        if (this.audioContext.state === 'suspended') {
+          await this.audioContext.resume();
+        }
+
+        // Setup Output Nodes
+        this.outputGain = this.audioContext.createGain();
+        this.outputAnalyser = this.audioContext.createAnalyser();
         this.outputAnalyser.fftSize = 256;
         this.outputGain.connect(this.outputAnalyser);
-        this.outputAnalyser.connect(this.outputContext.destination);
-        await this.outputContext.resume();
+        this.outputAnalyser.connect(this.audioContext.destination);
 
-        // 4. Send Initial Setup Message
-        const cleanQ = questionText.replace(/\$+/g, '').replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1 over $2');
-        const cleanS = solutionText ? solutionText.replace(/\$+/g, '') : '';
-        const systemPrompt = `You are a premier Indian school faculty mentor (like top Delhi/Kota faculty) explaining this question in warm, lively, natural Hinglish.
-Question: ${cleanQ}
-${cleanS ? `Solution steps: ${cleanS}` : ''}
-${chapterName ? `Chapter: ${chapterName}` : ''} ${topic ? `| Topic: ${topic}` : ''}
-
-Pedagogical Rules:
-1. Speak in smooth, natural, friendly conversational Hinglish (using terms like 'beta', 'dhyan se dekho', 'pehla step', 'concept samjho').
-2. Start by warmly greeting the student and briefly introducing how to approach this question in 2-3 clear, logical steps.
-3. This is a real-time full-duplex session. Whenever the student speaks or asks a doubt, pause immediately and answer their specific doubt warmly before moving on.
-4. Keep spoken explanations concise, crisp, and pedagogical.`;
-
-        const setupMsg = {
-          setup: {
-            model: model || 'models/gemini-2.5-flash-native-audio-latest',
-            generationConfig: {
-              responseModalities: ['AUDIO'],
-              speechConfig: {
-                voiceConfig: {
-                  prebuiltVoiceConfig: {
-                    voiceName: 'Puck'
-                  }
-                }
-              },
-              thinkingConfig: {
-                thinkingBudget: 0
-              }
-            },
-            systemInstruction: {
-              parts: [{ text: systemPrompt }]
-            },
-            inputAudioTranscription: {},
-            outputAudioTranscription: {},
-            realtimeInputConfig: {
-              automaticActivityDetection: {
-                disabled: false,
-                prefixPaddingMs: 100,
-                silenceDurationMs: 350
-              },
-              activityHandling: 'START_OF_ACTIVITY_INTERRUPTS'
-            }
-          }
-        };
-
-        socket.send(JSON.stringify(setupMsg));
-
-        // 5. Await setupComplete handshake
-        await new Promise((resolve, reject) => {
-          const timeout = window.setTimeout(() => reject(new Error('Timed out waiting for Gemini setup handshake')), 10000);
-          const onMessage = async (event) => {
-            const msg = await parseSocketMessage(event.data);
-            if (msg.setupComplete) {
-              window.clearTimeout(timeout);
-              socket.removeEventListener('message', onMessage);
-              resolve();
-            } else if (msg.error) {
-              window.clearTimeout(timeout);
-              socket.removeEventListener('message', onMessage);
-              reject(new Error(msg.error.message || 'Gemini setup rejected'));
-            }
-          };
-          socket.addEventListener('message', onMessage);
-          socket.addEventListener('close', () => {
-            window.clearTimeout(timeout);
-            socket.removeEventListener('message', onMessage);
-            reject(new Error('WebSocket closed during setup'));
-          }, { once: true });
-        });
-
-        // 6. Microphone Input Setup (16kHz PCM stream)
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        this.inputContext = new AudioCtx({ sampleRate: 16000, latencyHint: 'interactive' });
+        // Setup Microphone Stream
         this.inputStream = await navigator.mediaDevices.getUserMedia({
           audio: {
             channelCount: 1,
@@ -324,30 +300,41 @@ Pedagogical Rules:
           }
         });
 
-        const micSource = this.inputContext.createMediaStreamSource(this.inputStream);
-        this.inputAnalyser = this.inputContext.createAnalyser();
+        this.mediaStreamSource = this.audioContext.createMediaStreamSource(this.inputStream);
+        this.inputAnalyser = this.audioContext.createAnalyser();
         this.inputAnalyser.fftSize = 256;
-        micSource.connect(this.inputAnalyser);
+        this.mediaStreamSource.connect(this.inputAnalyser);
 
-        this.processor = this.inputContext.createScriptProcessor(2048, 1, 1);
+        // Setup Audio Processor
+        this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
+        this.mediaStreamSource.connect(this.processor);
+
+        // Connect processor to zero-gain mute node to ensure continuous execution without feedback
+        this.muteGain = this.audioContext.createGain();
+        this.muteGain.gain.value = 0;
+        this.processor.connect(this.muteGain);
+        this.muteGain.connect(this.audioContext.destination);
+
         this.isStreamingVoice = false;
         this.lastVoiceAt = 0;
         this.preAudioBuffer = [];
 
         this.processor.onaudioprocess = (event) => {
           if (this.socket?.readyState !== WebSocket.OPEN) return;
-          const samples = event.inputBuffer.getChannelData(0);
+          const rawSamples = event.inputBuffer.getChannelData(0);
 
-          // Audio energy check for client VAD
+          // Audio energy check for client VAD on raw input
           let energy = 0;
-          for (let i = 0; i < samples.length; i++) {
-            energy += samples[i] * samples[i];
+          for (let i = 0; i < rawSamples.length; i++) {
+            energy += rawSamples[i] * rawSamples[i];
           }
-          const rms = Math.sqrt(energy / samples.length);
-          const isVoice = rms > 0.018;
+          const rms = Math.sqrt(energy / rawSamples.length);
+          const isVoice = rms > 0.016;
           const now = performance.now();
 
-          const pcmBytes = floatToPcm16(samples);
+          // Resample to 16000Hz PCM for Gemini Live
+          const samples16k = downsampleTo16000(rawSamples, this.audioContext.sampleRate);
+          const pcmBytes = floatToPcm16(samples16k);
           const base64Chunk = bytesToBase64(pcmBytes);
 
           if (isVoice) {
@@ -404,10 +391,85 @@ Pedagogical Rules:
           }
         };
 
-        micSource.connect(this.processor);
-        this.processor.connect(this.inputContext.destination);
+        // 3. Open WebSocket
+        const socket = new WebSocket(liveWsUrl);
+        this.socket = socket;
 
-        // 7. Visualizer level reporting loop
+        const setupPromise = new Promise((resolve, reject) => {
+          this._setupResolve = resolve;
+          this._setupReject = reject;
+        });
+
+        socket.onopen = () => {
+          console.log('[GEMINI LIVE] WebSocket opened, dispatching setup configuration...');
+          const systemPrompt = `You are a premier Indian school faculty mentor (like top Delhi/Kota faculty) explaining school syllabus questions in warm, lively, natural Hinglish.
+Pedagogical Rules:
+1. Speak in smooth, natural, friendly conversational Hinglish (using terms like 'beta', 'dhyan se dekho', 'pehla step', 'concept samjho').
+2. When the student presents a question, warmly acknowledge it and immediately explain how to approach and solve this question in 2-3 clear, logical steps.
+3. This is a real-time full-duplex session. Whenever the student speaks or asks a doubt, pause immediately and answer their specific doubt warmly before moving on.
+4. When the student switches to a new question, warmly transition and explain the new question.
+5. Keep spoken explanations concise, crisp, and pedagogical.`;
+
+          const setupMsg = {
+            setup: {
+              model: model || 'models/gemini-2.5-flash-native-audio-latest',
+              generationConfig: {
+                responseModalities: ['AUDIO'],
+                speechConfig: {
+                  voiceConfig: {
+                    prebuiltVoiceConfig: {
+                      voiceName: 'Puck'
+                    }
+                  }
+                },
+                thinkingConfig: {
+                  thinkingBudget: 0
+                }
+              },
+              systemInstruction: {
+                parts: [{ text: systemPrompt }]
+              },
+              inputAudioTranscription: {},
+              outputAudioTranscription: {},
+              realtimeInputConfig: {
+                automaticActivityDetection: {
+                  disabled: false,
+                  prefixPaddingMs: 100,
+                  silenceDurationMs: 350
+                },
+                activityHandling: 'START_OF_ACTIVITY_INTERRUPTS'
+              }
+            }
+          };
+
+          socket.send(JSON.stringify(setupMsg));
+        };
+
+        socket.onmessage = async (event) => {
+          try {
+            const msg = await parseSocketMessage(event.data);
+            this.handleServerMessage(msg);
+          } catch (err) {
+            console.error('[GEMINI LIVE] Message parse error:', err);
+          }
+        };
+
+        socket.onerror = (err) => {
+          console.error('[GEMINI LIVE] Socket error:', err);
+          if (this.callbacks.onError) this.callbacks.onError(err);
+        };
+
+        socket.onclose = (event) => {
+          console.log(`[GEMINI LIVE] Socket closed (code ${event.code})`);
+          if (this.status !== 'DISCONNECTED') {
+            this.stopSession();
+          }
+        };
+
+        // 4. Await setupComplete handshake
+        await setupPromise;
+
+        // 5. Visualizer level reporting loop
         const inputData = new Uint8Array(this.inputAnalyser.frequencyBinCount);
         const outputData = new Uint8Array(this.outputAnalyser.frequencyBinCount);
         let lastReportAt = 0;
@@ -437,28 +499,18 @@ Pedagogical Rules:
         };
         this.levelAnimationId = requestAnimationFrame(reportLevels);
 
-        // 8. Listen for server responses
-        this.socket.onmessage = async (event) => {
-          const msg = await parseSocketMessage(event.data);
-          this.handleServerMessage(msg);
-        };
-
-        this.socket.onclose = () => {
-          if (this.status !== 'DISCONNECTED') {
-            this.stopSession();
-          }
-        };
-
-        this.socket.onerror = (err) => {
-          console.error('[GEMINI LIVE] Socket error:', err);
-          if (this.callbacks.onError) this.callbacks.onError(err);
-        };
-
         this.status = 'CONNECTED';
         if (this.callbacks.onStatusChange) this.callbacks.onStatusChange('CONNECTED');
 
-        // Kick off the conversation with initial student prompt
-        this.sendUserText(`Sir, please explain this question in mixed Hinglish: "${cleanQ}"`);
+        // 6. Give the current question as the role of user asking it
+        const cleanQ = (questionText || '')
+          .replace(/\$+/g, '')
+          .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1 over $2')
+          .replace(/\\sqrt\{([^}]+)\}/g, 'square root of $1')
+          .trim();
+
+        const userPrompt = `Question: "${cleanQ}"\nSir, please explain this question step-by-step in natural, friendly Hinglish and tell me how to approach it.`;
+        this.sendUserText(userPrompt, cleanQ);
 
         return true;
       } catch (err) {
@@ -469,17 +521,53 @@ Pedagogical Rules:
       }
     }
 
-    sendUserText(text) {
+    switchToQuestion({
+      questionId,
+      questionText = '',
+      solutionText = '',
+      chapterName = '',
+      topic = ''
+    }) {
+      if (!this.isSessionActive()) return false;
+      this.activeQuestionId = questionId;
+      this.activeQuestionData = { questionId, questionText, solutionText, chapterName, topic };
+
+      // Stop any audio playing for the previous question
+      this.stopPlayback();
+
+      const cleanQ = (questionText || '')
+        .replace(/\$+/g, '')
+        .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1 over $2')
+        .replace(/\\sqrt\{([^}]+)\}/g, 'square root of $1')
+        .trim();
+
+      const nextQuestionPrompt = `Moving to next question: "${cleanQ}"\nSir, how do we solve this one? Please explain step-by-step in friendly Hinglish.`;
+      this.sendUserText(nextQuestionPrompt, cleanQ);
+
+      if (this.callbacks.onQuestionSwitched) {
+        this.callbacks.onQuestionSwitched(questionId);
+      }
+      return true;
+    }
+
+    sendUserText(text, displayText = null) {
       if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
         throw new Error('Gemini Live session is not active');
       }
       this.stopPlayback();
       if (this.callbacks.onTranscript) {
-        this.callbacks.onTranscript({ role: 'student', text, isInterim: false });
+        this.callbacks.onTranscript({
+          role: 'student',
+          text: displayText || text,
+          isInterim: false
+        });
       }
       this.socket.send(JSON.stringify({
         clientContent: {
-          turns: [{ role: 'user', parts: [{ text }] }],
+          turns: [{
+            role: 'user',
+            parts: [{ text }]
+          }],
           turnComplete: true
         }
       }));
@@ -514,17 +602,17 @@ Pedagogical Rules:
         try { this.processor.disconnect(); } catch (e) {}
         this.processor = null;
       }
+      if (this.muteGain) {
+        try { this.muteGain.disconnect(); } catch (e) {}
+        this.muteGain = null;
+      }
+      if (this.mediaStreamSource) {
+        try { this.mediaStreamSource.disconnect(); } catch (e) {}
+        this.mediaStreamSource = null;
+      }
       if (this.inputStream) {
         this.inputStream.getTracks().forEach(track => track.stop());
         this.inputStream = null;
-      }
-      if (this.inputContext) {
-        try { this.inputContext.close(); } catch (e) {}
-        this.inputContext = null;
-      }
-      if (this.outputContext) {
-        try { this.outputContext.close(); } catch (e) {}
-        this.outputContext = null;
       }
       if (this.socket) {
         try { this.socket.close(); } catch (e) {}
@@ -534,6 +622,7 @@ Pedagogical Rules:
       this.status = 'DISCONNECTED';
       const prevQId = this.activeQuestionId;
       this.activeQuestionId = null;
+      this.activeQuestionData = null;
 
       if (this.callbacks.onStatusChange) {
         this.callbacks.onStatusChange('DISCONNECTED', prevQId);

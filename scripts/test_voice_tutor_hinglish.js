@@ -248,8 +248,8 @@ async function testHttpEndpoints() {
   assert(liveJsContent.includes('content.interrupted'), 'Must handle server interruption event');
   assert(liveJsContent.includes('window.geminiLiveVoiceTutor'), 'Must expose window.geminiLiveVoiceTutor');
   assert(liveJsContent.includes('thinkingBudget: 0'), 'Must configure thinkingBudget: 0 for sub-2s conversational latency');
-  assert(liveJsContent.includes('silenceDurationMs: 350'), 'Must configure silenceDurationMs: 350 for fast turn-taking');
-  assert(liveJsContent.includes('commitTurn()'), 'Must define commitTurn() for instant manual commit');
+  assert(liveJsContent.includes('switchToQuestion'), 'Must define switchToQuestion for multi-question continuity');
+  assert(liveJsContent.includes('downsampleTo16000'), 'Must define downsampleTo16000 for universal audio hardware compatibility');
   console.log('[PASS] Client-side Gemini Live voice assistant engine verified.');
 
   console.log('\n========================================================================');
