@@ -8,6 +8,8 @@
 // ==============================================================================
 
 const { execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 const targetUrl = process.argv[2] || process.env.STAGING_URL || '';
 
