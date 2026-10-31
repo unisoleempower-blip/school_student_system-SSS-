@@ -176,14 +176,79 @@ async function testHttpEndpoints() {
     const synthData = await synthRes.json();
     assert.strictEqual(synthData.success, true);
     assert(synthData.audioDataUri, 'Must return audioDataUri');
-    console.log('  POST /api/voice-tutor/synthesize -> HTTP 200 OK');
+    // Test Gemini Live Token Endpoint
+    const tokenRes = await fetch(`${API_BASE}/api/voice-tutor/gemini-live-token`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    assert.strictEqual(tokenRes.status, 200, 'POST /api/voice-tutor/gemini-live-token must return 200');
+    const tokenData = await tokenRes.json();
+    assert.strictEqual(tokenData.success, true);
+    assert(tokenData.token && tokenData.token.startsWith('auth_tokens/'), 'Must return valid ephemeral auth token');
+    assert(tokenData.wsUrl && tokenData.wsUrl.startsWith('wss://'), 'Must return valid secure WebSocket endpoint');
+    console.log(`  POST /api/voice-tutor/gemini-live-token -> HTTP 200 OK (Token: ${tokenData.token.substring(0, 24)}...)`);
+
+    // Test Gemini Multimodal Live WebSocket Handshake
+    console.log('\n[TEST 7] Testing Gemini Multimodal Live WebSocket Handshake & Auto-Interruption Setup...');
+    const WebSocket = require('ws');
+    const ws = new WebSocket(tokenData.wsUrl);
+    const wsHandshakePromise = new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => { ws.close(); reject(new Error('WebSocket handshake timed out')); }, 10000);
+      ws.on('open', () => {
+        ws.send(JSON.stringify({
+          setup: {
+            model: tokenData.model,
+            generationConfig: { responseModalities: ['AUDIO'] },
+            systemInstruction: { parts: [{ text: 'You are an expert Indian school mentor.' }] },
+            inputAudioTranscription: {},
+            outputAudioTranscription: {},
+            realtimeInputConfig: {
+              automaticActivityDetection: { disabled: false, prefixPaddingMs: 150, silenceDurationMs: 700 },
+              activityHandling: 'START_OF_ACTIVITY_INTERRUPTS'
+            }
+          }
+        }));
+      });
+
+      ws.on('message', (data) => {
+        const msg = JSON.parse(data.toString());
+        if (msg.setupComplete) {
+          clearTimeout(timeout);
+          ws.close();
+          resolve(true);
+        } else if (msg.error) {
+          clearTimeout(timeout);
+          ws.close();
+          reject(new Error(msg.error.message || 'WebSocket setup failed'));
+        }
+      });
+
+      ws.on('error', (err) => {
+        clearTimeout(timeout);
+        reject(err);
+      });
+    });
+
+    await wsHandshakePromise;
+    console.log('  WebSocket Gemini Live Handshake -> setupComplete confirmed (activityHandling: START_OF_ACTIVITY_INTERRUPTS)');
   } finally {
     server.close();
   }
 
-  console.log('\n======================================================');
-  console.log('ALL AI VOICE TUTOR & HINGLISH TESTS PASSED 100%!');
-  console.log('======================================================\n');
+  // Test 8: Verify Client Engine File
+  console.log('\n[TEST 8] Verifying Client-Side geminiLiveVoiceTutor.js...');
+  const liveJsPath = path.join(__dirname, '..', 'frontend', 'js', 'geminiLiveVoiceTutor.js');
+  assert(fs.existsSync(liveJsPath), 'geminiLiveVoiceTutor.js must exist');
+  const liveJsContent = fs.readFileSync(liveJsPath, 'utf8');
+  assert(liveJsContent.includes('class GeminiLiveVoiceTutorEngine'), 'Must define GeminiLiveVoiceTutorEngine');
+  assert(liveJsContent.includes('START_OF_ACTIVITY_INTERRUPTS'), 'Must configure START_OF_ACTIVITY_INTERRUPTS');
+  assert(liveJsContent.includes('content.interrupted'), 'Must handle server interruption event');
+  assert(liveJsContent.includes('window.geminiLiveVoiceTutor'), 'Must expose window.geminiLiveVoiceTutor');
+  console.log('[PASS] Client-side Gemini Live voice assistant engine verified.');
+
+  console.log('\n========================================================================');
+  console.log('ALL AI VOICE TUTOR & GEMINI LIVE TESTS PASSED 100%!');
+  console.log('========================================================================\n');
 }
 
 async function runAll() {
@@ -193,6 +258,5 @@ async function runAll() {
   await testHttpEndpoints();
   process.exit(0);
 }
-
 
 runAll();

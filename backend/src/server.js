@@ -3,6 +3,8 @@
 // Unisole AI School Scholar Assistant
 // ============================================================================
 
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 require('dotenv').config();
 const http = require('http');
 const express = require('express');
@@ -106,7 +108,6 @@ app.use('/api/curriculum', curriculumRouter);
 app.use('/api/voice-tutor', voiceTutorRouter);
 
 // Serve static frontend assets & HTML shell
-const path = require('path');
 const frontendPath = path.resolve(__dirname, '../../frontend');
 app.use(express.static(frontendPath));
 app.get('*', (req, res, next) => {

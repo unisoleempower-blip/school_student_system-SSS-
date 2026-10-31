@@ -8,6 +8,50 @@ const {
   NEURAL_VOICES
 } = require('../services/aiVoiceTutorService');
 
+const { GoogleGenAI } = require('@google/genai');
+
+/**
+ * POST & GET /api/voice-tutor/gemini-live-token
+ * Issues ephemeral auth token for direct browser WebSocket connection to Gemini Multimodal Live API
+ */
+router.all('/gemini-live-token', async (req, res) => {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return res.status(500).json({
+        success: false,
+        error: 'GEMINI_API_KEY is not configured on server'
+      });
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+    const token = await ai.authTokens.create({
+      config: {
+        uses: 5,
+        expireTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+        newSessionExpireTime: new Date(Date.now() + 120 * 1000).toISOString()
+      }
+    });
+
+    const rawModel = process.env.GEMINI_LIVE_MODEL || 'gemini-2.5-flash-native-audio-latest';
+    const model = rawModel.startsWith('models/') ? rawModel : `models/${rawModel}`;
+    const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=${encodeURIComponent(token.name)}`;
+
+    res.json({
+      success: true,
+      token: token.name,
+      model,
+      wsUrl
+    });
+  } catch (err) {
+    console.error('[GEMINI LIVE TOKEN ERROR]', err);
+    res.status(502).json({
+      success: false,
+      error: err.message || 'Unable to create Gemini Live token'
+    });
+  }
+});
+
 /**
  * GET /api/voice-tutor/audio
  * Streams ultra-realistic human neural MP3 audio

@@ -31,15 +31,21 @@ function executeRequest(endpoint, options = {}) {
   if (targetUrl) {
     const fullUrl = targetUrl.replace(/\/$/, '') + endpoint;
     try {
-      const curlCmd = [
-        'curl', '-s', '-S',
-        '-X', method,
-        isHtml ? '-H "Accept: text/html"' : '-H "Accept: application/json"',
-        data ? `-H "Content-Type: application/json" -d '${data}'` : '',
-        `"${fullUrl}"`
-      ].filter(Boolean).join(' ');
+      let stdout;
+      if (data) {
+        const tmpFile = path.join('/tmp', `curl_${Date.now()}_${Math.random().toString(36).substring(7)}.json`);
+        fs.writeFileSync(tmpFile, data, 'utf8');
+        try {
+          const curlCmd = `curl -s -S -X ${method} ${isHtml ? '-H "Accept: text/html"' : '-H "Accept: application/json"'} -H "Content-Type: application/json" -d @${tmpFile} "${fullUrl}"`;
+          stdout = execSync(curlCmd, { encoding: 'utf8', timeout: 45000 });
+        } finally {
+          try { fs.unlinkSync(tmpFile); } catch(e) {}
+        }
+      } else {
+        const curlCmd = `curl -s -S -X ${method} ${isHtml ? '-H "Accept: text/html"' : '-H "Accept: application/json"'} "${fullUrl}"`;
+        stdout = execSync(curlCmd, { encoding: 'utf8', timeout: 45000 });
+      }
 
-      const stdout = execSync(curlCmd, { encoding: 'utf8', timeout: 45000 });
       // If Vercel SSO redirect is detected, fall back to vercel curl
       if (!stdout.includes('Redirecting') && !stdout.includes('sso-api')) {
         return { success: true, body: stdout };
@@ -52,17 +58,20 @@ function executeRequest(endpoint, options = {}) {
   // Use npx vercel curl to bypass deployment protection
   try {
     const deploymentFlag = targetUrl ? `--deployment "${targetUrl}"` : '';
-    const vercelCurlCmd = [
-      'npx', 'vercel', 'curl', endpoint,
-      deploymentFlag,
-      '--',
-      '-s',
-      '-X', method,
-      isHtml ? '-H "Accept: text/html"' : '-H "Accept: application/json"',
-      data ? `-H "Content-Type: application/json" -d '${data}'` : ''
-    ].filter(Boolean).join(' ');
-
-    const stdout = execSync(vercelCurlCmd, { encoding: 'utf8', timeout: 60000 });
+    let stdout;
+    if (data) {
+      const tmpFile = path.join('/tmp', `vcurl_${Date.now()}_${Math.random().toString(36).substring(7)}.json`);
+      fs.writeFileSync(tmpFile, data, 'utf8');
+      try {
+        const cmd = `npx vercel curl ${endpoint} ${deploymentFlag} -- -s -X ${method} ${isHtml ? '-H "Accept: text/html"' : '-H "Accept: application/json"'} -H "Content-Type: application/json" -d @${tmpFile}`;
+        stdout = execSync(cmd, { encoding: 'utf8', timeout: 60000 });
+      } finally {
+        try { fs.unlinkSync(tmpFile); } catch(e) {}
+      }
+    } else {
+      const cmd = `npx vercel curl ${endpoint} ${deploymentFlag} -- -s -X ${method} ${isHtml ? '-H "Accept: text/html"' : '-H "Accept: application/json"'}`;
+      stdout = execSync(cmd, { encoding: 'utf8', timeout: 60000 });
+    }
     
     if (isHtml) {
       return { success: true, body: stdout };
