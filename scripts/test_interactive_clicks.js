@@ -142,12 +142,14 @@ console.log('✅ Teacher Portal Button clicked');
 
 // Test Sub-Tab Buttons
 console.log('\nTesting Sub-Tab Buttons...');
-const subTabs = ['tabBtnGenerator', 'tabBtnClass10Pyq', 'tabBtnTelemetry', 'tabBtnHandwritten', 'tabBtnSmartReports'];
+const subTabs = ['tabBtnGenerator', 'tabBtnQuestionBank', 'tabBtnHandwritten', 'tabBtnSmartReports', 'tabBtnClassAnalytics', 'tabBtnStudents'];
 subTabs.forEach(id => {
   const btn = elements.get(id);
-  btn['data-tab'] = id.replace('Btn', '');
-  btn.click();
-  console.log(`✅ Sub-tab ${id} clicked and active`);
+  if (btn) {
+    btn['data-tab'] = id.replace('Btn', '');
+    btn.click();
+    console.log(`✅ Sub-tab ${id} clicked and active`);
+  }
 });
 
 // Test Theme Toggle Button

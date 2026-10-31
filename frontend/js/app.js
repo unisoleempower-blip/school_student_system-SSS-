@@ -2246,18 +2246,101 @@ function initClassroomSeatmap() {
 }
 
 // -----------------------------------------------------------------------------
-// TASK-12: WHATSAPP NOTIFICATION MODAL & PRINT REPORT
+// TASK-12: REAL WHATSAPP NOTIFICATION ENGINE & PRINT REPORT
 // -----------------------------------------------------------------------------
+let activeWhatsAppContext = {
+  studentId: 'b0000000-0000-0000-0000-000000000001',
+  studentName: 'Aryan Sharma',
+  rollNumber: '12-NM-01',
+  parentPhone: '+91 98160 12345',
+  accuracy: 78.4,
+  studyHours: 15.2,
+  mastered: 'Moment of Inertia (95% accuracy)',
+  weakness: 'Damped Oscillations (Derivation of amplitude decay)',
+  actionItem: 'Ask Aryan: "How do car shock absorbers stop a car from bouncing?" (5-min Feynman check)',
+  portalUrl: 'https://scholar.unisole.ai/report/b0000000-0000-0000-0000-000000000001'
+};
+
+function formatWhatsAppDossierText(ctx) {
+  return (
+    `*Unisole AI School - Official Academic Update*\n` +
+    `*Weekly Academic Dossier for ${ctx.studentName} (Roll: ${ctx.rollNumber})*\n\n` +
+    `*Performance Summary:*\n` +
+    `• Weekly Accuracy: ${ctx.accuracy}%\n` +
+    `• Study Time: ${ctx.studyHours || '15.2'} hrs\n` +
+    `• Mastered: ${ctx.mastered}\n` +
+    `• Focus Need: ${ctx.weakness}\n\n` +
+    `*Recommended Parent Action for this Weekend:*\n` +
+    `1. ${ctx.actionItem}\n` +
+    `2. Ensure 45 mins quiet time Sunday morning for speed recap drill.\n\n` +
+    `Official Portal: ${ctx.portalUrl}\n` +
+    `_Unisole AI School Scholar Assistant_`
+  );
+}
+
+function openWhatsAppModalWithContext(customCtx = {}) {
+  activeWhatsAppContext = { ...activeWhatsAppContext, ...customCtx };
+  const modal = document.getElementById('whatsAppModal');
+  const studentHeader = document.getElementById('waStudentHeader');
+  const inputRecipient = document.getElementById('inputWhatsAppRecipient');
+  const bubbleContent = document.getElementById('waBubbleContent');
+  const statusNotice = document.getElementById('waStatusNotice');
+
+  if (studentHeader) {
+    studentHeader.innerText = `Student: ${activeWhatsAppContext.studentName} (Roll: ${activeWhatsAppContext.rollNumber})`;
+  }
+  if (inputRecipient) {
+    inputRecipient.value = activeWhatsAppContext.parentPhone || '+91 98160 12345';
+  }
+  if (bubbleContent) {
+    bubbleContent.innerText = formatWhatsAppDossierText(activeWhatsAppContext);
+  }
+  if (statusNotice) {
+    statusNotice.innerHTML = `<span><i data-lucide="shield-check" style="width: 12px; height: 12px; vertical-align: middle; color: #34d399;"></i> Encrypted Direct WhatsApp Dispatch</span><span id="waModeIndicator" style="color: #38bdf8;">1-Click wa.me / Meta Cloud API</span>`;
+  }
+  if (modal) {
+    modal.classList.add('active');
+  }
+  initLucideIcons();
+}
+window.openWhatsAppModalWithContext = openWhatsAppModalWithContext;
+
 function setupWhatsAppNotificationModal() {
   const btnOpen = document.getElementById('btnOpenWhatsAppModal');
   const btnClose = document.getElementById('btnCloseWhatsAppModal');
   const modal = document.getElementById('whatsAppModal');
   const btnConfirm = document.getElementById('btnConfirmSendWhatsApp');
+  const btnDirect = document.getElementById('btnSendDirectWhatsApp');
+  const btnTestPhone = document.getElementById('btnTestMyPhone');
+  const btnDrilldown = document.getElementById('btnDrilldownSendWhatsApp');
 
   if (btnOpen && modal) {
     btnOpen.addEventListener('click', () => {
-      modal.classList.add('active');
-      initLucideIcons();
+      openWhatsAppModalWithContext();
+    });
+  }
+
+  if (btnDrilldown) {
+    btnDrilldown.addEventListener('click', () => {
+      const studentName = document.getElementById('drilldownStudentName')?.innerText || 'Aryan Sharma';
+      const studentRoll = document.getElementById('drilldownStudentRoll')?.innerText?.replace('Roll: ', '') || '12-NM-01';
+      const snippet = document.getElementById('drilldownParentSnippet')?.innerText || '';
+      openWhatsAppModalWithContext({
+        studentName,
+        rollNumber: studentRoll,
+        actionItem: snippet || 'Ask student to explain their primary test question mistake.'
+      });
+    });
+  }
+
+  if (btnTestPhone) {
+    btnTestPhone.addEventListener('click', () => {
+      const input = document.getElementById('inputWhatsAppRecipient');
+      const entered = prompt('Enter your personal mobile phone number (with country code, e.g. +91 98160 12345) to test real WhatsApp dispatch on your own device:', input?.value || '+91 ');
+      if (entered && entered.trim()) {
+        if (input) input.value = entered.trim();
+        activeWhatsAppContext.parentPhone = entered.trim();
+      }
     });
   }
 
@@ -2273,28 +2356,75 @@ function setupWhatsAppNotificationModal() {
     });
   }
 
+  // 1-Click Direct WhatsApp via wa.me (works 100% instantly on desktop web and mobile)
+  if (btnDirect) {
+    btnDirect.addEventListener('click', () => {
+      const phoneInput = document.getElementById('inputWhatsAppRecipient');
+      let phone = (phoneInput?.value || '').replace(/[^0-9]/g, '');
+      if (phone.length === 10) phone = `91${phone}`;
+      if (!phone || phone.length < 8) {
+        alert('Please enter a valid mobile number with country code (e.g. +91 98160 12345).');
+        return;
+      }
+      const message = document.getElementById('waBubbleContent')?.innerText || formatWhatsAppDossierText(activeWhatsAppContext);
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(waUrl, '_blank');
+
+      const statusNotice = document.getElementById('waStatusNotice');
+      if (statusNotice) {
+        statusNotice.innerHTML = `<span style="color:#34d399;"><i data-lucide="check-circle" style="width:12px;height:12px;vertical-align:middle;"></i> WhatsApp chat launched in new tab! Send the pre-filled message directly to parent.</span>`;
+        initLucideIcons();
+      }
+    });
+  }
+
+  // Server API Webhook Dispatch (Meta Cloud API / Twilio)
   if (btnConfirm) {
     btnConfirm.addEventListener('click', async () => {
       btnConfirm.innerHTML = `<i data-lucide="loader-2" class="spin" style="width:14px;height:14px;"></i> Dispatching...`;
       initLucideIcons();
 
+      const phoneInput = document.getElementById('inputWhatsAppRecipient');
+      let phone = phoneInput?.value || activeWhatsAppContext.parentPhone || '+91 98160 12345';
+      const message = document.getElementById('waBubbleContent')?.innerText || formatWhatsAppDossierText(activeWhatsAppContext);
+
       try {
-        await fetch(`${getApiBaseUrl()}/api/notifications/whatsapp-dispatch`, {
+        const res = await fetch(`${getApiBaseUrl()}/api/notifications/whatsapp-dispatch`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            studentId: 'b0000000-0000-0000-0000-000000000001',
-            parentPhone: '+91 98160-XXXXX'
+            studentId: activeWhatsAppContext.studentId,
+            parentPhone: phone,
+            customMessage: message
           })
         });
-      } catch (e) {}
-
-      setTimeout(() => {
-        alert('WhatsApp Notification successfully dispatched to Parent via HAPS WhatsApp Webhook Gateway.');
-        modal.classList.remove('active');
-        btnConfirm.innerHTML = `<i data-lucide="send" style="width:14px;height:14px;"></i> Dispatch WhatsApp Webhook`;
+        const data = await res.json();
+        if (data.success) {
+          if (data.dispatchMode === 'META_CLOUD_API' || data.dispatchMode === 'TWILIO_API') {
+            alert(`WhatsApp notification successfully delivered to ${data.recipient} via ${data.dispatchMode}!`);
+            modal.classList.remove('active');
+          } else {
+            // Direct link mode: server confirmed ready, launch wa.me
+            if (data.waDirectLink) {
+              window.open(data.waDirectLink, '_blank');
+            }
+            const statusNotice = document.getElementById('waStatusNotice');
+            if (statusNotice) {
+              statusNotice.innerHTML = `<span style="color:#38bdf8;"><i data-lucide="check-circle" style="width:12px;height:12px;vertical-align:middle;"></i> Server gateway verified. WhatsApp chat opened for direct send. (To automate server dispatch, set WHATSAPP_API_TOKEN in backend/.env)</span>`;
+              initLucideIcons();
+            }
+          }
+        } else {
+          alert('Server dispatch returned: ' + (data.error || 'Failed to dispatch'));
+        }
+      } catch (err) {
+        console.warn('[WHATSAPP DISPATCH ERROR]', err);
+        const clean = phone.replace(/[^0-9]/g, '');
+        window.open(`https://wa.me/${clean}?text=${encodeURIComponent(message)}`, '_blank');
+      } finally {
+        btnConfirm.innerHTML = `<i data-lucide="send" style="width:14px;height:14px;"></i> Dispatch via Server API`;
         initLucideIcons();
-      }, 900);
+      }
     });
   }
 
@@ -4230,6 +4360,19 @@ async function loadAndRenderSmartReport(studentId = 'b0000000-0000-0000-0000-000
         </div>
       `).join('');
     }
+
+    activeWhatsAppContext = {
+      studentId: report.studentId || studentId,
+      studentName: report.studentName || 'Aryan Sharma',
+      rollNumber: report.rollNumber || '12-NM-01',
+      parentPhone: report.parentPhone || '+91 98160 12345',
+      accuracy: report.overallScorePercentage || 78.4,
+      studyHours: report.totalStudyHours || 15.2,
+      mastered: report.masteredConcepts && report.masteredConcepts.length > 0 ? `${report.masteredConcepts[0].subtopic} (${report.masteredConcepts[0].accuracy || 95}%)` : 'Moment of Inertia (95% accuracy)',
+      weakness: report.weakConcepts && report.weakConcepts.length > 0 ? report.weakConcepts[0].subtopic : 'Damped Oscillations',
+      actionItem: report.parentActions && report.parentActions.length > 0 ? report.parentActions[0].directive : 'Ask student: "How do car shock absorbers stop a car from bouncing?" (5-min Feynman check)',
+      portalUrl: `https://scholar.unisole.ai/report/${report.studentId || studentId}`
+    };
 
     initLucideIcons();
   } catch (err) {
@@ -7340,7 +7483,7 @@ function closeSidebarDrawer() {
       }
     }, 220);
   }
-  document.body.style.overflow = '';
+  if (document.body) document.body.style.overflow = '';
 }
 
 function updateStreamSelectionUI(stream = 'JEE') {

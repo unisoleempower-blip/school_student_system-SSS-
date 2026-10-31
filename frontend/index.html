@@ -1531,8 +1531,13 @@
                 <span id="drilldownTeacherAction" style="color: var(--text-secondary); display: block; margin-top: 2px;">--</span>
               </div>
               <div style="background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 6px;">
-                <strong style="color: #34d399;"><i data-lucide="message-circle" style="width:12px; height:12px; vertical-align:middle;"></i> Parent WhatsApp Snippet:</strong>
-                <span id="drilldownParentSnippet" style="color: var(--text-secondary); display: block; margin-top: 2px;">--</span>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <strong style="color: #34d399;"><i data-lucide="message-circle" style="width:12px; height:12px; vertical-align:middle;"></i> Parent WhatsApp Snippet:</strong>
+                  <button type="button" class="btn-secondary" id="btnDrilldownSendWhatsApp" style="font-size:0.68rem; padding:2px 8px; color:#22c55e; border-color:rgba(34,197,94,0.4); cursor:pointer;">
+                    <i data-lucide="send" style="width:10px; height:10px;"></i> Send WhatsApp
+                  </button>
+                </div>
+                <span id="drilldownParentSnippet" style="color: var(--text-secondary); display: block; margin-top: 4px;">--</span>
               </div>
             </div>
           </div>
@@ -1883,40 +1888,81 @@
       </div>
     </section>
 
-  <!-- TASK-12: Interactive WhatsApp Notification Modal -->
+  <!-- TASK-12: Interactive Real WhatsApp Notification Modal -->
   <div class="modal-overlay" id="whatsAppModal">
-    <div class="modal-card">
-      <div style="background:#075e54; padding:12px 16px; color:#fff; display:flex; justify-content:space-between; align-items:center;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <i data-lucide="message-circle" style="width:20px; height:20px;"></i>
-          <strong style="font-size:0.95rem;">Unisole Parent WhatsApp Dispatch</strong>
+    <div class="modal-card" style="max-width: 540px; border-radius: var(--radius-md); overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+      <!-- Modal Header (WhatsApp Brand Bar) -->
+      <div style="background: #075e54; padding: 14px 18px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: #25d366; display: flex; align-items: center; justify-content: center; color: #fff;">
+            <i data-lucide="message-circle" style="width: 18px; height: 18px;"></i>
+          </div>
+          <div>
+            <strong style="font-size: 1rem; display: block; line-height: 1.2;">Parent WhatsApp Dispatch</strong>
+            <span style="font-size: 0.72rem; color: #a7f3d0;">Official Unisole Weekly Report Card</span>
+          </div>
         </div>
-        <button id="btnCloseWhatsAppModal" type="button" onclick="closeWhatsAppModal()" aria-label="Close WhatsApp Modal" style="background:transparent; border:none; color:#fff; cursor:pointer;">
-          <i data-lucide="x" style="width:18px; height:18px;"></i>
+        <button id="btnCloseWhatsAppModal" type="button" onclick="closeWhatsAppModal()" aria-label="Close WhatsApp Modal" style="background: transparent; border: none; color: #fff; cursor: pointer; padding: 4px;">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
         </button>
       </div>
 
-      <div class="whatsapp-chat-preview">
-        <div class="wa-bubble">
-          <strong>Unisole AI School</strong><br>
-          <em>Weekly Academic Dossier for Aryan Sharma (Roll: 11-S-24)</em><br><br>
-          <strong>Performance Summary:</strong><br>
-          • Weekly Accuracy: 78.4%<br>
-          • Study Time: 15.2 hrs<br>
-          • Mastered: Moment of Inertia (95%)<br>
-          • Focus Needed: Damped Oscillations (30%)<br><br>
-          <strong>Recommended Parent Action for this Weekend:</strong><br>
-          1. Ask Aryan: <em>"How do car shock absorbers stop a car from bouncing?"</em> (5-min Feynman check)<br>
-          2. Ensure 45 mins quiet time Sunday morning for the speed recap drill.<br><br>
-          <em>View full verified report: https://scholar.unisole.ai/report/11-S-24</em>
-          <div style="text-align:right; font-size:0.65rem; color:#8696a0; margin-top:4px;">11:45 AM &bull; Delivered</div>
+      <!-- Recipient Phone & Student Information Bar -->
+      <div style="padding: 14px 18px; background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-primary);" id="waStudentHeader">
+            Student: Aryan Sharma (Roll: 12-NM-01)
+          </span>
+          <span style="font-size: 0.72rem; color: #34d399; background: rgba(16,185,129,0.12); padding: 2px 8px; border-radius: 4px; font-weight: 600;">
+            Real-Time Dispatch
+          </span>
+        </div>
+        <div>
+          <label for="inputWhatsAppRecipient" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">
+            Parent WhatsApp Mobile Number (Include country code or 10-digit mobile):
+          </label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="tel" id="inputWhatsAppRecipient" class="form-input" value="+91 98160 12345" placeholder="+91 98160 12345" style="font-size: 0.9rem; padding: 8px 12px; border-radius: 6px; flex: 1; font-family: monospace;">
+            <button type="button" id="btnTestMyPhone" class="btn-secondary" style="font-size: 0.72rem; padding: 8px 10px; white-space: nowrap;" title="Test with your own phone number">
+              Test Number
+            </button>
+          </div>
         </div>
       </div>
 
-      <div style="padding:12px 16px; background:var(--bg-secondary); display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border-subtle);">
-        <span style="font-size:0.75rem; color:var(--text-muted);">Recipient: +91 98160-XXXXX (Mr. Ramesh Sharma)</span>
-        <button class="btn-primary" id="btnConfirmSendWhatsApp" style="font-size:0.8rem; padding:6px 14px; background:#22c55e;">
-          <i data-lucide="send" style="width:14px; height:14px;"></i> Dispatch WhatsApp Webhook
+      <!-- WhatsApp Chat Preview with Realistic Bubble -->
+      <div class="whatsapp-chat-preview" style="background: #0b141a; padding: 18px; max-height: 280px; overflow-y: auto;">
+        <div class="wa-bubble" id="waBubbleContent" style="background: #005c4b; color: #e9edef; border-radius: 8px 8px 8px 0; padding: 12px 14px; font-size: 0.85rem; line-height: 1.6; max-width: 95%; box-shadow: 0 1px 2px rgba(0,0,0,0.3); word-break: break-word; white-space: pre-wrap;">
+*Unisole AI School - Official Academic Update*
+*Weekly Academic Dossier for Aryan Sharma (Roll: 12-NM-01)*
+
+*Performance Summary:*
+• Weekly Accuracy: 78.4%
+• Study Time: 15.2 hrs
+• Mastered: Moment of Inertia (95% accuracy)
+• Focus Need: Damped Oscillations
+
+*Recommended Parent Action for this Weekend:*
+1. Ask Aryan: "How do car shock absorbers stop a car from bouncing?" (5-min Feynman check)
+2. Ensure 45 mins quiet time Sunday morning for speed recap drill.
+
+Official Portal: https://scholar.unisole.ai/report/b0000000-0000-0000-0000-000000000001
+_Unisole AI School Scholar Assistant_</div>
+      </div>
+
+      <!-- Dispatch Status / Tip Bar -->
+      <div id="waStatusNotice" style="padding: 8px 18px; font-size: 0.74rem; color: var(--text-muted); background: rgba(0,0,0,0.25); border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
+        <span><i data-lucide="shield-check" style="width: 12px; height: 12px; vertical-align: middle; color: #34d399;"></i> Encrypted Direct WhatsApp Dispatch</span>
+        <span id="waModeIndicator" style="color: #38bdf8;">1-Click wa.me / Meta Cloud API</span>
+      </div>
+
+      <!-- Action Footer with 2 Real Buttons -->
+      <div style="padding: 14px 18px; background: var(--bg-secondary); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <button class="btn-primary" id="btnSendDirectWhatsApp" style="font-size: 0.85rem; font-weight: 700; padding: 8px 16px; background: #22c55e; color: #fff; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+          <i data-lucide="message-circle" style="width: 16px; height: 16px;"></i> Open &amp; Send in WhatsApp
+        </button>
+        <button class="btn-secondary" id="btnConfirmSendWhatsApp" style="font-size: 0.8rem; padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+          <i data-lucide="send" style="width: 14px; height: 14px;"></i> Dispatch via Server API
         </button>
       </div>
     </div>
