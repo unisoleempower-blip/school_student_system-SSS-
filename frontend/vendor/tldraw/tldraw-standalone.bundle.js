@@ -657,3 +657,4 @@ tldraw/dist-esm/lib/ui/hooks/useKeyboardShortcuts.mjs:
    * Source: https://github.com/jaywcjlove/hotkeys-js
    *)
 */
+//# sourceMappingURL=tldraw-standalone.bundle.js.map
