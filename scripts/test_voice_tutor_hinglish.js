@@ -176,6 +176,19 @@ async function testHttpEndpoints() {
     const synthData = await synthRes.json();
     assert.strictEqual(synthData.success, true);
     assert(synthData.audioDataUri, 'Must return audioDataUri');
+    // Test Whiteboard Telemetry Logging Endpoint
+    const logPostRes = await fetch(`${API_BASE}/api/voice-tutor/whiteboard-logs`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event: 'TEST_INIT_ACTION', data: { test: true } })
+    });
+    assert.strictEqual(logPostRes.status, 200, 'POST /api/voice-tutor/whiteboard-logs must return 200');
+    const logGetRes = await fetch(`${API_BASE}/api/voice-tutor/whiteboard-logs`);
+    assert.strictEqual(logGetRes.status, 200, 'GET /api/voice-tutor/whiteboard-logs must return 200');
+    const logGetData = await logGetRes.json();
+    assert(logGetData.success && logGetData.logs.length > 0, 'Must record and retrieve whiteboard logs');
+    console.log('  POST & GET /api/voice-tutor/whiteboard-logs -> HTTP 200 OK (Action & error telemetry active)');
+
     // Test Gemini Live Token Endpoint
     const tokenRes = await fetch(`${API_BASE}/api/voice-tutor/gemini-live-token`, {
       method: 'POST',

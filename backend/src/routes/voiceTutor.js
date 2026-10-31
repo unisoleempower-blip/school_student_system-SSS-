@@ -220,5 +220,59 @@ router.post('/interrupt', async (req, res) => {
   }
 });
 
+const fs = require('fs');
+const path = require('path');
+const whiteboardTelemetryBuffer = [];
+const telemetryLogPath = path.join(__dirname, '..', '..', 'logs', 'whiteboard_telemetry.log');
+
+try {
+  const logDir = path.dirname(telemetryLogPath);
+  if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+} catch (e) {}
+
+/**
+ * POST /api/voice-tutor/whiteboard-logs
+ * Ingests live telemetry, actions, and errors from student whiteboard instances
+ */
+router.post('/whiteboard-logs', (req, res) => {
+  try {
+    const entry = {
+      timestamp: new Date().toISOString(),
+      event: req.body?.event || 'UNKNOWN_ACTION',
+      data: req.body?.data || {},
+      userAgent: req.headers['user-agent'] || 'unknown',
+      ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1'
+    };
+
+    whiteboardTelemetryBuffer.push(entry);
+    if (whiteboardTelemetryBuffer.length > 200) whiteboardTelemetryBuffer.shift();
+
+    const line = JSON.stringify(entry) + '\n';
+    try {
+      fs.appendFileSync(telemetryLogPath, line, 'utf8');
+    } catch (fsErr) {
+      // In read-only serverless environments, in-memory buffer continues
+    }
+
+    console.log(`[WHITEBOARD TELEMETRY] ${entry.timestamp} | ${entry.event} | ${JSON.stringify(entry.data).slice(0, 160)}`);
+    res.json({ success: true, logged: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/voice-tutor/whiteboard-logs
+ * Retrieves the latest recorded actions and errors
+ */
+router.get('/whiteboard-logs', (req, res) => {
+  res.json({
+    success: true,
+    totalLogs: whiteboardTelemetryBuffer.length,
+    logs: whiteboardTelemetryBuffer.slice(-100)
+  });
+});
+
 module.exports = router;
+
 

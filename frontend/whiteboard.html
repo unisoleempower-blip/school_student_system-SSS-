@@ -132,6 +132,59 @@
       display: block;
       cursor: crosshair;
     }
+
+    /* Real-Time Live Diagnostics Panel */
+    #whiteboard-diagnostic-panel {
+      display: none;
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      max-height: 220px;
+      background: rgba(10, 15, 29, 0.95);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 8px;
+      backdrop-filter: blur(12px);
+      z-index: 2000;
+      color: #e2e8f0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.72rem;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+    }
+    #diagnostic-header {
+      padding: 6px 12px;
+      background: rgba(30, 41, 59, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    #diagnostic-content {
+      padding: 8px 12px;
+      overflow-y: auto;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .diag-entry {
+      padding: 2px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      word-break: break-all;
+    }
+    .diag-entry.error {
+      color: #fb7185;
+      font-weight: bold;
+    }
+    .diag-entry.action {
+      color: #34d399;
+    }
+    .diag-entry.info {
+      color: #94a3b8;
+    }
   </style>
 </head>
 <body>
@@ -148,6 +201,9 @@
   </div>
 
   <div id="whiteboard-quick-actions">
+    <button type="button" class="wb-action-btn" id="btnWbLogs" title="Toggle diagnostic logs">
+      Diagnostics
+    </button>
     <button type="button" class="wb-action-btn" id="btnWbClear" title="Clear whiteboard canvas">
       Clear Board
     </button>
@@ -164,13 +220,55 @@
     <canvas id="whiteboardFallbackCanvas"></canvas>
   </div>
 
+  <!-- Real-Time Diagnostics Panel -->
+  <div id="whiteboard-diagnostic-panel">
+    <div id="diagnostic-header">
+      <span>Real-Time Whiteboard Telemetry & Diagnostics</span>
+      <div style="display: flex; gap: 8px;">
+        <button type="button" style="background:transparent; border:none; color:#38bdf8; cursor:pointer; font-size:0.75rem;" onclick="copyDiagnosticLogs()">Copy</button>
+        <button type="button" style="background:transparent; border:none; color:#94a3b8; cursor:pointer; font-size:0.85rem;" onclick="toggleDiagnosticPanel()">✕</button>
+      </div>
+    </div>
+    <div id="diagnostic-content"></div>
+  </div>
+
   <script>
+    const diagEntries = [];
+    window.appendDiagnosticLog = function(event, data) {
+      const time = new Date().toLocaleTimeString();
+      const strData = typeof data === 'object' ? JSON.stringify(data) : String(data);
+      diagEntries.push(`[${time}] ${event}: ${strData}`);
+      
+      const container = document.getElementById('diagnostic-content');
+      if (container) {
+        const div = document.createElement('div');
+        div.className = 'diag-entry ' + (event.includes('ERROR') ? 'error' : (event.includes('ACTION') ? 'action' : 'info'));
+        div.textContent = `[${time}] ${event} ${strData}`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+      }
+    };
+
+    function toggleDiagnosticPanel() {
+      const panel = document.getElementById('whiteboard-diagnostic-panel');
+      if (!panel) return;
+      panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    function copyDiagnosticLogs() {
+      navigator.clipboard.writeText(diagEntries.join('\n'));
+      alert('Whiteboard diagnostic logs copied to clipboard!');
+    }
+
+    document.getElementById('btnWbLogs')?.addEventListener('click', toggleDiagnosticPanel);
+
     // Proactive IndexedDB purge to prevent schema mismatch crash
     try {
       if (typeof window !== 'undefined' && window.indexedDB && window.indexedDB.databases) {
         window.indexedDB.databases().then(function(dbs) {
           for (var i = 0; i < dbs.length; i++) {
             if (dbs[i].name && (dbs[i].name.indexOf('TLDRAW') !== -1 || dbs[i].name.indexOf('tldraw') !== -1)) {
+              window.appendDiagnosticLog('PURGE_DB', dbs[i].name);
               window.indexedDB.deleteDatabase(dbs[i].name);
             }
           }
@@ -178,10 +276,32 @@
       }
     } catch(e) {}
 
-    // Fail-safe global error and dismissal handler
+    // Global uncaught error telemetry
     window.addEventListener('error', function(e) {
-      console.warn('[WHITEBOARD RESILIENCE] Caught error, engaging fallback mode if needed:', e.message);
+      console.warn('[WHITEBOARD RESILIENCE] Caught error:', e.message);
+      window.appendDiagnosticLog('WINDOW_ERROR', { message: e.message, filename: e.filename, lineno: e.lineno });
+      fetch('/api/voice-tutor/whiteboard-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'WINDOW_GLOBAL_ERROR',
+          data: { message: e.message, filename: e.filename, lineno: e.lineno, colno: e.colno, stack: e.error?.stack }
+        })
+      }).catch(function() {});
       dismissSpinner();
+    });
+
+    window.addEventListener('unhandledrejection', function(e) {
+      console.warn('[WHITEBOARD UNHANDLED REJECTION]:', e.reason);
+      window.appendDiagnosticLog('UNHANDLED_REJECTION', String(e.reason));
+      fetch('/api/voice-tutor/whiteboard-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: 'WINDOW_UNHANDLED_REJECTION',
+          data: { reason: String(e.reason), stack: e.reason?.stack }
+        })
+      }).catch(function() {});
     });
 
     function dismissSpinner() {
@@ -203,6 +323,7 @@
 
     window.initFallbackCanvas = function() {
       if (!fallbackCanvas) return;
+      window.appendDiagnosticLog('INIT_FALLBACK_CANVAS', 'Engaging fallback 2D canvas');
       fallbackContainer.style.display = 'block';
       fallbackCanvas.width = window.innerWidth;
       fallbackCanvas.height = window.innerHeight;

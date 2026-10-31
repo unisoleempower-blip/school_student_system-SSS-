@@ -6,14 +6,34 @@ let editorInstance = null;
 let shapeYOffset = 60;
 const queuedEvents = [];
 
+function logTelemetry(event, data = {}) {
+  try {
+    const entry = {
+      event,
+      data,
+      timestamp: new Date().toISOString()
+    };
+    if (window.appendDiagnosticLog) {
+      window.appendDiagnosticLog(event, data);
+    }
+    console.log(`[WHITEBOARD TELEMETRY] ${event}:`, data);
+    fetch('/api/voice-tutor/whiteboard-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entry)
+    }).catch(() => {});
+  } catch (e) {}
+}
+
 async function purgeCorruptStorage() {
+  logTelemetry('PURGE_STORAGE_START');
   try {
     if (typeof window !== 'undefined' && window.indexedDB) {
       if (window.indexedDB.databases) {
         const dbs = await window.indexedDB.databases();
         for (const db of dbs) {
           if (db.name && (db.name.includes('TLDRAW') || db.name.includes('tldraw'))) {
-            console.log('[TLDRAW PURGE] Removing stale DB:', db.name);
+            logTelemetry('PURGE_DB', { dbName: db.name });
             window.indexedDB.deleteDatabase(db.name);
           }
         }
@@ -29,8 +49,9 @@ async function purgeCorruptStorage() {
         }
       }
     }
+    logTelemetry('PURGE_STORAGE_SUCCESS');
   } catch (err) {
-    console.warn('[STORAGE PURGE WARNING]:', err);
+    logTelemetry('PURGE_STORAGE_ERROR', { message: err?.message, stack: err?.stack });
   }
 }
 
@@ -42,10 +63,34 @@ function hideLoader() {
   }
 }
 
+function safeCreateShape(shapeData) {
+  if (!editorInstance) {
+    logTelemetry('SAFE_CREATE_SHAPE_SKIPPED_NO_EDITOR', { type: shapeData?.type });
+    return null;
+  }
+  try {
+    const created = editorInstance.createShape(shapeData);
+    logTelemetry('SAFE_CREATE_SHAPE_SUCCESS', { type: shapeData?.type, geo: shapeData.props?.geo });
+    return created;
+  } catch (err) {
+    console.error('[TLDRAW CREATE SHAPE ERROR]:', err, shapeData);
+    logTelemetry('SAFE_CREATE_SHAPE_ERROR', {
+      error: err?.message,
+      stack: err?.stack,
+      shapeType: shapeData?.type,
+      props: shapeData?.props
+    });
+    return null;
+  }
+}
+
 // Custom Error Fallback component replacing tldraw's default crash modal
 const CustomErrorFallback = ({ error }) => {
   useEffect(() => {
-    console.warn('[TLDRAW CRASH RECOVERY]:', error);
+    logTelemetry('TLDRAW_ERROR_FALLBACK_TRIGGERED', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : null
+    });
     purgeCorruptStorage();
     hideLoader();
     if (window.initFallbackCanvas) {
@@ -70,7 +115,11 @@ class ErrorBoundary extends Component {
     return { hasError: true, error };
   }
   componentDidCatch(error, errorInfo) {
-    console.error('[TLDRAW WHITEBOARD ERROR BOUNDARY]:', error, errorInfo);
+    logTelemetry('REACT_ERROR_BOUNDARY_CAUGHT', {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : null,
+      componentStack: errorInfo?.componentStack
+    });
     purgeCorruptStorage();
     hideLoader();
     if (window.initFallbackCanvas) {
@@ -91,6 +140,7 @@ const WhiteboardController = {
   },
 
   clear() {
+    logTelemetry('WHITEBOARD_ACTION_CLEAR');
     if (!editorInstance) {
       if (window.clearFallbackCanvas) window.clearFallbackCanvas();
       return;
@@ -101,21 +151,23 @@ const WhiteboardController = {
         editorInstance.deleteShapes(allShapeIds);
       }
     } catch (e) {
-      console.warn('Error clearing shapes:', e);
+      logTelemetry('CLEAR_SHAPES_ERROR', { message: e?.message });
     }
     shapeYOffset = 60;
   },
 
   zoomFit() {
+    logTelemetry('WHITEBOARD_ACTION_ZOOM_FIT');
     if (!editorInstance) return;
     try {
       editorInstance.zoomToFit({ duration: 350 });
     } catch (e) {
-      console.warn('zoomToFit error:', e);
+      logTelemetry('ZOOM_FIT_ERROR', { message: e?.message });
     }
   },
 
   addQuestionHeader({ title, chapter, marks }) {
+    logTelemetry('WHITEBOARD_ACTION_ADD_HEADER', { title: title?.slice(0, 40), chapter, marks });
     if (!editorInstance) {
       if (window.drawFallbackHeader) window.drawFallbackHeader(title, chapter, marks);
       return;
@@ -126,29 +178,26 @@ const WhiteboardController = {
       .replace(/\\sqrt\{([^}]+)\}/g, 'sqrt($1)')
       .trim();
 
-    try {
-      editorInstance.createShape({
-        type: 'geo',
-        x: 60,
-        y: shapeYOffset,
-        props: {
-          geo: 'rectangle',
-          w: 700,
-          h: 90,
-          color: 'blue',
-          fill: 'semi',
-          size: 'm',
-          text: `${chapter ? chapter.toUpperCase() + (marks ? ` (${marks}M)` : '') + '\n' : ''}${cleanTitle}`
-        }
-      });
-      shapeYOffset += 115;
-      this.zoomFit();
-    } catch (e) {
-      console.warn('createShape header error:', e);
-    }
+    safeCreateShape({
+      type: 'geo',
+      x: 60,
+      y: shapeYOffset,
+      props: {
+        geo: 'rectangle',
+        w: 700,
+        h: 90,
+        color: 'blue',
+        fill: 'semi',
+        size: 'm',
+        text: `${chapter ? chapter.toUpperCase() + (marks ? ` (${marks}M)` : '') + '\n' : ''}${cleanTitle}`
+      }
+    });
+    shapeYOffset += 115;
+    this.zoomFit();
   },
 
   addStepFormula({ stepNum = 1, title = 'Governing Law', formula = '', explanation = '' }) {
+    logTelemetry('WHITEBOARD_ACTION_ADD_STEP', { stepNum, title, formula });
     if (!editorInstance) {
       if (window.drawFallbackStep) window.drawFallbackStep(stepNum, title, formula, explanation);
       return;
@@ -156,29 +205,26 @@ const WhiteboardController = {
     const cleanFormula = (formula || '').replace(/\$+/g, '').trim();
     const cleanExp = (explanation || '').replace(/\$+/g, '').trim();
 
-    try {
-      editorInstance.createShape({
-        type: 'geo',
-        x: 60,
-        y: shapeYOffset,
-        props: {
-          geo: 'rectangle',
-          w: 700,
-          h: 110,
-          color: stepNum === 1 ? 'yellow' : (stepNum === 2 ? 'light-blue' : 'green'),
-          fill: 'semi',
-          size: 'm',
-          text: `Step ${stepNum}: ${title}\nFormula: ${cleanFormula}${cleanExp ? '\n' + cleanExp : ''}`
-        }
-      });
-      shapeYOffset += 130;
-      this.zoomFit();
-    } catch (e) {
-      console.warn('createShape step error:', e);
-    }
+    safeCreateShape({
+      type: 'geo',
+      x: 60,
+      y: shapeYOffset,
+      props: {
+        geo: 'rectangle',
+        w: 700,
+        h: 110,
+        color: stepNum === 1 ? 'yellow' : (stepNum === 2 ? 'light-blue' : 'green'),
+        fill: 'semi',
+        size: 'm',
+        text: `Step ${stepNum}: ${title}\nFormula: ${cleanFormula}${cleanExp ? '\n' + cleanExp : ''}`
+      }
+    });
+    shapeYOffset += 130;
+    this.zoomFit();
   },
 
   drawPhysicsDiagram(type = 'lens', params = {}) {
+    logTelemetry('WHITEBOARD_ACTION_DRAW_DIAGRAM', { type, params });
     if (!editorInstance) {
       if (window.drawFallbackDiagram) window.drawFallbackDiagram(type, params);
       return;
@@ -186,237 +232,229 @@ const WhiteboardController = {
     const cx = 410;
     const cy = shapeYOffset + 120;
 
-    try {
-      if (type === 'lens' || type === 'optics') {
-        editorInstance.createShape({
-          type: 'line',
-          x: 60,
-          y: cy,
-          props: {
-            points: [
-              { id: 'p1', index: 'a1', x: 0, y: 0 },
-              { id: 'p2', index: 'a2', x: 700, y: 0 }
-            ],
-            color: 'grey',
-            size: 's',
-            dash: 'dashed'
-          }
-        });
+    if (type === 'lens' || type === 'optics') {
+      // Line shape with object points map conforming to TLLineShape schema
+      safeCreateShape({
+        type: 'line',
+        x: 60,
+        y: cy,
+        props: {
+          points: {
+            a1: { id: 'a1', index: 'a1', x: 0, y: 0 },
+            a2: { id: 'a2', index: 'a2', x: 700, y: 0 }
+          },
+          color: 'grey',
+          size: 's',
+          dash: 'dashed',
+          spline: 'line'
+        }
+      });
 
-        editorInstance.createShape({
-          type: 'geo',
-          x: cx - 22,
-          y: cy - 90,
-          props: {
-            geo: 'ellipse',
-            w: 44,
-            h: 180,
-            color: 'light-blue',
-            fill: 'semi',
-            text: 'Lens'
-          }
-        });
+      safeCreateShape({
+        type: 'geo',
+        x: cx - 22,
+        y: cy - 90,
+        props: {
+          geo: 'ellipse',
+          w: 44,
+          h: 180,
+          color: 'light-blue',
+          fill: 'semi',
+          text: 'Lens'
+        }
+      });
 
-        editorInstance.createShape({
-          type: 'text',
-          x: cx - 140,
-          y: cy + 10,
-          props: { text: 'F1 (Focus)', size: 's', color: 'orange' }
-        });
-        editorInstance.createShape({
-          type: 'text',
-          x: cx + 110,
-          y: cy + 10,
-          props: { text: 'F2 (Focus)', size: 's', color: 'orange' }
-        });
+      safeCreateShape({
+        type: 'text',
+        x: cx - 140,
+        y: cy + 10,
+        props: { text: 'F1 (Focus)', size: 's', color: 'orange' }
+      });
+      safeCreateShape({
+        type: 'text',
+        x: cx + 110,
+        y: cy + 10,
+        props: { text: 'F2 (Focus)', size: 's', color: 'orange' }
+      });
 
-        editorInstance.createShape({
-          type: 'arrow',
-          x: cx - 220,
-          y: cy,
-          props: {
-            start: { x: 0, y: 0 },
-            end: { x: 0, y: -70 },
-            color: 'red'
-          }
-        });
-        editorInstance.createShape({
-          type: 'text',
-          x: cx - 250,
-          y: cy - 90,
-          props: { text: 'Object (h)', size: 's', color: 'red' }
-        });
+      safeCreateShape({
+        type: 'arrow',
+        x: cx - 220,
+        y: cy,
+        props: {
+          start: { x: 0, y: 0 },
+          end: { x: 0, y: -70 },
+          color: 'red'
+        }
+      });
+      safeCreateShape({
+        type: 'text',
+        x: cx - 250,
+        y: cy - 90,
+        props: { text: 'Object (h)', size: 's', color: 'red' }
+      });
 
-        editorInstance.createShape({
-          type: 'arrow',
-          x: cx - 220,
-          y: cy - 70,
-          props: {
-            start: { x: 0, y: 0 },
-            end: { x: 220, y: 0 },
-            color: 'yellow'
-          }
-        });
-        editorInstance.createShape({
-          type: 'arrow',
-          x: cx,
-          y: cy - 70,
-          props: {
-            start: { x: 0, y: 0 },
-            end: { x: 260, y: 150 },
-            color: 'yellow'
-          }
-        });
+      safeCreateShape({
+        type: 'arrow',
+        x: cx - 220,
+        y: cy - 70,
+        props: {
+          start: { x: 0, y: 0 },
+          end: { x: 220, y: 0 },
+          color: 'yellow'
+        }
+      });
+      safeCreateShape({
+        type: 'arrow',
+        x: cx,
+        y: cy - 70,
+        props: {
+          start: { x: 0, y: 0 },
+          end: { x: 260, y: 150 },
+          color: 'yellow'
+        }
+      });
 
-        editorInstance.createShape({
-          type: 'arrow',
-          x: cx + 260,
-          y: cy,
-          props: {
-            start: { x: 0, y: 0 },
-            end: { x: 0, y: 80 },
-            color: 'green'
-          }
-        });
-        editorInstance.createShape({
-          type: 'text',
-          x: cx + 270,
-          y: cy + 30,
-          props: { text: 'Image (Real, Inverted)', size: 's', color: 'green' }
-        });
+      safeCreateShape({
+        type: 'arrow',
+        x: cx + 260,
+        y: cy,
+        props: {
+          start: { x: 0, y: 0 },
+          end: { x: 0, y: 80 },
+          color: 'green'
+        }
+      });
+      safeCreateShape({
+        type: 'text',
+        x: cx + 270,
+        y: cy + 30,
+        props: { text: 'Image (Real, Inverted)', size: 's', color: 'green' }
+      });
 
-        shapeYOffset += 260;
-      } else if (type === 'circuit' || type === 'electricity') {
-        editorInstance.createShape({
-          type: 'geo',
-          x: 90,
-          y: cy - 60,
-          props: {
-            geo: 'rectangle',
-            w: 620,
-            h: 150,
-            color: 'grey',
-            fill: 'none',
-            text: ''
-          }
-        });
+      shapeYOffset += 260;
+    } else if (type === 'circuit' || type === 'electricity') {
+      safeCreateShape({
+        type: 'geo',
+        x: 90,
+        y: cy - 60,
+        props: {
+          geo: 'rectangle',
+          w: 620,
+          h: 150,
+          color: 'grey',
+          fill: 'none',
+          text: ''
+        }
+      });
 
-        editorInstance.createShape({
-          type: 'geo',
-          x: 320,
-          y: cy - 80,
-          props: {
-            geo: 'rectangle',
-            w: 160,
-            h: 40,
-            color: 'orange',
-            fill: 'semi',
-            text: 'Resistor (R = V/I)'
-          }
-        });
+      safeCreateShape({
+        type: 'geo',
+        x: 320,
+        y: cy - 80,
+        props: {
+          geo: 'rectangle',
+          w: 160,
+          h: 40,
+          color: 'orange',
+          fill: 'semi',
+          text: 'Resistor (R = V/I)'
+        }
+      });
 
-        editorInstance.createShape({
-          type: 'geo',
-          x: 340,
-          y: cy + 70,
-          props: {
-            geo: 'rectangle',
-            w: 120,
-            h: 36,
-            color: 'green',
-            fill: 'semi',
-            text: 'Battery (V)'
-          }
-        });
+      safeCreateShape({
+        type: 'geo',
+        x: 340,
+        y: cy + 70,
+        props: {
+          geo: 'rectangle',
+          w: 120,
+          h: 36,
+          color: 'green',
+          fill: 'semi',
+          text: 'Battery (V)'
+        }
+      });
 
-        shapeYOffset += 210;
-      } else {
-        editorInstance.createShape({
-          type: 'geo',
-          x: 100,
-          y: cy - 40,
-          props: {
-            geo: 'cloud',
-            w: 580,
-            h: 120,
-            color: 'violet',
-            fill: 'semi',
-            text: params.label || 'Concept Visual Framework'
-          }
-        });
-        shapeYOffset += 160;
-      }
-
-      this.zoomFit();
-    } catch (e) {
-      console.warn('drawPhysicsDiagram error:', e);
+      shapeYOffset += 210;
+    } else {
+      safeCreateShape({
+        type: 'geo',
+        x: 100,
+        y: cy - 40,
+        props: {
+          geo: 'cloud',
+          w: 580,
+          h: 120,
+          color: 'violet',
+          fill: 'semi',
+          text: params.label || 'Concept Visual Framework'
+        }
+      });
+      shapeYOffset += 160;
     }
+
+    this.zoomFit();
   },
 
   highlightDoubt({ doubtText, answerText }) {
+    logTelemetry('WHITEBOARD_ACTION_HIGHLIGHT_DOUBT', { doubtText, answerText });
     if (!editorInstance) {
       if (window.drawFallbackDoubt) window.drawFallbackDoubt(doubtText, answerText);
       return;
     }
     const curY = shapeYOffset;
 
-    try {
-      editorInstance.createShape({
-        type: 'note',
-        x: 480,
-        y: curY,
-        props: {
-          color: 'red',
-          text: `Doubt: "${doubtText}"\n\nExplanation: ${answerText}`
-        }
-      });
+    safeCreateShape({
+      type: 'note',
+      x: 480,
+      y: curY,
+      props: {
+        color: 'red',
+        text: `Doubt: "${doubtText}"\n\nExplanation: ${answerText}`
+      }
+    });
 
-      editorInstance.createShape({
-        type: 'arrow',
-        x: 410,
-        y: curY + 40,
-        props: {
-          start: { x: 0, y: 0 },
-          end: { x: 60, y: 0 },
-          color: 'red'
-        }
-      });
+    safeCreateShape({
+      type: 'arrow',
+      x: 410,
+      y: curY + 40,
+      props: {
+        start: { x: 0, y: 0 },
+        end: { x: 60, y: 0 },
+        color: 'red'
+      }
+    });
 
-      shapeYOffset += 160;
-      this.zoomFit();
-    } catch (e) {
-      console.warn('highlightDoubt error:', e);
-    }
+    shapeYOffset += 160;
+    this.zoomFit();
   },
 
   addFinalAnswer({ answer, keyInsight }) {
+    logTelemetry('WHITEBOARD_ACTION_FINAL_ANSWER', { answer, keyInsight });
     if (!editorInstance) {
       if (window.drawFallbackFinal) window.drawFallbackFinal(answer, keyInsight);
       return;
     }
     const cleanAnswer = (answer || '').replace(/\$+/g, '').trim();
 
-    try {
-      editorInstance.createShape({
-        type: 'geo',
-        x: 100,
-        y: shapeYOffset,
-        props: {
-          geo: 'diamond',
-          w: 580,
-          h: 110,
-          color: 'green',
-          fill: 'semi',
-          size: 'm',
-          text: `FINAL ANSWER:\n${cleanAnswer}\n(${keyInsight || 'Verified by CBSE Standard'})`
-        }
-      });
+    safeCreateShape({
+      type: 'geo',
+      x: 100,
+      y: shapeYOffset,
+      props: {
+        geo: 'diamond',
+        w: 580,
+        h: 110,
+        color: 'green',
+        fill: 'semi',
+        size: 'm',
+        text: `FINAL ANSWER:\n${cleanAnswer}\n(${keyInsight || 'Verified by CBSE Standard'})`
+      }
+    });
 
-      shapeYOffset += 140;
-      this.zoomFit();
-    } catch (e) {
-      console.warn('addFinalAnswer error:', e);
-    }
+    shapeYOffset += 140;
+    this.zoomFit();
   }
 };
 
@@ -424,9 +462,10 @@ window.whiteboardController = WhiteboardController;
 
 function processWhiteboardEvent(data) {
   if (!data || !data.type) return;
+  logTelemetry('DISPATCH_WHITEBOARD_EVENT', { type: data.type, payload: data.payload });
+
   if (!editorInstance) {
     queuedEvents.push(data);
-    // Also dispatch to fallback canvas if active
     if (window.drawFallbackHeader && data.type === 'INIT_QUESTION') {
       window.clearFallbackCanvas && window.clearFallbackCanvas();
       window.drawFallbackHeader(data.payload?.title, data.payload?.chapter, data.payload?.marks);
@@ -486,7 +525,7 @@ function WhiteboardApp() {
 
   const handleMount = (editor) => {
     editorInstance = editor;
-    console.log('[TLDRAW WHITEBOARD] Local bundle Editor mounted successfully!');
+    logTelemetry('TLDRAW_EDITOR_MOUNTED_SUCCESSFULLY');
     hideLoader();
 
     while (queuedEvents.length > 0) {
@@ -516,12 +555,20 @@ function WhiteboardApp() {
 }
 
 async function init() {
+  logTelemetry('WHITEBOARD_CLIENT_INIT_CALLED');
   await purgeCorruptStorage();
 
   const rootEl = document.getElementById('root');
   if (rootEl) {
-    const root = createRoot(rootEl);
-    root.render(React.createElement(WhiteboardApp));
+    try {
+      const root = createRoot(rootEl);
+      root.render(React.createElement(WhiteboardApp));
+      logTelemetry('REACT_ROOT_RENDER_CALLED');
+    } catch (e) {
+      logTelemetry('REACT_ROOT_RENDER_FAILED', { message: e?.message, stack: e?.stack });
+    }
+  } else {
+    logTelemetry('ROOT_ELEMENT_NOT_FOUND');
   }
 
   document.getElementById('btnWbClear')?.addEventListener('click', () => {
