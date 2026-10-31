@@ -398,6 +398,36 @@ runTest('Class 10 Faculty Auth, 14-Chapter Syllabus & 438-Question Bank (/api/qu
   }
 });
 
+// TEST 14: AI Voice Tutor Hinglish Briefing & Interruption API
+runTest('AI Voice Tutor Hinglish Briefing & Interruption API (/api/voice-tutor/explain)', () => {
+  const explainRes = makeRequest('/api/voice-tutor/explain', {
+    method: 'POST',
+    data: {
+      questionText: 'Show that the square of any positive integer cannot be of the form $5q + 2$ or $5q + 3$.',
+      chapter: 'Real Numbers'
+    }
+  });
+  if (!explainRes.success) throw new Error(`Voice tutor explain request failed: ${explainRes.error}`);
+  const data = JSON.parse(explainRes.body);
+  if (!data.success || !data.hinglishAudioBrief || !data.speechCleanedText) {
+    throw new Error('Expected hinglishAudioBrief and speechCleanedText in voice tutor response');
+  }
+
+  const interruptRes = makeRequest('/api/voice-tutor/interrupt', {
+    method: 'POST',
+    data: {
+      questionText: 'Show that the square of any positive integer cannot be of the form $5q + 2$.',
+      studentDoubt: 'Pehla step kya hoga sir?'
+    }
+  });
+  if (!interruptRes.success) throw new Error(`Voice tutor interrupt request failed: ${interruptRes.error}`);
+  const intData = JSON.parse(interruptRes.body);
+  if (!intData.success || !intData.teacherSpokenReply) {
+    throw new Error('Expected teacherSpokenReply in interruption response');
+  }
+});
+
+
 // -----------------------------------------------------------------------------
 // VERIFICATION REPORT & PRODUCTION GATE EXIT CODE
 // -----------------------------------------------------------------------------

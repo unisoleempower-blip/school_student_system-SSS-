@@ -32,6 +32,7 @@ node scripts/test_class_progress_dashboard.js
 node scripts/test_math_question_bank.js
 node scripts/test_latex_rendering_and_options.js
 node scripts/test_intuitive_solution_card.js
+node scripts/test_voice_tutor_hinglish.js
 echo "✅ Local diagnostic tests passed."
 echo ""
 

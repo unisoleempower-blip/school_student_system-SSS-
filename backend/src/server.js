@@ -22,6 +22,7 @@ const uploadRouter = require('./routes/upload');
 const notificationsRouter = require('./routes/notifications');
 const assessmentsRouter = require('./routes/assessments');
 const curriculumRouter = require('./routes/curriculum');
+const voiceTutorRouter = require('./routes/voiceTutor');
 
 const app = express();
 const server = http.createServer(app);
@@ -102,6 +103,7 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/assessments', assessmentsRouter);
 app.use('/api/curriculum', curriculumRouter);
+app.use('/api/voice-tutor', voiceTutorRouter);
 
 // Serve static frontend assets & HTML shell
 const path = require('path');

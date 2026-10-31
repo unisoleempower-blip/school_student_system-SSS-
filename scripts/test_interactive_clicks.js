@@ -208,3 +208,4 @@ submitExamBtn.click();
 console.log('✅ Submit Full Exam clicked: Alert = ' + global.__lastAlert);
 
 console.log('\n🎉 ALL BUTTON CLICK SUITES PASSED FLAWLESSLY WITH 0 ERRORS!');
+process.exit(0);
