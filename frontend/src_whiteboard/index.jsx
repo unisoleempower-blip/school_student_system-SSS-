@@ -6,6 +6,34 @@ let editorInstance = null;
 let shapeYOffset = 60;
 const queuedEvents = [];
 
+async function purgeCorruptStorage() {
+  try {
+    if (typeof window !== 'undefined' && window.indexedDB) {
+      if (window.indexedDB.databases) {
+        const dbs = await window.indexedDB.databases();
+        for (const db of dbs) {
+          if (db.name && (db.name.includes('TLDRAW') || db.name.includes('tldraw'))) {
+            console.log('[TLDRAW PURGE] Removing stale DB:', db.name);
+            window.indexedDB.deleteDatabase(db.name);
+          }
+        }
+      } else {
+        window.indexedDB.deleteDatabase('TLDRAW_DOCUMENT_v2');
+        window.indexedDB.deleteDatabase('TLDRAW_DOCUMENT_v2undefined');
+      }
+    }
+    if (typeof localStorage !== 'undefined') {
+      for (const k of Object.keys(localStorage)) {
+        if (k.toLowerCase().includes('tldraw')) {
+          localStorage.removeItem(k);
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[STORAGE PURGE WARNING]:', err);
+  }
+}
+
 function hideLoader() {
   const loader = document.getElementById('whiteboard-loading');
   if (loader && loader.style.display !== 'none') {
@@ -13,6 +41,25 @@ function hideLoader() {
     setTimeout(() => { loader.style.display = 'none'; }, 200);
   }
 }
+
+// Custom Error Fallback component replacing tldraw's default crash modal
+const CustomErrorFallback = ({ error }) => {
+  useEffect(() => {
+    console.warn('[TLDRAW CRASH RECOVERY]:', error);
+    purgeCorruptStorage();
+    hideLoader();
+    if (window.initFallbackCanvas) {
+      window.initFallbackCanvas();
+    }
+    // Flush queued events into fallback canvas
+    while (queuedEvents.length > 0) {
+      const evt = queuedEvents.shift();
+      processWhiteboardEvent(evt);
+    }
+  }, [error]);
+
+  return null;
+};
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -24,6 +71,7 @@ class ErrorBoundary extends Component {
   }
   componentDidCatch(error, errorInfo) {
     console.error('[TLDRAW WHITEBOARD ERROR BOUNDARY]:', error, errorInfo);
+    purgeCorruptStorage();
     hideLoader();
     if (window.initFallbackCanvas) {
       window.initFallbackCanvas();
@@ -378,6 +426,21 @@ function processWhiteboardEvent(data) {
   if (!data || !data.type) return;
   if (!editorInstance) {
     queuedEvents.push(data);
+    // Also dispatch to fallback canvas if active
+    if (window.drawFallbackHeader && data.type === 'INIT_QUESTION') {
+      window.clearFallbackCanvas && window.clearFallbackCanvas();
+      window.drawFallbackHeader(data.payload?.title, data.payload?.chapter, data.payload?.marks);
+    } else if (window.drawFallbackDiagram && data.type === 'DRAW_DIAGRAM') {
+      window.drawFallbackDiagram(data.payload?.diagramType, data.payload || {});
+    } else if (window.drawFallbackStep && data.type === 'WRITE_STEP') {
+      window.drawFallbackStep(data.payload?.stepNum, data.payload?.title, data.payload?.formula, data.payload?.explanation);
+    } else if (window.drawFallbackDoubt && data.type === 'HIGHLIGHT_DOUBT') {
+      window.drawFallbackDoubt(data.payload?.doubtText, data.payload?.answerText);
+    } else if (window.drawFallbackFinal && data.type === 'FINAL_ANSWER') {
+      window.drawFallbackFinal(data.payload?.answer, data.payload?.keyInsight);
+    } else if (window.clearFallbackCanvas && data.type === 'CLEAR_BOARD') {
+      window.clearFallbackCanvas();
+    }
     return;
   }
 
@@ -415,10 +478,9 @@ function processWhiteboardEvent(data) {
 
 function WhiteboardApp() {
   useEffect(() => {
-    // Safety timer: Dismiss loading spinner after max 700ms so screen is never blocked
     const timer = setTimeout(() => {
       hideLoader();
-    }, 700);
+    }, 600);
     return () => clearTimeout(timer);
   }, []);
 
@@ -444,13 +506,18 @@ function WhiteboardApp() {
       React.createElement(Tldraw, {
         onMount: handleMount,
         autoFocus: false,
-        inferDarkMode: true
+        inferDarkMode: true,
+        components: {
+          ErrorFallback: CustomErrorFallback
+        }
       })
     )
   );
 }
 
-function init() {
+async function init() {
+  await purgeCorruptStorage();
+
   const rootEl = document.getElementById('root');
   if (rootEl) {
     const root = createRoot(rootEl);
