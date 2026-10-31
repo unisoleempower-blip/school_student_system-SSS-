@@ -1,6 +1,6 @@
 import React, { Component, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Tldraw } from 'tldraw';
+import { Tldraw, toRichText } from 'tldraw';
 
 let editorInstance = null;
 let shapeYOffset = 60;
@@ -189,7 +189,7 @@ const WhiteboardController = {
         color: 'blue',
         fill: 'semi',
         size: 'm',
-        text: `${chapter ? chapter.toUpperCase() + (marks ? ` (${marks}M)` : '') + '\n' : ''}${cleanTitle}`
+        richText: toRichText(`${chapter ? chapter.toUpperCase() + (marks ? ` (${marks}M)` : '') + '\n' : ''}${cleanTitle}`)
       }
     });
     shapeYOffset += 115;
@@ -216,7 +216,7 @@ const WhiteboardController = {
         color: stepNum === 1 ? 'yellow' : (stepNum === 2 ? 'light-blue' : 'green'),
         fill: 'semi',
         size: 'm',
-        text: `Step ${stepNum}: ${title}\nFormula: ${cleanFormula}${cleanExp ? '\n' + cleanExp : ''}`
+        richText: toRichText(`Step ${stepNum}: ${title}\nFormula: ${cleanFormula}${cleanExp ? '\n' + cleanExp : ''}`)
       }
     });
     shapeYOffset += 130;
@@ -260,7 +260,7 @@ const WhiteboardController = {
           h: 180,
           color: 'light-blue',
           fill: 'semi',
-          text: 'Lens'
+          richText: toRichText('Lens')
         }
       });
 
@@ -268,13 +268,13 @@ const WhiteboardController = {
         type: 'text',
         x: cx - 140,
         y: cy + 10,
-        props: { text: 'F1 (Focus)', size: 's', color: 'orange' }
+        props: { richText: toRichText('F1 (Focus)'), size: 's', color: 'orange' }
       });
       safeCreateShape({
         type: 'text',
         x: cx + 110,
         y: cy + 10,
-        props: { text: 'F2 (Focus)', size: 's', color: 'orange' }
+        props: { richText: toRichText('F2 (Focus)'), size: 's', color: 'orange' }
       });
 
       safeCreateShape({
@@ -291,7 +291,7 @@ const WhiteboardController = {
         type: 'text',
         x: cx - 250,
         y: cy - 90,
-        props: { text: 'Object (h)', size: 's', color: 'red' }
+        props: { richText: toRichText('Object (h)'), size: 's', color: 'red' }
       });
 
       safeCreateShape({
@@ -329,7 +329,7 @@ const WhiteboardController = {
         type: 'text',
         x: cx + 270,
         y: cy + 30,
-        props: { text: 'Image (Real, Inverted)', size: 's', color: 'green' }
+        props: { richText: toRichText('Image (Real, Inverted)'), size: 's', color: 'green' }
       });
 
       shapeYOffset += 260;
@@ -344,7 +344,7 @@ const WhiteboardController = {
           h: 150,
           color: 'grey',
           fill: 'none',
-          text: ''
+          richText: toRichText('')
         }
       });
 
@@ -358,7 +358,7 @@ const WhiteboardController = {
           h: 40,
           color: 'orange',
           fill: 'semi',
-          text: 'Resistor (R = V/I)'
+          richText: toRichText('Resistor (R = V/I)')
         }
       });
 
@@ -372,7 +372,7 @@ const WhiteboardController = {
           h: 36,
           color: 'green',
           fill: 'semi',
-          text: 'Battery (V)'
+          richText: toRichText('Battery (V)')
         }
       });
 
@@ -388,7 +388,7 @@ const WhiteboardController = {
           h: 120,
           color: 'violet',
           fill: 'semi',
-          text: params.label || 'Concept Visual Framework'
+          richText: toRichText(params.label || 'Concept Visual Framework')
         }
       });
       shapeYOffset += 160;
@@ -411,7 +411,7 @@ const WhiteboardController = {
       y: curY,
       props: {
         color: 'red',
-        text: `Doubt: "${doubtText}"\n\nExplanation: ${answerText}`
+        richText: toRichText(`Doubt: "${doubtText}"\n\nExplanation: ${answerText}`)
       }
     });
 
@@ -449,7 +449,7 @@ const WhiteboardController = {
         color: 'green',
         fill: 'semi',
         size: 'm',
-        text: `FINAL ANSWER:\n${cleanAnswer}\n(${keyInsight || 'Verified by CBSE Standard'})`
+        richText: toRichText(`FINAL ANSWER:\n${cleanAnswer}\n(${keyInsight || 'Verified by CBSE Standard'})`)
       }
     });
 
