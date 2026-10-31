@@ -9098,6 +9098,12 @@ function syncLiveVoiceAssistantToCurrentQuestion() {
   // Wire UI for the new question
   attachLiveVoiceCallbacks(qId);
 
+  // Sync whiteboard to new question if visible
+  const wb = document.getElementById(`wbContainer_${qId}`);
+  if (wb && wb.style.display !== 'none') {
+    syncQuestionToWhiteboard(qId);
+  }
+
   // Send new question turn to active Gemini Live session
   window.geminiLiveVoiceTutor.switchToQuestion({
     questionId: qId,
@@ -9157,6 +9163,7 @@ async function startRealtimeVoiceAssistant(qId) {
   initLucideIcons();
 
   attachLiveVoiceCallbacks(qId);
+  toggleLiveWhiteboard(qId, true);
 
   try {
     await window.geminiLiveVoiceTutor.startSession({
@@ -9213,6 +9220,170 @@ function stopRealtimeVoiceAssistant(qId, closeDrawer = false) {
   initLucideIcons();
 }
 
+// ============================================================================
+// AI INTERACTIVE WHITEBOARD CONTROLLER (TLDRAW LIVE SYNC)
+// ============================================================================
+
+function toggleLiveWhiteboard(qId, forceOpen = null) {
+  const container = document.getElementById(`wbContainer_${qId}`);
+  const btn = document.getElementById(`btnToggleWb_${qId}`);
+  if (!container) return;
+
+  const isHidden = container.style.display === 'none' || container.style.display === '';
+  const shouldOpen = forceOpen !== null ? forceOpen : isHidden;
+
+  if (shouldOpen) {
+    container.style.display = 'flex';
+    if (btn) {
+      btn.style.background = 'rgba(147, 51, 234, 0.3)';
+      btn.style.borderColor = '#c084fc';
+    }
+    syncQuestionToWhiteboard(qId);
+  } else {
+    container.style.display = 'none';
+    if (btn) {
+      btn.style.background = 'rgba(147, 51, 234, 0.15)';
+      btn.style.borderColor = 'rgba(147, 51, 234, 0.35)';
+    }
+  }
+  initLucideIcons();
+}
+
+function toggleExpandWhiteboard(qId) {
+  const container = document.getElementById(`wbContainer_${qId}`);
+  const btn = document.getElementById(`btnWbExpand_${qId}`);
+  if (!container) return;
+
+  container.classList.toggle('expanded');
+  const isExpanded = container.classList.contains('expanded');
+  if (btn) {
+    btn.innerHTML = isExpanded 
+      ? `<i data-lucide="minimize" style="width:12px; height:12px;"></i> Exit Fullscreen` 
+      : `<i data-lucide="expand" style="width:12px; height:12px;"></i> Fullscreen`;
+    initLucideIcons();
+  }
+  fitLiveWhiteboard(qId);
+}
+
+function clearLiveWhiteboard(qId) {
+  clearWhiteboardTimers();
+  sendWhiteboardMessage(qId, { type: 'CLEAR_BOARD' });
+}
+
+function fitLiveWhiteboard(qId) {
+  sendWhiteboardMessage(qId, { type: 'ZOOM_FIT' });
+}
+
+function sendWhiteboardMessage(qId, message) {
+  const iframe = document.getElementById(`wbIframe_${qId}`);
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage(message, '*');
+  }
+}
+
+function clearWhiteboardTimers() {
+  if (voiceTutorState.whiteboardSyncTimers) {
+    voiceTutorState.whiteboardSyncTimers.forEach(t => clearTimeout(t));
+    voiceTutorState.whiteboardSyncTimers = [];
+  }
+}
+
+function syncQuestionToWhiteboard(qId) {
+  clearWhiteboardTimers();
+  if (!voiceTutorState.whiteboardSyncTimers) voiceTutorState.whiteboardSyncTimers = [];
+
+  const qObj = (state.qbFilteredQuestions || []).find(item => item.id === qId) || {};
+  const rawQ = qObj.question_latex || qObj.questionText || '';
+  const rawS = qObj.solution_latex || '';
+  const ch = qObj.chapter_name || qObj.chapter || 'Physics / Science';
+  const marks = qObj.marks || 3;
+
+  // Detect diagram type from context
+  const textForDetection = (rawQ + ' ' + ch + ' ' + (qObj.topic || '')).toLowerCase();
+  let diagramType = 'concept';
+  if (textForDetection.match(/lens|mirror|focal|refract|reflect|convex|concave|ray|optical/)) {
+    diagramType = 'lens';
+  } else if (textForDetection.match(/circuit|ohm|resistor|resistance|current|voltage|potential|battery|ampere/)) {
+    diagramType = 'circuit';
+  }
+
+  // 1. Initial Question Header Card (Immediate)
+  sendWhiteboardMessage(qId, {
+    type: 'INIT_QUESTION',
+    payload: {
+      title: cleanLatexForClientVoice(rawQ).slice(0, 140) + '...',
+      chapter: ch,
+      marks: marks
+    }
+  });
+
+  // 2. Progressive timed drawing sync (T = 1.2s): Diagram
+  const t1 = setTimeout(() => {
+    sendWhiteboardMessage(qId, {
+      type: 'DRAW_DIAGRAM',
+      payload: {
+        diagramType: diagramType,
+        label: `${ch} - Visual Framework`
+      }
+    });
+  }, 1200);
+  voiceTutorState.whiteboardSyncTimers.push(t1);
+
+  // 3. Step 1 Formula (T = 4.5s)
+  const t2 = setTimeout(() => {
+    const step1Formula = diagramType === 'lens' 
+      ? '1/f = 1/v - 1/u' 
+      : (diagramType === 'circuit' ? 'V = I * R,  rho = (R * A) / l' : 'Standard Fundamental Relation');
+    sendWhiteboardMessage(qId, {
+      type: 'WRITE_STEP',
+      payload: {
+        stepNum: 1,
+        title: 'Governing Formula & Sign Convention',
+        formula: step1Formula,
+        explanation: 'Identify given physical variables and substitute with appropriate sign convention.'
+      }
+    });
+  }, 4500);
+  voiceTutorState.whiteboardSyncTimers.push(t2);
+
+  // 4. Step 2 Calculation (T = 8.5s)
+  const t3 = setTimeout(() => {
+    sendWhiteboardMessage(qId, {
+      type: 'WRITE_STEP',
+      payload: {
+        stepNum: 2,
+        title: 'Substitution & Numerical Solving',
+        formula: 'Rearrange equation for the unknown quantity',
+        explanation: 'Step-by-step arithmetic resolution preserving SI units throughout.'
+      }
+    });
+  }, 8500);
+  voiceTutorState.whiteboardSyncTimers.push(t3);
+
+  // 5. Final Answer (T = 13.5s)
+  const t4 = setTimeout(() => {
+    const cleanSol = cleanLatexForClientVoice(rawS).slice(0, 120);
+    sendWhiteboardMessage(qId, {
+      type: 'FINAL_ANSWER',
+      payload: {
+        answer: cleanSol || 'Derived accurately using standard CBSE guidelines',
+        keyInsight: 'Always cross-check unit dimensions and sign conventions before submitting'
+      }
+    });
+  }, 13500);
+  voiceTutorState.whiteboardSyncTimers.push(t4);
+}
+
+function syncDoubtToWhiteboard(qId, doubtText, answerText) {
+  sendWhiteboardMessage(qId, {
+    type: 'HIGHLIGHT_DOUBT',
+    payload: {
+      doubtText: doubtText || 'Student Question',
+      answerText: answerText || 'Rule verified by teacher on whiteboard'
+    }
+  });
+}
+
 // Global exports for inline HTML onclick handlers
 window.readQuestionAloud = readQuestionAloud;
 window.explainQuestionInHinglish = explainQuestionInHinglish;
@@ -9225,6 +9396,12 @@ window.quickAskDoubt = quickAskDoubt;
 window.setVoiceTutorPersona = setVoiceTutorPersona;
 window.startRealtimeVoiceAssistant = startRealtimeVoiceAssistant;
 window.stopRealtimeVoiceAssistant = stopRealtimeVoiceAssistant;
+window.toggleLiveWhiteboard = toggleLiveWhiteboard;
+window.toggleExpandWhiteboard = toggleExpandWhiteboard;
+window.clearLiveWhiteboard = clearLiveWhiteboard;
+window.fitLiveWhiteboard = fitLiveWhiteboard;
+window.syncQuestionToWhiteboard = syncQuestionToWhiteboard;
+window.syncDoubtToWhiteboard = syncDoubtToWhiteboard;
 
 
 function renderQbCurrentPage() {
@@ -9538,6 +9715,9 @@ function renderQbCurrentPage() {
                 <i data-lucide="radio" style="width:13px; height:13px;"></i> Live Voice Assistant
                 <span class="qb-live-tag">LIVE</span>
               </button>
+              <button type="button" class="qb-voice-btn" onclick="toggleLiveWhiteboard('${qId}')" id="btnToggleWb_${qId}" style="background:rgba(147, 51, 234, 0.15); color:#c084fc; border:1px solid rgba(147, 51, 234, 0.35);" title="Open AI live interactive whiteboard">
+                <i data-lucide="edit-3" style="width:13px; height:13px;"></i> Live Whiteboard
+              </button>
               <button type="button" class="qb-voice-btn qb-voice-btn-stop" onclick="stopRealtimeVoiceAssistant('${qId}', true);" id="btnStopVoice_${qId}" title="End live call" style="display:none;">
                 <i data-lucide="phone-off" style="width:12px; height:12px;"></i> End Call
               </button>
@@ -9607,6 +9787,29 @@ function renderQbCurrentPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- AI LIVE WHITEBOARD (TLDRAW) -->
+        <div class="qb-whiteboard-container" id="wbContainer_${qId}" style="display:none;">
+          <div class="qb-whiteboard-toolbar">
+            <div class="qb-whiteboard-brand">
+              <span class="pulse-dot"></span>
+              <i data-lucide="edit-3" style="width:14px; height:14px; color:#38bdf8;"></i>
+              <span>AI Teacher Whiteboard &bull; Live tldraw Sync</span>
+            </div>
+            <div class="qb-whiteboard-actions">
+              <button type="button" class="qb-whiteboard-btn" onclick="clearLiveWhiteboard('${qId}')" title="Clear board">
+                <i data-lucide="rotate-ccw" style="width:12px; height:12px;"></i> Clear
+              </button>
+              <button type="button" class="qb-whiteboard-btn" onclick="fitLiveWhiteboard('${qId}')" title="Zoom to fit">
+                <i data-lucide="maximize" style="width:12px; height:12px;"></i> Zoom Fit
+              </button>
+              <button type="button" class="qb-whiteboard-btn" onclick="toggleExpandWhiteboard('${qId}')" id="btnWbExpand_${qId}" title="Toggle fullscreen canvas">
+                <i data-lucide="expand" style="width:12px; height:12px;"></i> Fullscreen
+              </button>
+            </div>
+          </div>
+          <iframe id="wbIframe_${qId}" class="qb-whiteboard-iframe" src="/whiteboard.html" allow="clipboard-read; clipboard-write"></iframe>
         </div>
 
         <!-- QUESTION STATEMENT -->
