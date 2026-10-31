@@ -8936,6 +8936,13 @@ async function submitVoiceDoubt(qId) {
   const input = document.getElementById(`inputVoiceDoubt_${qId}`);
   const doubtText = input?.value?.trim() || '';
   if (!doubtText) return;
+  if (input) input.value = '';
+
+  // If Gemini Live full-duplex session is active, route directly through the low-latency WebSocket!
+  if (window.geminiLiveVoiceTutor && window.geminiLiveVoiceTutor.isSessionActive() && window.geminiLiveVoiceTutor.getActiveQuestionId() === qId) {
+    window.geminiLiveVoiceTutor.sendUserText(doubtText);
+    return;
+  }
 
   const qObj = (state.qbFilteredQuestions || []).find(item => item.id === qId) || {};
   const rawQ = qObj.question_latex || qObj.questionText || '';
@@ -9018,6 +9025,13 @@ function quickAskDoubt(qId, doubtText) {
   const input = document.getElementById(`inputVoiceDoubt_${qId}`);
   if (input) input.value = doubtText;
   submitVoiceDoubt(qId);
+}
+
+// Instant manual commit for Gemini Live turn
+function commitLiveVoiceTurn(qId) {
+  if (window.geminiLiveVoiceTutor && window.geminiLiveVoiceTutor.isSessionActive() && window.geminiLiveVoiceTutor.getActiveQuestionId() === qId) {
+    window.geminiLiveVoiceTutor.commitTurn();
+  }
 }
 
 // 6. Stop Voice Tutor
@@ -9611,9 +9625,14 @@ function renderQbCurrentPage() {
             </div>
 
             <!-- Auto-Interruption Notification Hint -->
-            <div id="voiceLiveHint_${qId}" class="qb-live-interruption-notice" style="display:none;">
-              <i data-lucide="sparkles" style="width:13px; height:13px;"></i>
-              <span>Hands-Free Auto-Interruption Active: <strong>Just start speaking anytime</strong> to pause the teacher instantly!</span>
+            <div id="voiceLiveHint_${qId}" class="qb-live-interruption-notice" style="display:none; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+              <div style="display:inline-flex; align-items:center; gap:8px;">
+                <i data-lucide="sparkles" style="width:13px; height:13px;"></i>
+                <span>Hands-Free Auto-Interruption Active: <strong>Speak anytime</strong> to ask doubts live!</span>
+              </div>
+              <button type="button" class="btn-secondary" onclick="commitLiveVoiceTurn('${qId}')" style="font-size:0.75rem; padding:4px 10px; border-radius:6px; background:rgba(56,189,248,0.18); border:1px solid rgba(56,189,248,0.45); color:#38bdf8; cursor:pointer;" title="Trigger response immediately without waiting for pause">
+                <i data-lucide="zap" style="width:12px; height:12px; vertical-align:middle;"></i> Done Speaking (Instant)
+              </button>
             </div>
 
             <!-- Spoken Content Transcript Box -->

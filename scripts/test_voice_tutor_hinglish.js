@@ -198,12 +198,15 @@ async function testHttpEndpoints() {
         ws.send(JSON.stringify({
           setup: {
             model: tokenData.model,
-            generationConfig: { responseModalities: ['AUDIO'] },
+            generationConfig: {
+              responseModalities: ['AUDIO'],
+              thinkingConfig: { thinkingBudget: 0 }
+            },
             systemInstruction: { parts: [{ text: 'You are an expert Indian school mentor.' }] },
             inputAudioTranscription: {},
             outputAudioTranscription: {},
             realtimeInputConfig: {
-              automaticActivityDetection: { disabled: false, prefixPaddingMs: 150, silenceDurationMs: 700 },
+              automaticActivityDetection: { disabled: false, prefixPaddingMs: 100, silenceDurationMs: 350 },
               activityHandling: 'START_OF_ACTIVITY_INTERRUPTS'
             }
           }
@@ -230,7 +233,7 @@ async function testHttpEndpoints() {
     });
 
     await wsHandshakePromise;
-    console.log('  WebSocket Gemini Live Handshake -> setupComplete confirmed (activityHandling: START_OF_ACTIVITY_INTERRUPTS)');
+    console.log('  WebSocket Gemini Live Handshake -> setupComplete confirmed (thinkingBudget: 0, silenceDurationMs: 350, activityHandling: START_OF_ACTIVITY_INTERRUPTS)');
   } finally {
     server.close();
   }
@@ -244,6 +247,9 @@ async function testHttpEndpoints() {
   assert(liveJsContent.includes('START_OF_ACTIVITY_INTERRUPTS'), 'Must configure START_OF_ACTIVITY_INTERRUPTS');
   assert(liveJsContent.includes('content.interrupted'), 'Must handle server interruption event');
   assert(liveJsContent.includes('window.geminiLiveVoiceTutor'), 'Must expose window.geminiLiveVoiceTutor');
+  assert(liveJsContent.includes('thinkingBudget: 0'), 'Must configure thinkingBudget: 0 for sub-2s conversational latency');
+  assert(liveJsContent.includes('silenceDurationMs: 350'), 'Must configure silenceDurationMs: 350 for fast turn-taking');
+  assert(liveJsContent.includes('commitTurn()'), 'Must define commitTurn() for instant manual commit');
   console.log('[PASS] Client-side Gemini Live voice assistant engine verified.');
 
   console.log('\n========================================================================');

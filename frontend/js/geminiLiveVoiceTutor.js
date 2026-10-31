@@ -53,9 +53,9 @@
       this.activeQuestionId = null;
       this.callbacks = {};
       this.levelAnimationId = null;
-      this.endOfSpeechTimer = null;
-      this.speechDetected = false;
+      this.isStreamingVoice = false;
       this.lastVoiceAt = 0;
+      this.preAudioBuffer = [];
 
       this.currentInputText = '';
       this.currentOutputText = '';
@@ -259,7 +259,17 @@ Pedagogical Rules:
           setup: {
             model: model || 'models/gemini-2.5-flash-native-audio-latest',
             generationConfig: {
-              responseModalities: ['AUDIO']
+              responseModalities: ['AUDIO'],
+              speechConfig: {
+                voiceConfig: {
+                  prebuiltVoiceConfig: {
+                    voiceName: 'Puck'
+                  }
+                }
+              },
+              thinkingConfig: {
+                thinkingBudget: 0
+              }
             },
             systemInstruction: {
               parts: [{ text: systemPrompt }]
@@ -269,8 +279,8 @@ Pedagogical Rules:
             realtimeInputConfig: {
               automaticActivityDetection: {
                 disabled: false,
-                prefixPaddingMs: 150,
-                silenceDurationMs: 700
+                prefixPaddingMs: 100,
+                silenceDurationMs: 350
               },
               activityHandling: 'START_OF_ACTIVITY_INTERRUPTS'
             }
@@ -303,6 +313,7 @@ Pedagogical Rules:
         });
 
         // 6. Microphone Input Setup (16kHz PCM stream)
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
         this.inputContext = new AudioCtx({ sampleRate: 16000, latencyHint: 'interactive' });
         this.inputStream = await navigator.mediaDevices.getUserMedia({
           audio: {
@@ -319,9 +330,9 @@ Pedagogical Rules:
         micSource.connect(this.inputAnalyser);
 
         this.processor = this.inputContext.createScriptProcessor(2048, 1, 1);
-        this.speechDetected = false;
+        this.isStreamingVoice = false;
         this.lastVoiceAt = 0;
-        this.endOfSpeechTimer = null;
+        this.preAudioBuffer = [];
 
         this.processor.onaudioprocess = (event) => {
           if (this.socket?.readyState !== WebSocket.OPEN) return;
@@ -333,36 +344,64 @@ Pedagogical Rules:
             energy += samples[i] * samples[i];
           }
           const rms = Math.sqrt(energy / samples.length);
-          const isVoice = rms > 0.015;
+          const isVoice = rms > 0.018;
+          const now = performance.now();
 
-          if (isVoice) {
-            this.speechDetected = true;
-            this.lastVoiceAt = performance.now();
-            if (this.endOfSpeechTimer) {
-              window.clearTimeout(this.endOfSpeechTimer);
-              this.endOfSpeechTimer = null;
-            }
-          } else if (this.speechDetected && !this.endOfSpeechTimer) {
-            this.endOfSpeechTimer = window.setTimeout(() => {
-              if (this.socket?.readyState === WebSocket.OPEN && (performance.now() - this.lastVoiceAt) >= 450) {
-                this.socket.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
-                this.speechDetected = false;
-              }
-              this.endOfSpeechTimer = null;
-            }, 450);
-          }
-
-          // Send 16-bit PCM chunk to Gemini Live
           const pcmBytes = floatToPcm16(samples);
           const base64Chunk = bytesToBase64(pcmBytes);
-          this.socket.send(JSON.stringify({
-            realtimeInput: {
-              audio: {
-                data: base64Chunk,
-                mimeType: 'audio/pcm;rate=16000'
+
+          if (isVoice) {
+            // Student started speaking or is actively speaking
+            if (!this.isStreamingVoice) {
+              this.isStreamingVoice = true;
+              // Flush pre-buffer so first syllables are never clipped
+              while (this.preAudioBuffer.length > 0) {
+                const preChunk = this.preAudioBuffer.shift();
+                this.socket.send(JSON.stringify({
+                  realtimeInput: {
+                    audio: {
+                      data: preChunk,
+                      mimeType: 'audio/pcm;rate=16000'
+                    }
+                  }
+                }));
               }
             }
-          }));
+            this.lastVoiceAt = now;
+
+            // Stream active voice chunk
+            this.socket.send(JSON.stringify({
+              realtimeInput: {
+                audio: {
+                  data: base64Chunk,
+                  mimeType: 'audio/pcm;rate=16000'
+                }
+              }
+            }));
+          } else if (this.isStreamingVoice) {
+            // Silence detected after active voice
+            if ((now - this.lastVoiceAt) <= 350) {
+              // Within conversational grace window (inter-word pause)
+              this.socket.send(JSON.stringify({
+                realtimeInput: {
+                  audio: {
+                    data: base64Chunk,
+                    mimeType: 'audio/pcm;rate=16000'
+                  }
+                }
+              }));
+            } else {
+              // Pause has exceeded 350ms: speech turn is finished!
+              this.isStreamingVoice = false;
+              this.socket.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
+            }
+          } else {
+            // Continuous idle silence: retain last 2 chunks (~250ms) in ring buffer for natural onset padding
+            this.preAudioBuffer.push(base64Chunk);
+            if (this.preAudioBuffer.length > 2) {
+              this.preAudioBuffer.shift();
+            }
+          }
         };
 
         micSource.connect(this.processor);
@@ -446,6 +485,13 @@ Pedagogical Rules:
       }));
     }
 
+    commitTurn() {
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        this.isStreamingVoice = false;
+        this.socket.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } }));
+      }
+    }
+
     interrupt() {
       this.stopPlayback();
     }
@@ -458,13 +504,11 @@ Pedagogical Rules:
 
     stopSession() {
       this.stopPlayback();
+      this.isStreamingVoice = false;
+      this.preAudioBuffer = [];
       if (this.levelAnimationId) {
         cancelAnimationFrame(this.levelAnimationId);
         this.levelAnimationId = null;
-      }
-      if (this.endOfSpeechTimer) {
-        window.clearTimeout(this.endOfSpeechTimer);
-        this.endOfSpeechTimer = null;
       }
       if (this.processor) {
         try { this.processor.disconnect(); } catch (e) {}
