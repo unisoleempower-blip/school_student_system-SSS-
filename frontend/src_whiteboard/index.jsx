@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Tldraw } from 'tldraw';
 
@@ -6,13 +6,47 @@ let editorInstance = null;
 let shapeYOffset = 60;
 const queuedEvents = [];
 
+function hideLoader() {
+  const loader = document.getElementById('whiteboard-loading');
+  if (loader && loader.style.display !== 'none') {
+    loader.style.opacity = '0';
+    setTimeout(() => { loader.style.display = 'none'; }, 200);
+  }
+}
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('[TLDRAW WHITEBOARD ERROR BOUNDARY]:', error, errorInfo);
+    hideLoader();
+    if (window.initFallbackCanvas) {
+      window.initFallbackCanvas();
+    }
+  }
+  render() {
+    if (this.state.hasError) {
+      return null;
+    }
+    return this.props.children;
+  }
+}
+
 const WhiteboardController = {
   isReady() {
     return !!editorInstance;
   },
 
   clear() {
-    if (!editorInstance) return;
+    if (!editorInstance) {
+      if (window.clearFallbackCanvas) window.clearFallbackCanvas();
+      return;
+    }
     try {
       const allShapeIds = Array.from(editorInstance.getCurrentPageShapeIds());
       if (allShapeIds.length > 0) {
@@ -34,7 +68,10 @@ const WhiteboardController = {
   },
 
   addQuestionHeader({ title, chapter, marks }) {
-    if (!editorInstance) return;
+    if (!editorInstance) {
+      if (window.drawFallbackHeader) window.drawFallbackHeader(title, chapter, marks);
+      return;
+    }
     const cleanTitle = (title || '')
       .replace(/\$+/g, '')
       .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '$1/$2')
@@ -64,7 +101,10 @@ const WhiteboardController = {
   },
 
   addStepFormula({ stepNum = 1, title = 'Governing Law', formula = '', explanation = '' }) {
-    if (!editorInstance) return;
+    if (!editorInstance) {
+      if (window.drawFallbackStep) window.drawFallbackStep(stepNum, title, formula, explanation);
+      return;
+    }
     const cleanFormula = (formula || '').replace(/\$+/g, '').trim();
     const cleanExp = (explanation || '').replace(/\$+/g, '').trim();
 
@@ -91,7 +131,10 @@ const WhiteboardController = {
   },
 
   drawPhysicsDiagram(type = 'lens', params = {}) {
-    if (!editorInstance) return;
+    if (!editorInstance) {
+      if (window.drawFallbackDiagram) window.drawFallbackDiagram(type, params);
+      return;
+    }
     const cx = 410;
     const cy = shapeYOffset + 120;
 
@@ -263,7 +306,10 @@ const WhiteboardController = {
   },
 
   highlightDoubt({ doubtText, answerText }) {
-    if (!editorInstance) return;
+    if (!editorInstance) {
+      if (window.drawFallbackDoubt) window.drawFallbackDoubt(doubtText, answerText);
+      return;
+    }
     const curY = shapeYOffset;
 
     try {
@@ -296,7 +342,10 @@ const WhiteboardController = {
   },
 
   addFinalAnswer({ answer, keyInsight }) {
-    if (!editorInstance) return;
+    if (!editorInstance) {
+      if (window.drawFallbackFinal) window.drawFallbackFinal(answer, keyInsight);
+      return;
+    }
     const cleanAnswer = (answer || '').replace(/\$+/g, '').trim();
 
     try {
@@ -365,15 +414,18 @@ function processWhiteboardEvent(data) {
 }
 
 function WhiteboardApp() {
+  useEffect(() => {
+    // Safety timer: Dismiss loading spinner after max 700ms so screen is never blocked
+    const timer = setTimeout(() => {
+      hideLoader();
+    }, 700);
+    return () => clearTimeout(timer);
+  }, []);
+
   const handleMount = (editor) => {
     editorInstance = editor;
     console.log('[TLDRAW WHITEBOARD] Local bundle Editor mounted successfully!');
-
-    const loader = document.getElementById('whiteboard-loading');
-    if (loader) {
-      loader.style.opacity = '0';
-      setTimeout(() => { loader.style.display = 'none'; }, 200);
-    }
+    hideLoader();
 
     while (queuedEvents.length > 0) {
       const evt = queuedEvents.shift();
@@ -385,12 +437,16 @@ function WhiteboardApp() {
 
   return React.createElement(
     'div',
-    { style: { width: '100%', height: '100%', position: 'relative' } },
-    React.createElement(Tldraw, {
-      onMount: handleMount,
-      autoFocus: false,
-      inferDarkMode: true
-    })
+    { style: { position: 'fixed', inset: 0, width: '100%', height: '100%' } },
+    React.createElement(
+      ErrorBoundary,
+      null,
+      React.createElement(Tldraw, {
+        onMount: handleMount,
+        autoFocus: false,
+        inferDarkMode: true
+      })
+    )
   );
 }
 
